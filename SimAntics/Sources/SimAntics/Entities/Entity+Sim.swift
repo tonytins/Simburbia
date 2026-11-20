@@ -4,6 +4,8 @@ import TSOFiles
 
 /// Indexes into a Sim's person data that Simburbia's code names (FreeSO's `VMPersonDataVariable`).
 public enum PersonData {
+    /// 0 standing, 1 sitting, 2 kneeling (`Posture`).
+    public static let posture = 0
     public static let moneyAmountOverHead = 1
     public static let neatPersonality = 7
     public static let isHousemate = 21

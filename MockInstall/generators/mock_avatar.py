@@ -15,7 +15,9 @@ HandGroup, Animation), so the mock install has a whole Sim with nothing from EA 
   mock-walk-fast, mock-swim), a stand (mock-stand), and a dance (mock-dance), with timed events
   (xevt, a sound, and hand events); the dance writes its property lists as one set with no set
   count, the layout of TSO's own stereo dances (a2o-test-animation2 to 6);
-- the mock Sim's body strings (STR# 200 in mocksim.iff) naming the female body and head.
+- the mock Sim's body strings (STR# 200 in mocksim.iff) naming the female body and head, and its
+  animation table (STR# 129, the table an object's Animate Sim reads by default): the stand, the
+  dance, the walk, and one name no file has.
 
 Every file is written whole each run, so the result can be made again; the textures need
 ImageMagick (`magick`). File IDs are 0x4D4F.... ("MO"), clear of TSO's.
@@ -380,12 +382,24 @@ for _ in range(count):
 def outfit_string(file_id):
     return "0x%X%08X" % (file_id, OUTFIT)
 
+# Animate Sim's IDs index this table; 0 means "stop", so entry 0 is left empty.
+ANIMATION_TABLE = 129
+animation_names = ["", "mock-stand", "mock-dance", "mock-walk", "mock-missing"]
+
+def str_chunk(chunk_id, flags, label, strings):
+    contents = struct.pack("<hH", -2, len(strings)) + b"".join(t.encode("ascii") + b"\0\0" for t in strings)
+    return (b"STR#" + struct.pack(">I", 76 + len(contents)) + struct.pack(">H", chunk_id) + flags
+            + label.encode("ascii").ljust(64, b"\0") + contents)
+
 for entry in entries:
     if entry[0] != b"mocksim.iff": continue
     iff = entry[1]; q, out = 64, bytearray(iff[:64])
+    flags = None
     while q + 76 <= len(iff):
         size, = struct.unpack_from(">I", iff, q + 4)
         chunk = iff[q:q + size]
+        if chunk[:4] == b"STR#" and struct.unpack_from(">H", chunk, 8)[0] == ANIMATION_TABLE:
+            q += size; continue                    # written again below
         if chunk[:4] == b"STR#" and struct.unpack_from(">H", chunk, 8)[0] == 200:
             fmt, strings_count = struct.unpack_from("<hH", chunk, 76)
             assert fmt == -2
@@ -393,11 +407,14 @@ for entry in entries:
             for _ in range(strings_count):
                 end = chunk.index(b"\0", r); text = chunk[r:end].decode("ascii"); r = chunk.index(b"\0", end + 1) + 1
                 strings.append(text)
+            flags = chunk[10:12]
             strings[1] = outfit_string(OFT[("body", "female")])
             strings[2] = outfit_string(OFT[("head", "female")])
             contents = struct.pack("<hH", -2, len(strings)) + b"".join(t.encode("ascii") + b"\0\0" for t in strings)
             chunk = chunk[:4] + struct.pack(">I", 76 + len(contents)) + chunk[8:76] + contents
         out += chunk; q += size
+    assert flags is not None, "mocksim.iff has no body strings"
+    out += str_chunk(ANIMATION_TABLE, flags, "mock animations", animation_names)
     entry[1] = bytes(out)
     break
 else:

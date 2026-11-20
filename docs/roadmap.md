@@ -31,6 +31,7 @@ is `partial, not blocking`.
 
 | Core job | Works end to end? | Evidence | Hours to pass |
 |---|---|---|---|
+| 2026-11-20 | minor | Queen Margaret's fourth pass, step C3: Animate Sim (44), as FreeSO's `VMAnimateSim` runs it and checked against plumbob-engine's: play and wait, handing the routine each `xevt` and making up expected events at the end; the carry modes; ID 0 back to the posture's walk; and the animation tables by source. MockInstall's Sim gets an animation table (`STR#` 129). Of 1.1097.1.0's 13,886 Animate Sim instructions, 8,526 literal-ID ones resolve to an animation; about 3,800 in the pet and NPC socials find no table their code owner holds and skip, as in FreeSO, left open for phase D with mode 1 (169) and the hurry flag (143). Sims don't run on a real install until D, so real lots don't animate yet. |
 | 2026-11-20 | minor | Queen Margaret's fourth pass, step C2: Sims play animations. `AnimationState` (frame, speed, weight, direction, loop, events run and queued) advances in the Sim's tick after motive decay, as `VMAvatar.Tick` does, firing events as reached; `AnimationClip` keeps a file's length and events in time order, decoded once per VM. Event times are signed in TSOFiles now. Cross-checked with plumbob-engine (MIT, a The Sims 1 engine, kept as a local reference; its comments cite addresses in TS1's executable, so it's a witness, not a source to copy) and measured on 1.1097.1.0: events are sorted (86 animations list them out of order), negative times dropped (1,653 events; DIFF-37), and loops fire their events every pass (175 looping animations have `xevt`s; DIFF-36). Frames are 32-bit floats, pinned bit for bit by a test (decision 8). The digest writes animations. |
 | 2026-11-20 | minor | Queen Margaret's fourth pass, step C1: animation files. TSOFiles reads `.anim` (`Animation`): motions, translations, rotations, property lists, and timed events, every count checked, with little-endian floats in a big-endian file. Five animations every install has, the stereos' and jukebox's dances (`a2o-test-animation2` to `6`), write property lists as single sets; FreeSO fails on them, and Simburbia reads them (DIFF-35). TSOContent's `AnimationProvider` finds animations by name; `tsofiles-check` decodes all of them on the three installs (5,454, 5,249, and 5,240) with no failures. MockInstall's animations get timed events and a dance in that layout. Phase C is planned in four steps; decisions 1 (animations in TSOFiles) and 8 (32-bit floats, pinned by a test) are settled. |
 | Open every FAR1, FAR3, DBPF, and IFF file in a TSO install | yes | `tsofiles-check` on a real install: 94 containers, 82,131 entries, 0 failures (scorecard FID-1). The first run found `packingslips.dat` repeating file IDs across types; FAR3 now looks entries up by full asset ID (scorecard DIFF-5) | 0 |
@@ -175,9 +176,10 @@ In order:
        exact frame values on every CI platform (decision 8). Checked against plumbob-engine as a
        second witness and the files themselves: events sorted by time, negative times dropped
        (DIFF-37), loops fire their events every pass (DIFF-36).
-     - [ ] C3. Animate Sim (44): starting and stopping an animation, its events back to the
+     - [x] C3. Animate Sim (44): starting and stopping an animation, its events back to the
        routine, and carry animations. The most-used primitive not yet run: 8,555 instructions in
-       1.1097.1.0's buy catalog.
+       1.1097.1.0's buy catalog. Open for D: the pet and NPC socials' animation tables, and the
+       hurry flag.
      - [ ] C4. Change Suit Or Accessory (6, as state), Reach (47), Grab (4), and Drop (5); a
        made-up mock object animates the mock Sim. Mutation testing waits until after C.
    - [ ] D. The interaction queue: interaction tables (`TTAB`), queued actions and priorities,

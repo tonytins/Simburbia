@@ -36,13 +36,17 @@ public struct AnimationClip: Sendable, Equatable {
 
     /// The name in the animation's file, which the state digest uses.
     public var name: String
+    /// The file's name, lower case, without `.anim`: what tells two animations apart (FreeSO
+    /// compares the decoded animations themselves, one per file).
+    public var key: String
     /// The longest motion's frames (FreeSO's `NumFrames`).
     public var frameCount: Int
     /// Events with times of 0 or more, sorted by time, ties in file order.
     public var events: [Event]
 
-    public init(_ animation: TSOFiles.Animation) {
+    public init(_ animation: TSOFiles.Animation, key: String? = nil) {
         name = animation.name
+        self.key = key ?? animation.name.lowercased()
         frameCount = Int(animation.frameCount)
         let timed = animation.timedProperties.enumerated().filter { $0.element.time >= 0 }
         // Sorted by time, then by place in the file, so ties keep their order.
@@ -52,8 +56,9 @@ public struct AnimationClip: Sendable, Equatable {
         }
     }
 
-    public init(name: String, frameCount: Int, events: [Event]) {
+    public init(name: String, key: String? = nil, frameCount: Int, events: [Event]) {
         self.name = name
+        self.key = key ?? name.lowercased()
         self.frameCount = frameCount
         self.events = events
     }
@@ -203,7 +208,7 @@ extension VM {
             throw .content(error)
         }
         guard let animation else { return nil }
-        let clip = AnimationClip(animation)
+        let clip = AnimationClip(animation, key: key)
         animationClips[key] = clip
         return clip
     }

@@ -32,7 +32,6 @@ extension PrimitiveTable {
         39: Primitives.Dialog.Operand.self,
         40: Primitives.OnlineJobsCall.Operand.self,
         43: Primitives.DropOnto.Operand.self,
-        44: Primitives.AnimateSim.Operand.self,
         45: Primitives.GotoRoutingSlot.Operand.self,
         46: Primitives.Snap.Operand.self,
         47: Primitives.Reach.Operand.self,
@@ -56,45 +55,6 @@ extension Primitives {
         public init(bytes: [UInt8]) {}
         public func encoded() -> [UInt8] { OperandWriter.bytes { _ in } }
         public var fsoCompatFields: [(name: String, value: Int64)] { [] }
-    }
-
-    /// Animate Sim (opcode 44). FreeSO's `VMAnimateSimOperand`; its second padding byte is
-    /// written back as zero, as FreeSO writes it.
-    public enum AnimateSim {
-        public struct Operand: FSOCompatOperand, Equatable {
-            public var animationID: UInt16
-            public var localEventNumber: UInt8
-            /// Where the animation comes from (`VMAnimationScope`).
-            public var source: UInt8
-            public var flags: UInt8
-            public var expectedEventCount: UInt8
-
-            public init(bytes: [UInt8]) {
-                var reader = OperandReader(bytes)
-                animationID = reader.uint16()
-                localEventNumber = reader.uint8()
-                _ = reader.uint8()
-                source = reader.uint8()
-                flags = reader.uint8()
-                expectedEventCount = reader.uint8()
-            }
-
-            public func encoded() -> [UInt8] {
-                OperandWriter.bytes { writer in
-                    writer.uint16(animationID)
-                    writer.uint8(localEventNumber)
-                    writer.uint8(0)
-                    writer.uint8(source)
-                    writer.uint8(flags)
-                    writer.uint8(expectedEventCount)
-                }
-            }
-
-            public var fsoCompatFields: [(name: String, value: Int64)] {
-                [("AnimationID", Int64(animationID)), ("LocalEventNumber", Int64(localEventNumber)),
-                 ("Source", Int64(source)), ("Flags", Int64(flags)), ("ExpectedEventCount", Int64(expectedEventCount))]
-            }
-        }
     }
 
     /// Change Suit or Accessory (opcode 6). FreeSO's `VMChangeSuitOrAccessoryOperand`.

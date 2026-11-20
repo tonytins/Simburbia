@@ -7,8 +7,8 @@ by tick, the same way on every machine.
 
 What runs today: the VM core, entities and their entry points, creating and deleting objects
 (multi-tile ones included), threads with subroutine calls and check threads, every variable scope
-objects use, the scheduler and clock, placing objects and putting them in slots, and 21 of the 49
-primitives TSO uses (Sleep, Expression, Refresh, Random Number, Get Distance To, Get Direction To,
+objects use, the scheduler and clock, placing objects and putting them in slots, Sims'
+animations, and 22 of the 49 primitives TSO uses (Animate Sim, Sleep, Expression, Refresh, Random Number, Get Distance To, Get Direction To,
 Breakpoint, Find Location For, Idle For Input, Remove Object Instance, Play Sound, Transfer Funds,
 Run Tree By Name, Set To Next, Test Object Type, Special Effect, Set Balloon Headline, Create
 Object Instance, Stop All Sounds, Notify Stack Object Out Of Idle, and Get Terrain Info). Balloon headlines aren't drawn, but each counts down and keeps its entity running every
@@ -210,6 +210,7 @@ ones; FreeSO's names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 | 35 | `SpecialEffect` | A visual effect; on a TSO lot it does nothing |
 | 41 | `SetBalloonHeadline` | Shows or clears a balloon over the caller or the stack object (headless: it counts down) |
 | 42 | `CreateObjectInstance` | Creates an object beside, in front of, or under another, and makes it the stack object |
+| 44 | `AnimateSim` | Plays an animation on the calling Sim and hands the routine its events; sets or stops the carry animation; ID 0 goes back to the posture's walk |
 | 48 | `StopAllSounds` | Stops an object's sounds; headless, nothing plays |
 | 49 | `NotifyStackObjectOutOfIdle` | Wakes the stack object: brings its next run forward and interrupts its Sleep |
 | 63 | `GetTerrainInfo` | The ground's heights, slope, or an object's tile and level, into temps (terrain is flat: not ported) |
@@ -272,6 +273,30 @@ fractional speed gives, so every platform CI runs on must agree. An `xevt` goes 
 animation's queue, and below 100 counts toward its `eventsRun`, as in FreeSO; hand poses are kept
 for drawing, and sounds wait for a client with audio. The digest covers each animation's name,
 frame, speed, and flags.
+
+Animate Sim (44) starts them. In its play-and-wait mode the first run starts the animation and
+waits; later runs hand the routine each `xevt` (into a local or the first parameter, going false),
+and at the end, having made up any events the operand expected and didn't get, it stops the
+animation and goes true. It finds the animation's name in a string table its source picks: the
+code owner's animation table (its `OBJD`'s, else `STR#` 129), the stack object's, or the global's
+128, 130, or 156. Of 1.1097.1.0's 13,886 Animate Sim instructions:
+
+| Use | Instructions | Simburbia |
+| --- | ---: | --- |
+| Play and wait (mode 0) | 13,174 | Played, events handed over |
+| Stop the carry, then play and wait (mode 3) | 161 | Played |
+| Set the carry animation (mode 2) | 382 | Set |
+| Mode 1 | 169 | Ignored, as in FreeSO; plumbob-engine plays a background loop, which waits for drawing |
+| Reset, ID 0 | 752 | The posture's walk, looping |
+| Hurry flag (8) | 143 | Not yet: it lets an interaction interrupt, which waits for the queue (phase D) |
+| Expected events set | 3,942 | Made up at the end when missing |
+
+8,526 of the instructions with a literal ID resolve to an animation through these tables. About
+3,800 don't, because their code owner has no animation table: nearly all in the dog, cat, and
+NPC social objects (`petsocialsdog`, `petsocialscat`, `npcsocials`). FreeSO skips those and goes
+true, and so does Simburbia for now. plumbob-engine reads the table of the object the Sim is
+interacting with instead, which neither the person objects' nor the global's tables fit well.
+Which table they use is an open question for phase D, when interactions show who calls them.
 
 ## Scheduling, the clock, and randomness
 

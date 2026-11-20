@@ -41,7 +41,7 @@ It follows the layout of a real install, with only what the content system needs
 | `0x4D4F4304` | Mock Table (right) | Its part one tile along x |
 | `0x4D4F4305` | Mock Lamp | A one-tile object whose main runs a routine by name |
 | `0x4D4F4306` | Mock Register | A one-tile object whose main moves money |
-| `0x4D4F4307` | Mock Sim | A one-tile person (object type `person`) whose main counts runs in attribute 0. Its body strings (`STR#` 200, `BodyStringID`) make it an adult named Mock Sim |
+| `0x4D4F4307` | Mock Sim | A one-tile person (object type `person`) whose main counts runs in attribute 0. Its body strings (`STR#` 200, `BodyStringID`) make it an adult named Mock Sim, and its animation table (`STR#` 129) names, from 1, `mock-stand`, `mock-dance`, `mock-walk`, and `mock-missing`, which no file has, for Animate Sim |
 
 The GUIDs spell `MOC` followed by a number, so they can't be mistaken for a real object's.
 
