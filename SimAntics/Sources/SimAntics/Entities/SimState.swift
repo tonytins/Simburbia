@@ -82,6 +82,15 @@ public struct SimState: Sendable, Equatable {
     /// How many walk and swim animations a Sim has room for.
     public static let animationSlots = 50
 
+    /// The animations playing, first the one the routine waits on (FreeSO's `Animations`); see
+    /// ``Entity/advanceAnimations()``.
+    public var animations: [AnimationState] = []
+    /// What the Sim's arm plays while carrying something (`CarryAnimationState`).
+    public var carryAnimation: AnimationState?
+    /// Hand poses from animation events (`lefthand`, `righthand`), which only drawing reads.
+    public var leftHandPose: Int16 = 0
+    public var rightHandPose: Int16 = 0
+
     public init() {}
 }
 

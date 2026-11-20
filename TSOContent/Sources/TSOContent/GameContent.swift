@@ -56,10 +56,12 @@ public final class GameContent: Sendable {
     public let patches: PatchRegistry
     public let globals: GlobalProvider
     public let objects: ObjectProvider
+    /// Sims' animations, by file name (``AnimationProvider``).
+    public let animations: AnimationProvider
 
-    /// Indexes the install, loads the patches, and registers every object.
+    /// Indexes the install, loads the patches, registers every object, and lists the animations.
     ///
-    /// Objects, globals, and their files load later, on first use.
+    /// Objects, globals, animations, and their files load later, on first use.
     public init(_ configuration: Configuration) throws(ContentError) {
         files = try GameFileIndex(root: configuration.gameDirectory)
         var patches = PatchRegistry()
@@ -79,6 +81,7 @@ public final class GameContent: Sendable {
                                      standaloneDirectories: [configuration.standaloneObjectDirectory,
                                                              configuration.modObjectDirectory].compactMap { $0 },
                                      loadsSprites: configuration.loadsSprites)
+        animations = AnimationProvider(files: files)
     }
 
     /// The global every object can call (`objectdata/globals/global.iff`).

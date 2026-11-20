@@ -107,6 +107,14 @@ private func sampleAnimation(singleSet: Bool = false) -> Data {
         #expect(try Animation(bytes: bytes).duration == 4_000)
     }
 
+    /// Times are signed: TSO's files hold negative ones, which FreeSO reads as unsigned.
+    @Test func readsNegativeTimes() throws {
+        var bytes = sampleAnimation()
+        let first = try #require(bytes.firstRange(of: Data([0, 0, 0x01, 0xF4])))  // 500, the first event's time
+        bytes.replaceSubrange(first, with: [0xFF, 0xFF, 0xDE, 0x04])              // -8700
+        #expect(try Animation(bytes: bytes).timedProperties.map(\.time) == [-8_700, 900])
+    }
+
     @Test func readsTimedPropertiesInFileOrder() throws {
         let events = try Animation(bytes: sampleAnimation()).timedProperties
         #expect(events.map(\.time) == [500, 900])

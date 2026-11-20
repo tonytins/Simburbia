@@ -58,11 +58,12 @@ public struct Animation: Sendable, Equatable {
 
     /// Properties that take effect at a time in the animation (FreeSO's `TimePropertyListItem`).
     public struct TimedProperties: Sendable, Equatable {
-        /// When they take effect, in milliseconds from the start (FreeSO's `ID`).
-        public var time: UInt32
+        /// When they take effect, in milliseconds from the start (FreeSO's `ID`). Signed: 363 of
+        /// 1.1097.1.0's animations hold negative times, which FreeSO reads as unsigned.
+        public var time: Int32
         public var properties: PropertyList
 
-        public init(time: UInt32, properties: PropertyList) {
+        public init(time: Int32, properties: PropertyList) {
             self.time = time
             self.properties = properties
         }
@@ -84,6 +85,20 @@ public struct Animation: Sendable, Equatable {
         public var properties: [PropertyList]?
         /// Lists of timed properties, each in file order; `nil` when the file says it has none.
         public var timedProperties: [[TimedProperties]]?
+
+        public init(boneName: String, frameCount: UInt32, duration: Float, hasTranslation: Bool = false,
+                    hasRotation: Bool = false, firstTranslationIndex: UInt32 = 0, firstRotationIndex: UInt32 = 0,
+                    properties: [PropertyList]? = nil, timedProperties: [[TimedProperties]]? = nil) {
+            self.boneName = boneName
+            self.frameCount = frameCount
+            self.duration = duration
+            self.hasTranslation = hasTranslation
+            self.hasRotation = hasRotation
+            self.firstTranslationIndex = firstTranslationIndex
+            self.firstRotationIndex = firstRotationIndex
+            self.properties = properties
+            self.timedProperties = timedProperties
+        }
     }
 
     /// The file's version. FreeSO reads it and ignores it; TSO's files hold 2.
@@ -125,8 +140,9 @@ public struct Animation: Sendable, Equatable {
         }
     }
 
-    private init(version: UInt32, name: String, duration: Float, distance: Float, isMoving: Bool,
-                 translations: [SIMD3<Float>], rotations: [SIMD4<Float>], motions: [Motion], propertyLayout: PropertyLayout) {
+    public init(version: UInt32 = 2, name: String, duration: Float, distance: Float = 0, isMoving: Bool = false,
+                translations: [SIMD3<Float>] = [], rotations: [SIMD4<Float>] = [], motions: [Motion],
+                propertyLayout: PropertyLayout = .sets) {
         self.version = version
         self.name = name
         self.duration = duration
@@ -213,7 +229,7 @@ public struct Animation: Sendable, Equatable {
                 var items: [TimedProperties] = []
                 items.reserveCapacity(itemCount)
                 for _ in 0..<itemCount {
-                    let time = try reader.readUInt32()
+                    let time = try reader.readInt32()
                     items.append(TimedProperties(time: time, properties: try readPropertyList(&reader, layout: layout)))
                 }
                 lists.append(items)

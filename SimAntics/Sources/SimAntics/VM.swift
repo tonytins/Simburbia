@@ -34,6 +34,9 @@ public final class VM {
     }
 
     private var entitiesByID: [Int16: Entity] = [:]
+    /// Animations decoded so far, by lower-case name (``animationClip(named:)``). Looked up by
+    /// key only, never iterated.
+    var animationClips: [String: AnimationClip] = [:]
     /// Where the search for a free object ID starts (`VM.ObjectId`).
     private var lowestFreeObjectID: Int16 = 1
     /// The lot's walls, floors, and rooms. Changes take effect on the next tick, when rooms are

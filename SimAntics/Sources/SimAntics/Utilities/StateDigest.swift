@@ -16,7 +16,7 @@
 /// float bits, and whether it plays backwards, loops, and has ended (8 each), and how many events
 /// it has run (8). An action is its routine ID (16), callee's object ID (16, 0 for none),
 /// interaction number (32), priority (16), mode (8), ID (16), and whether it's cancelled (8).
-/// Simburbia has no animations or queue yet, so its Sims write none of either.
+/// Simburbia has no action queue yet, so its Sims write an empty one.
 public enum StateDigest {
     public static let version = 1
 
@@ -37,9 +37,18 @@ public enum StateDigest {
                 + "stack=\(entity.thread.stack.map { "\($0.routine.id):\($0.instructionPointer)" }.joined(separator: ","))"
                 + (entity.isAvatar
                     ? " person=\(readPersonData(of: entity).map(String.init).joined(separator: ",")) "
-                        + "motives=\(entity.motiveData.map(String.init).joined(separator: ",")) animations= carry=- queue="
+                        + "motives=\(entity.motiveData.map(String.init).joined(separator: ",")) "
+                        + "animations=\(entity.sim.animations.map(describe).joined(separator: ",")) "
+                        + "carry=\(entity.sim.carryAnimation.map(describe) ?? "-") queue="
                     : "")
         }
+    }
+
+    /// An animation for ``lines(of:)``: its name, frame, and speed, and `b`, `l`, and `e` when it
+    /// plays backwards, loops, or has ended.
+    private static func describe(_ animation: AnimationState) -> String {
+        "\(animation.clip.name)@\(animation.frame)x\(animation.speed)"
+            + (animation.playsBackwards ? "b" : "") + (animation.loops ? "l" : "") + (animation.endReached ? "e" : "")
     }
 
     /// A Sim's person data through ``Entity/personDatum(_:)``, so worked-out values (such as
@@ -52,6 +61,18 @@ public enum StateDigest {
         var bytes: [UInt8] = []
         func append<Value: FixedWidthInteger>(_ value: Value) {
             withUnsafeBytes(of: value.littleEndian) { bytes.append(contentsOf: $0) }
+        }
+        func append(_ flag: Bool) { append(UInt8(flag ? 1 : 0)) }
+        func append(_ animation: AnimationState) {
+            let name = Array(animation.clip.name.utf8)
+            append(Int32(name.count))
+            bytes.append(contentsOf: name)
+            append(animation.frame.bitPattern)
+            append(animation.speed.bitPattern)
+            append(animation.playsBackwards)
+            append(animation.loops)
+            append(animation.endReached)
+            append(animation.eventsRun)
         }
         append(vm.random.seed)
         append(Int32(vm.entities.count))
@@ -75,8 +96,14 @@ public enum StateDigest {
                 for value in personData { append(value) }
                 append(Int32(entity.motiveData.count))
                 for value in entity.motiveData { append(value) }
-                append(Int32(0))  // animations
-                append(UInt8(0))  // no carry animation
+                append(Int32(entity.sim.animations.count))
+                for animation in entity.sim.animations { append(animation) }
+                if let carry = entity.sim.carryAnimation {
+                    append(UInt8(1))
+                    append(carry)
+                } else {
+                    append(UInt8(0))
+                }
                 append(Int32(0))  // the action queue
             }
         }

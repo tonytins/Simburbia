@@ -240,6 +240,39 @@ table.register(Nudge.self)
 let custom = try VM(content: content, seed: 1, primitives: table)
 ```
 
+## Animations
+
+A Sim plays animations (`sim.animations`, FreeSO's `VMAnimationState`s), the first the one its
+routine waits on, and may have a carry animation. Each tick, after motive decay, an animation
+that hasn't ended moves its frame by its speed and fires the events it has reached; past either
+end, a loop wraps and arms its events again, and anything else ends.
+
+```swift
+guard let stand = try vm.animationClip(named: "a2o-standing-loop") else { return }  // decoded once, kept
+sim.sim.animations = [AnimationState(clip: stand, loops: true)]
+vm.tick()
+sim.sim.animations[0].eventQueue      // the xevts it fired, for the routine (Animate Sim, phase C3)
+```
+
+An `AnimationClip` is the part of a file the VM needs: its length, and its events in time order.
+How it reads TSO's files was checked against two earlier engines, FreeSO and plumbob-engine (a
+The Sims 1 engine), and against the files themselves (1.1097.1.0, 2026-11-20):
+
+| Question | FreeSO | plumbob-engine | Simburbia |
+| --- | --- | --- | --- |
+| Event order | File order (it means to sort, and drops the result) | Sorted by time | Sorted by time, ties in file order: 86 animations list events out of order |
+| Negative times (1,653 events, 363 animations) | Read as unsigned, so never fire, and hold back later events | Dropped | Dropped (**Unverified** for TSO's client) |
+| Loops | Events fire on the first pass only | Fire on every pass | Every pass (DIFF-36); 175 looping animations have `xevt`s |
+| Key case (`XEVT` on the tub) | Exact | Any | Any |
+| `"101\t"`, empty `xevt` | Trims; throws on empty | Trims; skips empty | Trims; skips empty |
+| Frames to time | 30 a second | The file's duration | 30 a second: durations are a frame short of their frames' time |
+
+Frames, speeds, and weights are 32-bit floats (roadmap decision 8). A test pins the exact bits a
+fractional speed gives, so every platform CI runs on must agree. An `xevt` goes to the first
+animation's queue, and below 100 counts toward its `eventsRun`, as in FreeSO; hand poses are kept
+for drawing, and sounds wait for a client with audio. The digest covers each animation's name,
+frame, speed, and flags.
+
 ## Scheduling, the clock, and randomness
 
 - **`VMScheduler`** runs the entities scheduled for each tick in object ID order. An entity that

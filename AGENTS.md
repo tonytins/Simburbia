@@ -107,7 +107,9 @@ Two rules are strict: never crash, and determinism. Use judgment for the rest.
 
 TSO's servers shut down long ago, so how the game worked has to be pieced together from what's
 public: [FreeSO](https://github.com/riperiperi/FreeSO),
-[FreeSims](https://github.com/francot514/FreeSims), the
+[FreeSims](https://github.com/francot514/FreeSims),
+[plumbob-engine](https://github.com/testinglol/plumbob-engine) (a The Sims 1 engine; its comments
+cite addresses in TS1's executable, so verify what it says rather than copying it), the
 [SimAntics Wiki](http://simantics.wikidot.com/wiki:introduction-to-simantics) (copied in
 `docs/simantics/`), [SimsWiki](https://simswiki.info/wiki.php?title=Main_Page) (The Sims 2's AI
 extends SimAntics), [Don Hopkins](https://github.com/SimHacker),

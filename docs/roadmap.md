@@ -31,6 +31,7 @@ is `partial, not blocking`.
 
 | Core job | Works end to end? | Evidence | Hours to pass |
 |---|---|---|---|
+| 2026-11-20 | minor | Queen Margaret's fourth pass, step C2: Sims play animations. `AnimationState` (frame, speed, weight, direction, loop, events run and queued) advances in the Sim's tick after motive decay, as `VMAvatar.Tick` does, firing events as reached; `AnimationClip` keeps a file's length and events in time order, decoded once per VM. Event times are signed in TSOFiles now. Cross-checked with plumbob-engine (MIT, a The Sims 1 engine, kept as a local reference; its comments cite addresses in TS1's executable, so it's a witness, not a source to copy) and measured on 1.1097.1.0: events are sorted (86 animations list them out of order), negative times dropped (1,653 events; DIFF-37), and loops fire their events every pass (175 looping animations have `xevt`s; DIFF-36). Frames are 32-bit floats, pinned bit for bit by a test (decision 8). The digest writes animations. |
 | 2026-11-20 | minor | Queen Margaret's fourth pass, step C1: animation files. TSOFiles reads `.anim` (`Animation`): motions, translations, rotations, property lists, and timed events, every count checked, with little-endian floats in a big-endian file. Five animations every install has, the stereos' and jukebox's dances (`a2o-test-animation2` to `6`), write property lists as single sets; FreeSO fails on them, and Simburbia reads them (DIFF-35). TSOContent's `AnimationProvider` finds animations by name; `tsofiles-check` decodes all of them on the three installs (5,454, 5,249, and 5,240) with no failures. MockInstall's animations get timed events and a dance in that layout. Phase C is planned in four steps; decisions 1 (animations in TSOFiles) and 8 (32-bit floats, pinned by a test) are settled. |
 | Open every FAR1, FAR3, DBPF, and IFF file in a TSO install | yes | `tsofiles-check` on a real install: 94 containers, 82,131 entries, 0 failures (scorecard FID-1). The first run found `packingslips.dat` repeating file IDs across types; FAR3 now looks entries up by full asset ID (scorecard DIFF-5) | 0 |
 | Load one object with its behavior, strings, tuning, and sprites | partial, not blocking | `GameContent` loads every object on the beta with its patches, tuning, semi-global, and routines by name, matching FreeSO on all 2,649 objects FreeSO loads (scorecard FID-8). Sprite IFFs load but sprites don't decode yet | 25–40 (Hyde Park) |
@@ -168,11 +169,12 @@ In order:
      - [x] C1. Animation files: `Animation` in TSOFiles (decision 1) and `AnimationProvider` in
        TSOContent; `tsofiles-check` decodes every animation on all three installs. MockInstall's
        animations get timed events, and a dance in the stereos' single-set layout (DIFF-35).
-     - [ ] C2. Animation state on the VM: a Sim's animations (frame, speed, weight, direction,
+     - [x] C2. Animation state on the VM: a Sim's animations (frame, speed, weight, direction,
        events still to fire) and its carry animation, advanced each tick, firing events; decoded
        animations cached. 32-bit floats, as the files and FreeSO use them, with a test that pins
-       exact frame values on every CI platform (decision 8). FreeSO never sorts the events it
-       means to (`OrderBy` with its result dropped); which order real files need is checked.
+       exact frame values on every CI platform (decision 8). Checked against plumbob-engine as a
+       second witness and the files themselves: events sorted by time, negative times dropped
+       (DIFF-37), loops fire their events every pass (DIFF-36).
      - [ ] C3. Animate Sim (44): starting and stopping an animation, its events back to the
        routine, and carry animations. The most-used primitive not yet run: 8,555 instructions in
        1.1097.1.0's buy catalog.

@@ -320,9 +320,9 @@ extension Entity {
     /// What a Sim does each tick after its thread (`VMAvatar.Tick`), in FreeSO's order: the online
     /// job status flag that FreeSO sets to 1 whenever it's 0 (stored, though reading it goes to
     /// the job); motive decay (``decayMotives()``); a Sim out of the world tries again to find a
-    /// place by the first mailbox part, in object ID order; each motive's change
-    /// (``tickMotiveChange(_:)``); and the tick counter. Animations, the debugger's pause, and
-    /// leaving the lot come with later phases.
+    /// place by the first mailbox part, in object ID order; its animations
+    /// (``advanceAnimations()``); each motive's change (``tickMotiveChange(_:)``); and the tick
+    /// counter. The debugger's pause and leaving the lot come with later phases.
     ///
     /// Where FreeSO's retry would fail and stop the lot, Simburbia reports it against the Sim.
     func tickSim() {
@@ -335,6 +335,7 @@ extension Entity {
                 vm.report(error, by: self)
             }
         }
+        advanceAnimations()
         for index in sim.motiveChanges.indices { tickMotiveChange(index) }
         personData[PersonData.tickCounter] &+= 1
     }

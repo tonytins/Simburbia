@@ -161,7 +161,7 @@ TargaImagePCL; parity with FreeSO itself is unverified.
 `Animation` (`Avatars/Animation.swift`) reads a Sim's `.anim` file from the FAR3 archives under
 `avatardata/animations`. An animation is a set of motions, one per bone it moves, each a run of
 frames at 30 a second that index into shared tables of translations and rotations. A motion can
-carry timed properties: events, keyed by their time in milliseconds, such as `xevt` (an event the
+carry timed properties: events, keyed by their time in milliseconds (signed: some are negative), such as `xevt` (an event the
 animating routine hears), `sound`, `lefthand`, and `righthand`.
 
 ```swift
