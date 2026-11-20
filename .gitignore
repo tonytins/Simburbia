@@ -1,0 +1,20 @@
+.DS_Store
+
+# Swift Package Manager, in every package
+.build/
+.swiftpm/
+/*/Packages/
+
+# Game files extracted by scripts/extract.sh next to it (EA data, never versioned)
+scripts/tso/
+
+# Packages built by packaging/
+/dist/
+*.AppImage
+AppDir
+
+# Editors
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/

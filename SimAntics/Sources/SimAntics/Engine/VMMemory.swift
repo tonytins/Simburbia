@@ -1,0 +1,367 @@
+import TSOContent
+import TSOFiles
+
+/// Reads and writes SimAntics variables; ``StackFrame/value(of:)`` and its siblings call it.
+///
+/// Corresponds to FreeSO's `VMMemory`. A raw scope with no ``VariableScope`` fails as it
+/// does in FreeSO. Each scope either behaves as
+/// in FreeSO, fails as FreeSO does (``SimAnticsError/simantics(_:)`` and the other
+/// FreeSO failures), or throws ``SimAnticsError/unsupported(_:)`` because what it
+/// reads (Sims) isn't ported yet.
+enum VMMemory {
+    // MARK: 16-bit variables
+
+    /// A variable's value, as `VMMemory.GetVariable` reads it.
+    static func value(of variable: Variable, in frame: StackFrame) throws(SimAnticsError) -> Int16 {
+        guard let scope = variable.scope else { throw .simantics("Unknown get variable") }
+        let data = variable.data
+        let thread = frame.thread
+        switch scope {
+        case .myObjectAttributes:
+            return try caller(of: frame).attribute(at: UInt16(bitPattern: data))
+        case .stackObjectAttributes:
+            return try stackObject(of: frame).attribute(at: UInt16(bitPattern: data))
+        case .targetObjectAttributes, .targetObject:
+            throw .simantics("Target Object is Deprecated!")
+        case .myObject:
+            return try caller(of: frame).value(of: data)
+        case .stackObject:
+            return try stackObject(of: frame).value(of: data)
+        case .global:
+            return try frame.vm.globalValue(at: UInt16(bitPattern: data))
+        case .literal:
+            return data
+        case .temps:
+            return try element(thread.tempRegisters, data, "temp")
+        case .parameters:
+            return try element(frame.arguments, data, "parameter")
+        case .stackObjectID:
+            return frame.stackObjectID
+        case .tempByTemp:
+            return try element(thread.tempRegisters, try element(thread.tempRegisters, data, "temp"), "temp")
+        case .treeAdRange, .tsoStandardTime, .moneyOverHead32Bit, .myAvatarID, .neighborhoodData,
+             .myTypeAttribute, .stackObjectTypeAttribute:
+            return 0 // type attributes are The Sims 1 only
+        case .featureEnableLevel:
+            return 1
+        case .stackObjectTemp, .treeAdPersonalityVariable, .treeAdMinimum, .myLeadTile, .stackObjectLeadTile:
+            throw .simantics("Not implemented...")
+        case .neighborInStackObject, .neighborPersonData, .jobData, .neighborsObjectDefinition:
+            throw .simantics("Only valid in TS1.")
+        case .myMotives:
+            return try simOnly(frame.caller, index: { data }, personData: false)
+        case .stackObjectMotives:
+            return try simOnly(frame.stackObject, index: { data }, personData: false)
+        case .stackObjectMotiveByTemp:
+            return try simOnly(frame.stackObject, index: { () throws(SimAnticsError) -> Int16 in try element(thread.tempRegisters, data, "temp") }, personData: false)
+        case .myPersonData:
+            return try simOnly(frame.caller, index: { data }, personData: true)
+        case .stackObjectPersonData:
+            return try simOnly(frame.stackObject, index: { data }, personData: true)
+        case .myPersonDataByTemp:
+            return try simOnly(frame.caller, index: { () throws(SimAnticsError) -> Int16 in try element(thread.tempRegisters, data, "temp") }, personData: true)
+        case .stackObjectPersonDataByTemp:
+            return try simOnly(frame.stackObject, index: { () throws(SimAnticsError) -> Int16 in try element(thread.tempRegisters, data, "temp") }, personData: true)
+        case .roomByTemp0:
+            // Temp 0 picks the room, clamped to the rooms there are.
+            let rooms = frame.vm.architecture.rooms
+            let room = rooms[max(0, min(rooms.count - 1, Int(thread.tempRegisters[0])))]
+            switch data {
+            case 0: return 100 // ambient light; FreeSO doesn't compute it
+            case 1: return room.isOutside ? 1 : 0
+            case 2: return 0   // level; FreeSO doesn't fill it in
+            case 3: return Int16(truncatingIfNeeded: room.area)
+            case 4: return room.isPool ? 1 : 0
+            default: throw .simantics("Invalid room data!")
+            }
+        case .dynamicSpriteFlagForTempOfStackObject:
+            let target = frame.stackObject
+            let index = try element(thread.tempRegisters, data, "temp")
+            guard let target else { throw .nullReference("no stack object") }
+            return target.isDynamicSpriteFlagSet(UInt16(bitPattern: index)) ? 1 : 0
+        case .cityTime, .gameTime:
+            let clock = frame.vm.clock
+            switch data {
+            case 0: return Int16(truncatingIfNeeded: clock.seconds)
+            case 1: return Int16(truncatingIfNeeded: clock.minutes)
+            case 2: return Int16(truncatingIfNeeded: clock.hours)
+            case 3: return Int16(truncatingIfNeeded: clock.timeOfDay)
+            default: throw .simantics("Unknown get variable")
+            }
+        case .stackObjectDefinition:
+            return try DefinitionVariable.value(data, of: try stackObject(of: frame).object.definition)
+        case .stackObjectMasterDefinition:
+            let target = try stackObject(of: frame)
+            return try DefinitionVariable.value(data, of: target.masterDefinition ?? target.object.definition)
+        case .stackObjectFunction:
+            guard let entryPoints = try stackObject(of: frame).entryPoints else { throw .nullReference("no entry point table") }
+            guard data >= 0, Int(data) < entryPoints.count else { throw .indexOutOfRange("entry point \(data)") }
+            return Int16(bitPattern: entryPoints[Int(data)].actionFunction)
+        case .myLeadTileAttribute:
+            return try caller(of: frame).leadObject.attribute(at: UInt16(bitPattern: data))
+        case .stackObjectLeadTileAttribute:
+            return try stackObject(of: frame).leadObject.attribute(at: UInt16(bitPattern: data))
+        case .stackObjectSlot:
+            return try stackObject(of: frame).slot(Int(data))?.objectID ?? 0
+        case .mySlot:
+            return try caller(of: frame).slot(Int(data))?.objectID ?? 0
+        case .stackObjectAttributeByParameter:
+            let index = try element(frame.arguments, data, "parameter")
+            return try stackObject(of: frame).attribute(at: UInt16(bitPattern: index))
+        case .local:
+            return try element(frame.locals, data, "local")
+        case .tuning:
+            return try tuningValue(UInt16(bitPattern: data), in: frame)
+        case .localByTemp:
+            return try element(frame.locals, try element(thread.tempRegisters, data, "temp"), "local")
+        case .stackObjectAttributeByTemp:
+            let index = try element(thread.tempRegisters, data, "temp")
+            return try stackObject(of: frame).attribute(at: UInt16(bitPattern: index))
+        case .tempXL:
+            throw .simantics("Caller function does not support TempXL!")
+        case .myList:
+            return try listValue(of: try caller(of: frame), data: data)
+        case .stackObjectList:
+            guard let entity = frame.stackObject else { return 0 }
+            return try listValue(of: entity, data: data)
+        }
+    }
+
+    /// Sets a variable, as `VMMemory.SetVariable` does. Returns `false` for scopes that can't be set.
+    @discardableResult
+    static func setValue(_ value: Int16, of variable: Variable, in frame: StackFrame) throws(SimAnticsError) -> Bool {
+        guard let scope = variable.scope else { throw .simantics("Unknown scope for set variable!") }
+        let data = variable.data
+        let thread = frame.thread
+        switch scope {
+        case .myObjectAttributes:
+            try caller(of: frame).setAttribute(value, at: UInt16(bitPattern: data))
+            return true
+        case .stackObjectAttributes:
+            try stackObject(of: frame).setAttribute(value, at: UInt16(bitPattern: data))
+            return true
+        case .targetObjectAttributes, .targetObject:
+            throw .simantics("Target Object is Deprecated!")
+        case .myObject:
+            return try caller(of: frame).setValue(value, of: data)
+        case .stackObject:
+            return try stackObject(of: frame).setValue(value, of: data)
+        case .global:
+            try frame.vm.setGlobalValue(value, at: UInt16(bitPattern: data))
+            return true
+        case .literal, .treeAdRange, .stackObjectDefinition, .tuning, .treeAdPersonalityVariable, .treeAdMinimum,
+             .stackObjectFunction, .neighborsObjectDefinition, .cityTime, .tsoStandardTime, .gameTime,
+             .myLeadTile, .stackObjectLeadTile, .stackObjectMasterDefinition, .myAvatarID:
+            return false
+        case .temps:
+            thread.tempRegisters[try index(data, in: thread.tempRegisters, "temp")] = value
+            return true
+        case .parameters:
+            frame.arguments[try index(data, in: frame.arguments, "parameter")] = value
+            return true
+        case .stackObjectID:
+            frame.stackObjectID = value
+            return true
+        case .tempByTemp:
+            let target = try element(thread.tempRegisters, data, "temp")
+            thread.tempRegisters[try index(target, in: thread.tempRegisters, "temp")] = value
+            return true
+        case .stackObjectTemp, .roomByTemp0, .neighborInStackObject, .neighborPersonData, .jobData,
+             .neighborhoodData, .tempXL, .myList, .stackObjectList, .featureEnableLevel, .stackObjectSlot, .mySlot:
+            throw .simantics("Not implemented...")
+        case .myMotives:
+            try setSim(frame.caller, index: data, value: value, personData: false)
+            return true
+        case .myPersonData:
+            return try setSim(frame.caller, index: data, value: value, personData: true)
+        case .stackObjectMotives:
+            try setSim(frame.stackObject, index: data, value: value, personData: false)
+            return true
+        case .stackObjectPersonData:
+            return try setSim(frame.stackObject, index: data, value: value, personData: true)
+        case .stackObjectMotiveByTemp:
+            let i = try element(thread.tempRegisters, data, "temp")
+            try setSim(frame.stackObject, index: i, value: value, personData: false)
+            return true
+        case .stackObjectPersonDataByTemp:
+            let i = try element(thread.tempRegisters, data, "temp")
+            return try setSim(frame.stackObject, index: i, value: value, personData: true)
+        case .myPersonDataByTemp:
+            let i = try element(thread.tempRegisters, data, "temp")
+            return try setSim(frame.caller, index: i, value: value, personData: true)
+        case .dynamicSpriteFlagForTempOfStackObject:
+            let target = frame.stackObject
+            let index = try element(thread.tempRegisters, data, "temp")
+            guard let target else { throw .nullReference("no stack object") }
+            target.setDynamicSpriteFlag(UInt16(bitPattern: index), to: value > 0)
+            return true
+        case .myLeadTileAttribute:
+            try caller(of: frame).leadObject.setAttribute(value, at: UInt16(bitPattern: data))
+            return true
+        case .stackObjectLeadTileAttribute:
+            try stackObject(of: frame).leadObject.setAttribute(value, at: UInt16(bitPattern: data))
+            return true
+        case .stackObjectAttributeByParameter:
+            let attribute = try element(frame.arguments, data, "parameter")
+            try stackObject(of: frame).setAttribute(value, at: UInt16(bitPattern: attribute))
+            return true
+        case .local:
+            frame.locals[try index(data, in: frame.locals, "local")] = value
+            return true
+        case .myTypeAttribute, .stackObjectTypeAttribute, .moneyOverHead32Bit:
+            return true // type attributes are The Sims 1 only; TSO ignores the write
+        case .localByTemp:
+            let target = try element(thread.tempRegisters, data, "temp")
+            frame.locals[try index(target, in: frame.locals, "local")] = value
+            return true
+        case .stackObjectAttributeByTemp:
+            let attribute = try element(thread.tempRegisters, data, "temp")
+            try stackObject(of: frame).setAttribute(value, at: UInt16(bitPattern: attribute))
+            return true
+        }
+    }
+
+    // MARK: 32-bit variables
+
+    /// A variable as a 32-bit value; only `TempXL` holds more than 16 bits (`GetBigVariable`).
+    static func bigValue(of variable: Variable, in frame: StackFrame) throws(SimAnticsError) -> Int32 {
+        if variable.scope == .tempXL {
+            return try element(frame.thread.tempXL, variable.data, "TempXL")
+        }
+        return Int32(try value(of: variable, in: frame))
+    }
+
+    /// Sets a variable from a 32-bit value, truncating it for 16-bit scopes (`SetBigVariable`).
+    @discardableResult
+    static func setBigValue(_ value: Int32, of variable: Variable, in frame: StackFrame) throws(SimAnticsError) -> Bool {
+        switch variable.scope {
+        case .tempXL:
+            frame.thread.tempXL[try index(variable.data, in: frame.thread.tempXL, "TempXL")] = value
+            return true
+        case .moneyOverHead32Bit:
+            // FreeSO casts the caller to a Sim to show the headline; no Sims are ported yet.
+            _ = try caller(of: frame)
+            throw .invalidCast("the caller isn't a Sim")
+        default:
+            return try setValue(Int16(truncatingIfNeeded: value), of: variable, in: frame)
+        }
+    }
+
+    // MARK: Lists
+
+    /// The entity whose list a scope names (`GetList`).
+    static func listOwner(of variable: Variable, in frame: StackFrame) throws(SimAnticsError) -> Entity {
+        switch variable.scope {
+        case .myList: return try caller(of: frame)
+        case .stackObjectList: return try stackObject(of: frame)
+        default: throw .simantics("Cannot get specified variable scope as a list.")
+        }
+    }
+
+    private static func listValue(of entity: Entity, data: Int16) throws(SimAnticsError) -> Int16 {
+        switch data {
+        case 0:
+            guard let first = entity.list.first else { throw .nullReference("the list is empty") }
+            return first
+        case 1:
+            guard let last = entity.list.last else { throw .nullReference("the list is empty") }
+            return last
+        case 2:
+            return Int16(truncatingIfNeeded: entity.list.count)
+        default:
+            throw .simantics("Unknown List Accessor")
+        }
+    }
+
+    // MARK: Tuning
+
+    /// A tuning constant, as `VMMemory.GetTuningVariable` finds it.
+    ///
+    /// The top 9 bits pick a table, the low 7 a key. Tables 0 to 63 are the code owner's
+    /// (ID + 4096), 64 to 127 its semi-global's (ID + 8192, looked up in the owner's file
+    /// first), and 128 to 191 the global's (ID + 256); 192 and up are read like the
+    /// owner's, unchanged. Each looks for a BCON, then an OTF table. Nothing found is 0.
+    static func tuningValue(_ data: UInt16, in frame: StackFrame) throws(SimAnticsError) -> Int16 {
+        var tableID = data >> 7
+        let keyID = data & 0x7F
+        let owner = frame.codeOwner.resource
+        switch tableID {
+        case 64..<128:
+            tableID -= 64
+            if let value = try constant(in: owner, table: tableID + 8192, key: keyID, checked: true) { return value }
+            if let semiGlobal = owner.semiGlobal,
+               let value = try constant(in: semiGlobal, table: tableID + 8192, key: keyID, checked: true) { return value }
+        case 128..<192:
+            tableID -= 128
+            if let value = try constant(in: frame.vm.global, table: tableID + 256, key: keyID, checked: true) { return value }
+        default:
+            // The owner's BCONs aren't bounds-checked in FreeSO.
+            if let value = try constant(in: owner, table: tableID &+ 4096, key: keyID, checked: false) { return value }
+        }
+        return 0
+    }
+
+    /// A constant from a BCON, else an OTF table. `checked` skips a BCON too short for the key.
+    private static func constant(in resource: some IFFResource, table: UInt16, key: UInt16,
+                                 checked: Bool) throws(SimAnticsError) -> Int16? {
+        let bcon: BCON?
+        do {
+            bcon = try resource.chunk(BCON.self, id: table)
+        } catch {
+            throw .simantics("BCON \(table) doesn't parse: \(error)")
+        }
+        if let bcon {
+            if Int(key) < bcon.constants.count { return Int16(bitPattern: bcon.constants[Int(key)]) }
+            if !checked { throw .indexOutOfRange("constant \(key) of BCON \(table)") }
+        }
+        guard let otfTable = resource.tuningTable(id: table) else { return nil }
+        guard let entry = otfTable.key(id: Int32(key)) else { throw .nullReference("key \(key) of tuning table \(table)") }
+        return Int16(truncatingIfNeeded: entry.value)
+    }
+
+    // MARK: Helpers
+
+    /// A scope only Sims have. FreeSO casts the entity to a Sim first, which fails for an
+    /// object, then calls into the Sim (``Entity/setPersonDatum(_:to:)``, ``Entity/setMotive(_:to:)``).
+    /// Returns whether it was set, which the person data setter can refuse (an online job ID past
+    /// 4), as FreeSO returns `SetPersonData`'s result; a motive is always set.
+    @discardableResult
+    private static func setSim(_ entity: Entity?, index: Int16, value: Int16, personData: Bool) throws(SimAnticsError) -> Bool {
+        guard let entity else {
+            throw .nullReference("no entity")
+        }
+        guard entity.isAvatar else { throw .invalidCast("the entity isn't a Sim") }
+        if personData { return try entity.setPersonDatum(Int(index), to: value) }
+        try entity.setMotive(Int(index), to: value)
+        return true
+    }
+
+    private static func simOnly(_ entity: Entity?, index: () throws(SimAnticsError) -> Int16, personData: Bool) throws(SimAnticsError) -> Int16 {
+        guard let entity else {
+            _ = try index()
+            throw .nullReference("no entity")
+        }
+        guard entity.isAvatar else { throw .invalidCast("the entity isn't a Sim") }
+        let i = try index()
+        return personData ? try entity.personDatum(Int(i)) : try entity.motive(Int(i))
+    }
+
+    private static func caller(of frame: StackFrame) throws(SimAnticsError) -> Entity {
+        guard let caller = frame.caller else { throw .nullReference("no caller") }
+        return caller
+    }
+
+    private static func stackObject(of frame: StackFrame) throws(SimAnticsError) -> Entity {
+        guard let stackObject = frame.stackObject else { throw .nullReference("no stack object") }
+        return stackObject
+    }
+
+    private static func index<Element>(_ position: Int16, in array: [Element], _ name: String) throws(SimAnticsError) -> Int {
+        guard position >= 0, Int(position) < array.count else { throw .indexOutOfRange("\(name) \(position)") }
+        return Int(position)
+    }
+
+    private static func element<Element>(_ array: [Element], _ position: Int16, _ name: String) throws(SimAnticsError) -> Element {
+        array[try index(position, in: array, name)]
+    }
+}

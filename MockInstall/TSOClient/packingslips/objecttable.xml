@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<ObjectInfoTable>
+  <I g="0x4D4F4301" n="mockchair" o="Mock Chair" m="0" i="0"/>
+  <I g="0x4D4F4302" n="mocktable" o="Mock Table" m="1" i="-1"/>
+  <I g="0x4D4F4303" n="mocktable" o="Mock Table (left)" m="1" i="0"/>
+  <I g="0x4D4F4304" n="mocktable" o="Mock Table (right)" m="1" i="256"/>
+  <I g="0x4D4F4305" n="mocklamp" o="Mock Lamp" m="0" i="0"/>
+  <I g="0x4D4F4306" n="mockregister" o="Mock Register" m="0" i="0"/>
+  <I g="0x4D4F4307" n="mocksim" o="Mock Sim" m="0" i="0"/>
+</ObjectInfoTable>
