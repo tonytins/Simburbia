@@ -26,11 +26,9 @@ public struct ClientOptions: Sendable, Equatable {
     /// - Parameters:
     ///   - installs: the installs the configuration names, as ``InstallKind/installs(named:)``
     ///     lists them.
-    ///   - simburbiaFolder: the Simburbia folder, which holds MockInstall, Lots, and (next to it)
-    ///     FreeSO's content.
-    ///   - freeSOContent: FreeSO's content folder, as ``FreeSOContentLocator`` finds it, or `nil`
-    ///     for the copy in SimsCraft's FreeSO snapshot. MockInstall gets none either way:
-    ///     FreeSO's patches target real installs.
+    ///   - simburbiaFolder: the Simburbia folder, which holds MockInstall and Lots.
+    ///   - freeSOContent: a FreeSO-style content folder, as ``FreeSOContentLocator`` finds it, or
+    ///     `nil` for none. MockInstall gets none either way: FreeSO's patches target real installs.
     ///   - modsDirectory: Simburbia's mods folder (``UserFolderLocator/modsDirectory()``), or `nil`.
     public init(game: String? = nil, lot: String? = nil, installs: [NamedInstall], simburbiaFolder: URL,
                 freeSOContent: URL? = nil, modsDirectory: URL? = nil) {
@@ -44,8 +42,7 @@ public struct ClientOptions: Sendable, Equatable {
         self.lot = lot.map { URL(fileURLWithPath: $0) }
             ?? simburbiaFolder.appendingPathComponent(usesMock ? "MockInstall/Lots/mock-lot.xml" : "Lots/tonys-lot.xml")
         // FreeSO's patches target real installs; MockInstall is made up and has none.
-        self.freeSOContent = usesMock ? nil
-            : freeSOContent ?? simburbiaFolder.appendingPathComponent("FreeSO/TSOClient/tso.content/Content", isDirectory: true).standardizedFileURL
+        self.freeSOContent = usesMock ? nil : freeSOContent
         self.modsDirectory = modsDirectory
     }
 }

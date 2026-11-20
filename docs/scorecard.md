@@ -28,7 +28,7 @@ meant matching FreeSO are `retired`. Simburbia's own checks, the study's rules a
 
 | Area | Done | Partial | Missing | Key numbers |
 |---|---:|---:|---:|---|
-| [Formats](#formats) | 14 | 1 | 7 | 128 test cases; real install (beta): 94 containers, 82,131 entries, 51,620 typed chunks, tuning, data definition, and OTFs, 0 failures |
+| [Formats](#formats) | 14 | 1 | 6 | 1 retired; 128 test cases; real install (beta): 94 containers, 82,131 entries, 51,620 typed chunks, tuning, data definition, and OTFs, 0 failures |
 | [Content](#content) | 3 | 2 | 4 | real install: 2,694 objects registered, 2,693 load (the beta lacks one IFF), 19 semi-globals; matches FreeSO on all 2,649 objects FreeSO loads, and loads 44 more it can't |
 | [SimAntics](#simantics) | 2 | 6 | 7 | 21 primitives match FreeSO on every oracle case they can run; 2,782 objects run alone (production) match FreeSO digest for digest over 30 ticks; both real lots, the house included, run a full in-game day in step |
 | [Fidelity](#fidelity) | 10 | 2 | 0 | install scan and real-data invariants clean; the study's lots keep their rules and repeat; until 2026-11-20, sprites, content, entry points, Expression's 3,809 cases, single-object runs, and both real lots matched FreeSO (5 retired) |
@@ -51,7 +51,7 @@ Package: [TSOFiles](../TSOFiles/). First modeled on FreeSO's `tso.files`.
 | FMT-3 | FAR1 archives, variants 1a and 1b | done | `Archives/FAR1Archive.swift`; `FAR1ArchiveTests` (both variants, bad version, truncated manifest, out-of-bounds entry) |
 | FMT-4 | FAR3 archives with asset IDs and RefPack entries | done | `Archives/FAR3Archive.swift`; `FAR3ArchiveTests` (ID packing, raw and compressed entries, non-RefPack fallback, duplicate names, entries sharing a file ID, wrong type ID) |
 | FMT-5 | IFF container: header, chunk records, lookups | done | `IFF/IFFFile.swift`; `IFFFileTests` (10 tests incl. trailing byte, short final chunk, bad sizes, 2.0 header). Writing (2026-10-28): `IFFFile.encoded()` lays a file out as FreeSO's `IffFile.Write` does, and rejects what the format can't hold (`IFFWritingTests`) |
-| FMT-6 | Reference snapshot constant | done | `ReferenceSnapshot.swift`; `ReferenceSnapshotTests` |
+| FMT-6 | Reference snapshot constant | retired | Retired 2026-11-20: `ReferenceSnapshot` named the FreeSO build Simburbia matched, and is removed |
 | FMT-7 | DBPF archives | done | `Archives/DBPFArchive.swift`; `DBPFArchiveTests` (versions 1.0 and 2.0, lookup ID packing, first-wins IDs, missing types, truncation, out-of-bounds entries) |
 | FMT-8 | Behavior chunks: `BHAV`, `BCON`, `TRCN`, `TPRP` | done | `IFF/Chunks/BHAV.swift`, `BCON.swift`, `TRCN.swift`, `TPRP.swift`; `BHAVTests` (all four header versions, unknown versions left empty as in FreeSO, truncation), `ConstantChunkTests` (TRCN versions 0 and 2, Latin-1 and .NET strings, negative counts; TPRP both name layouts). Real install: 15,732 BHAVs, 1,476 BCONs, 1,856 TRCNs, 15,577 TPRPs; every branch target is an instruction or an exit code (`RealInstallTests`) |
 | FMT-9 | String chunks: `STR#`, `CTSS`, `TTAs` with language sets | done | `IFF/Chunks/StringTable.swift`; `StringTableTests` (formats 0, -1, -2, -3, -4, language fallback, default language, empty and unknown formats) and `ByteReaderStringTests`. Text decoding matches each FreeSO reader: Latin-1 C strings, ASCII Pascal strings, UTF-8, and .NET length-prefixed strings. Real install: 3,401 STR#, 905 CTSS, 910 TTAs |

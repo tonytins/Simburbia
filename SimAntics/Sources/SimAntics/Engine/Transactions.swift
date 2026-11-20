@@ -72,7 +72,7 @@ extension VM {
     }
 
     /// Settles a transaction for a waiting thread and answers it on the next tick, as the stub
-    /// does through `VMNetAsyncResponseCmd` (in `fso-oracle`, by the next tick every time).
+    /// does through `VMNetAsyncResponseCmd`, by the next tick every time.
     func requestTransaction(for objectID: Int16, testOnly: Bool, from source: UInt32, to target: UInt32, amount: Int32) {
         let success = performTransaction(testOnly: testOnly, from: source, to: target, amount: amount)
         let answer = TransferFundsState(responded: true, success: success, transferAmount: amount,

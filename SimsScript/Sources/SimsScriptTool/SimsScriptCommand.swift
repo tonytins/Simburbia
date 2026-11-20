@@ -13,7 +13,7 @@ struct SimsScriptCommand: ParsableCommand {
         subcommands: [List.self])
 }
 
-/// The Simburbia folder, which holds MockInstall, next to FreeSO's content in the snapshot.
+/// The Simburbia folder, which holds MockInstall.
 private let simburbiaFolder = URL(fileURLWithPath: #filePath)
     .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
 
@@ -46,9 +46,8 @@ extension SimsScriptCommand {
             let directory = game.map { URL(fileURLWithPath: $0, isDirectory: true) }
                 ?? InstallKind.installs(in: ProcessInfo.processInfo.environment).first { $0.kind == .game }?.directory
                 ?? simburbiaFolder.appendingPathComponent("MockInstall/TSOClient", isDirectory: true)
-            let snapshot = simburbiaFolder.appendingPathComponent("FreeSO/TSOClient/tso.content/Content", isDirectory: true).standardizedFileURL
             let content = try GameContent(.init(gameDirectory: directory,
-                                                freeSOContentDirectory: try FreeSOContentLocator(fallback: snapshot).locate(),
+                                                freeSOContentDirectory: try FreeSOContentLocator().locate(),
                                                 modsDirectory: try UserFolderLocator().modsDirectory()))
             for failure in content.objects.standaloneFailures {
                 FileHandle.standardError.write(Data("simsscript: couldn't read \(failure.path): \(failure.reason)\n".utf8))

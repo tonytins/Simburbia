@@ -7,9 +7,9 @@ import TSOFiles
 let gameDirectory: URL? = InstallKind.installs(in: ProcessInfo.processInfo.environment)
     .first { $0.kind == .game }?.directory
 
-/// FreeSO's own content folder in the snapshot (update-46): shipped patches and standalone objects.
-let freeSOContentDirectory = URL(fileURLWithPath: #filePath)
-    .deletingLastPathComponent().appendingPathComponent("../../../FreeSO/TSOClient/tso.content/Content").standardizedFileURL
+/// A FreeSO-style content folder (`FSO_CONTENT_DIR`), with its patches and standalone objects, or
+/// `nil` when it isn't set.
+let freeSOContentDirectory: URL? = try? FreeSOContentLocator(executableDirectory: nil).locate()
 
 /// Checks against a real TSO install. Skipped unless `TSO_GAME_DIR` is set; no game data is in the repository.
 @Suite(.enabled(if: gameDirectory != nil, "TSO_GAME_DIR is not set"))

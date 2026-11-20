@@ -2,8 +2,8 @@
 // can show what an instruction asks for. Each ports a FreeSO operand class's `Read` and `Write`;
 // when its primitive is ported, the operand moves into that primitive's own file.
 
-/// An operand that lists its values under FreeSO's field names, for comparing a decoding with
-/// FreeSO's (`fso-oracle operands`). Booleans are 0 or 1; scopes and enums are their raw values.
+/// An operand that lists its values under FreeSO's field names, as `fso-oracle operands`
+/// compared them with FreeSO's decoding until 2026-11-20. Booleans are 0 or 1; scopes and enums are their raw values.
 public protocol FSOCompatOperand: PrimitiveOperand {
     var fsoCompatFields: [(name: String, value: Int64)] { get }
 }

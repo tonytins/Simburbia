@@ -51,9 +51,9 @@ public enum Census {
         public var instructions = 0
         public var subroutineCalls = 0
         public var primitives = 0
-        /// Instructions whose primitive the port doesn't run yet.
-        public var unported = 0
-        /// Instructions whose primitive neither FreeSO nor the port knows.
+        /// Instructions whose primitive Simburbia knows by name but doesn't run yet.
+        public var pending = 0
+        /// Instructions whose primitive no table names: not one of TSO's.
         public var unknown = 0
         /// Instructions by primitive opcode, below 256.
         public var primitiveUses: [UInt8: Int] = [:]
@@ -109,7 +109,7 @@ public enum Census {
             row("summary", "instructions") { $0.instructions }
             row("summary", "subroutine calls") { $0.subroutineCalls }
             row("summary", "primitives") { $0.primitives }
-            row("summary", "unported") { $0.unported }
+            row("summary", "pending") { $0.pending }
             row("summary", "unknown") { $0.unknown }
 
             let opcodes = Set(columns.flatMap { $0.counts.primitiveUses.keys }).sorted()
@@ -222,9 +222,11 @@ public enum Census {
         return reach
     }
 
+    /// A primitive's name and whether Simburbia runs it (`runs`), knows it by name but doesn't run
+    /// it yet (`pending`), or doesn't know it (`unknown`).
     private static func primitive(_ opcode: UInt8) -> (name: String, state: String) {
-        if let name = PrimitiveTable.standard.name(of: opcode) { return (name, "ported") }
-        if let name = PrimitiveTable.fsoCompat[opcode] { return (name, "unported") }
+        if let name = PrimitiveTable.standard.name(of: opcode) { return (name, "runs") }
+        if let name = PrimitiveTable.fsoCompat[opcode] { return (name, "pending") }
         return ("unknown", "unknown")
     }
 }
@@ -451,7 +453,7 @@ private struct Walker {
         case .primitive(let prepared):
             variables = (prepared.operand as? any VariableOperand)?.variables ?? []
         case .unportedPrimitive:
-            counts.unported += 1
+            counts.pending += 1
             if let operand = PrimitiveTable.unportedOperand(opcode: instruction.opcode, bytes: bytes) {
                 variables = (operand as? any VariableOperand)?.variables ?? []
             }

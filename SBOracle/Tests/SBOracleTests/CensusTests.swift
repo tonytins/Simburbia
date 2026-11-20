@@ -74,7 +74,7 @@ import TSOContent
         #expect(lines.contains("# column mock-lot: 4 objects"))
         #expect(lines.contains("kind\tkey\tcatalog\tmock-lot"))
         #expect(lines.contains("summary\tobjects\t5\t4"))
-        #expect(lines.contains("primitive\t2 expression (ported)\t17\t14"))
+        #expect(lines.contains("primitive\t2 expression (runs)\t17\t14"))
         #expect(lines.contains("shape\t2 expression: myObject,literal\t10\t8"))
         #expect(lines.contains("scope\tliteral\t18\t15"))
     }

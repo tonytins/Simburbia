@@ -5,7 +5,7 @@ import TSOContent
 @testable import SimAntics
 
 @Suite struct VMRandomTests {
-    /// Values from `fso-oracle run-primitive` (Random Number with a range of 100).
+    /// Values recorded from FreeSO's Random Number with a range of 100 (`fso-oracle run-primitive`).
     @Test(arguments: [
         (UInt64(0x0F50_D0C5_EED0_0001), UInt64(97), UInt64(0x9E95_3801_3229_EF5D)),
         (1, 65, 0x0000_0000_0200_0001),

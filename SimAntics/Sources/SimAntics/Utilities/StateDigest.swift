@@ -1,5 +1,5 @@
-/// A hash of the VM state that matches `fso-oracle`'s digest version 1, for comparing a
-/// Swift VM with FreeSO's tick by tick.
+/// A hash of the VM state, for comparing two runs tick by tick (digest version 1, the layout
+/// `fso-oracle` shared with FreeSO until 2026-11-20).
 ///
 /// SHA-256 over little-endian values: the random seed (64 bits); the entity count (32);
 /// then for each entity in object ID order: object ID (16), GUID (32), tile x (16),
@@ -28,8 +28,7 @@ public enum StateDigest {
         }.joined()
     }
 
-    /// The digested fields, readable, one line per entity in object ID order, as
-    /// `fso-oracle run-lot --dump` prints them: `  id guid x y level direction data=... stack=routine:ip,...`,
+    /// The digested fields, readable, one line per entity in object ID order: `  id guid x y level direction data=... stack=routine:ip,...`,
     /// and for a Sim, ` person=... motives=... animations= carry=- queue=`.
     public static func lines(of vm: VM) -> [String] {
         vm.entities.map { entity in
@@ -43,8 +42,8 @@ public enum StateDigest {
         }
     }
 
-    /// A Sim's person data as `fso-oracle` reads it, through ``Entity/personDatum(_:)``, so values
-    /// FreeSO works out (such as the online job's) are digested as it gives them.
+    /// A Sim's person data through ``Entity/personDatum(_:)``, so worked-out values (such as
+    /// the online job's) are digested as the VM gives them.
     static func readPersonData(of entity: Entity) -> [Int16] {
         (0...PersonData.last).map { (try? entity.personDatum($0)) ?? 0 }
     }

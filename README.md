@@ -30,6 +30,13 @@ Start with [docs/README.md](./docs/README.md). The rules for changing the code, 
 assistants alike, are in [AGENTS.md](./AGENTS.md). The game's files are EA's and never go in the
 repository.
 
+## History
+
+Simburbia grew out of [SimsCraft](https://github.com/tonytins/SimsCraft), which began as an effort
+to document [FreeSO](https://github.com/riperiperi/FreeSO), the open-source C# reimplementation of
+The Sims Online, and then checked Simburbia against FreeSO's code until November 2026. SimsCraft
+keeps that history, and FreeSO's source with credit to its contributors.
+
 ## Licensing
 
 Simburbia is licensed under the [GNU Affero General Public License v3.0](./LICENSE). The SimAntics

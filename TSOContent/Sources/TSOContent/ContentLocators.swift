@@ -75,7 +75,7 @@ public struct UserFolderLocator: Sendable {
 /// 1. a configured folder;
 /// 2. the `FSO_CONTENT_DIR` environment variable;
 /// 3. `Content` beside the running executable, where FreeSO keeps it;
-/// 4. a fallback the caller gives, such as the copy in SimsCraft's FreeSO snapshot.
+/// 4. a fallback the caller gives, if any.
 ///
 /// A configured folder or `FSO_CONTENT_DIR` that isn't a content folder (it has neither
 /// `Patch` nor `Objects`) is an error rather than skipped, so a typo doesn't silently lose a

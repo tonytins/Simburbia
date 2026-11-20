@@ -114,9 +114,8 @@ struct Simburbia: ParsableCommand {
     func run() throws {
         let config = ConfigReader(provider: EnvironmentVariablesProvider())
         let installs = InstallKind.installs(in: config)
-        let snapshot = Self.simburbiaFolder.appendingPathComponent("FreeSO/TSOClient/tso.content/Content", isDirectory: true).standardizedFileURL
         let options = ClientOptions(game: game, lot: lot, installs: installs, simburbiaFolder: Self.simburbiaFolder,
-                                    freeSOContent: try FreeSOContentLocator(config: config, fallback: snapshot).locate(),
+                                    freeSOContent: try FreeSOContentLocator(config: config, fallback: nil).locate(),
                                     modsDirectory: try UserFolderLocator(config: config).modsDirectory())
         if let rewriteBlueprint {
             let file = URL(fileURLWithPath: rewriteBlueprint)

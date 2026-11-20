@@ -165,8 +165,7 @@ func withVM(chair: [ChunkFixture] = [], chairWords: [Int: UInt16] = [:], chairOT
 }
 
 extension VM {
-    /// A one-instruction routine for a primitive, pushed onto `caller`'s thread, as
-    /// `fso-oracle run-primitive` builds it.
+    /// A one-instruction routine for a primitive, pushed onto `caller`'s thread.
     func makePrimitiveFrame(opcode: UInt8, operand: [UInt8], caller: Entity, locals: [Int16] = [],
                             arguments: [Int16] = [0, 0, 0, 0],
                             stackObjectID: Int16 = 0) throws(SimAnticsError) -> (PrimitiveTable.Prepared, StackFrame) {

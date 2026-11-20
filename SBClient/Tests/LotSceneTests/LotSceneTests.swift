@@ -27,11 +27,14 @@ private func mockSession() throws -> LotSession {
     let options = ClientOptions(installs: installs, simburbiaFolder: simburbiaFolder)
     #expect(options.gameDirectory.path == "/games/classic")
     #expect(options.lot.lastPathComponent == "tonys-lot.xml")
-    #expect(options.freeSOContent?.path.hasSuffix("TSOClient/tso.content/Content") == true)
+    // No content folder given means none: the repository no longer holds FreeSO's.
+    #expect(options.freeSOContent == nil)
     let chosen = ClientOptions(game: "/games/tso", lot: "/lots/a.xml",
-                               installs: InstallKind.installs(in: ["TSO_GAME_DIR": "/elsewhere"]), simburbiaFolder: simburbiaFolder)
+                               installs: InstallKind.installs(in: ["TSO_GAME_DIR": "/elsewhere"]), simburbiaFolder: simburbiaFolder,
+                               freeSOContent: URL(fileURLWithPath: "/content"))
     #expect(chosen.gameDirectory.path == "/games/tso")
     #expect(chosen.lot.path == "/lots/a.xml")
+    #expect(chosen.freeSOContent?.path == "/content")
 }
 
 @Test func aMissingLotIsReported() {

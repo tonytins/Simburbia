@@ -34,7 +34,7 @@ public enum ImageError: Error, Equatable, Sendable {
 /// or run-length encoded (RLE8), or 24-bit, with the 40-byte header, rows bottom-up unless the
 /// height is negative.
 ///
-/// FreeSO hands these to MonoGame's `Texture2D.FromStream`, which isn't in the snapshot; this
+/// FreeSO hands these to MonoGame's `Texture2D.FromStream`, which isn't part of FreeSO's source; this
 /// follows the format, and is checked against stb_image where stb reads the file too. Pixels an
 /// RLE8 bitmap skips are transparent black.
 public enum BMPImage {
@@ -172,7 +172,7 @@ public enum BMPImage {
 /// A 32-bit pixel's fourth byte is its alpha only when the descriptor says the pixels have alpha
 /// bits (its low four bits); otherwise the pixel is opaque, as the format says and as Pillow reads
 /// it. One of 1.1097.1.0's interface graphics is such a file, its alpha bytes all 0. FreeSO reads
-/// these through TargaImagePCL, which isn't in the snapshot, so its exact behavior is unverified.
+/// these through TargaImagePCL, which isn't part of FreeSO's source, so its exact behavior is unverified.
 public enum TargaImage {
     /// Whether a file ends with the Targa 2.0 footer's signature, which is how FreeSO's
     /// `ImageLoader` tells a Targa apart.

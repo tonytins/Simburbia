@@ -8,7 +8,8 @@ import TSOFiles
     private let file = URL(fileURLWithPath: #filePath)
         .deletingLastPathComponent().appendingPathComponent("../../../Tuning/tuning.xml").standardizedFileURL
 
-    /// The libraries embed the file; `fso-oracle` reads the file itself. They must not drift.
+    /// The libraries embed the file, and the repository keeps it for people to read and edit.
+    /// They must not drift.
     @Test func theEmbeddedCopyMatchesTheFile() throws {
         let contents = try String(contentsOf: file, encoding: .utf8)
         #expect(GameContent.defaultTuningXML + "\n" == contents)

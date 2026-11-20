@@ -164,8 +164,9 @@ starts from every buyable entry of `packingslips/catalog.xml`, takes each object
 behavior fields, `OBJf` entry points, and `TTAB` interactions, then follows subroutine calls
 and `run_tree_by_name` through the object's file, its semi-global, and the global. It counts:
 
-- **primitives:** how often each opcode below 256 appears, and whether Simburbia runs it, only
-  decodes it, or knows it by name only.
+- **primitives:** how often each opcode below 256 appears, and whether Simburbia runs it (`runs`),
+  knows it but doesn't run it yet (`pending`), or doesn't know it (`unknown`). The summary counts
+  `pending` and `unknown` instructions.
 - **operand shapes:** for each primitive, the scopes of the variables its operand names, in field
   order (`expression: local,temps`), or `-` for an operand that names none. A flag that makes a
   variable unused doesn't hide it: the file still holds it, and the flag can change.

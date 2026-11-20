@@ -101,17 +101,16 @@ struct FileFormatRealInstallTests {
         #expect(!ini.sections.isEmpty)
     }
 
-    /// FreeSO's own patches, which ship in the snapshot (PIFF is FreeSO's format, not TSO's).
-    /// They were written against TSO's New & Improved files, so on an older version of
-    /// the game (such as the owner's 2002 beta) some don't fit and are skipped. Every
-    /// patched file must still parse, and most patches must apply.
-    @Test func appliesFreeSOsShippedPatchesThatFitTheInstall() throws {
+    /// FreeSO's own patches, from the content folder `FSO_CONTENT_DIR` names (PIFF is FreeSO's
+    /// format, not TSO's); it expects FreeSO's shipped folder at update-46. They were written
+    /// against TSO's New & Improved files, so on an older version of the game (such as the
+    /// owner's 2002 beta) some don't fit and are skipped. Every patched file must still parse,
+    /// and most patches must apply.
+    @Test(.enabled(if: freeSOContentDirectory != nil, "FSO_CONTENT_DIR is not set"))
+    func appliesFreeSOsShippedPatchesThatFitTheInstall() throws {
         let directory = try #require(gameDirectory)
-        let repository = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-            .deletingLastPathComponent()
-        let registry = try PatchRegistry(directory: repository.appendingPathComponent("FreeSO/TSOClient/tso.content/Content/Patch"))
-        // The snapshot ships one empty patch file; FreeSO skipped it silently.
+        let registry = try PatchRegistry(directory: try #require(freeSOContentDirectory).appendingPathComponent("Patch"))
+        // Update-46 ships one empty patch file; FreeSO skipped it silently.
         #expect(registry.failures.map(\.path) == ["skillobjects_10xmultiplier.piff"])
 
         let archive = try FAR1Archive(contentsOf: directory.appendingPathComponent("objectdata/objects/objiff.far"),

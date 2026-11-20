@@ -157,7 +157,8 @@ let mockRegisterGUID: UInt32 = 0x4D4F_4306, mockSimGUID: UInt32 = 0x4D4F_4307
     }
 }
 
-/// Loading `MockInstall/Lots/mock-lot.xml`, which `fso-oracle run-lot` matches tick for tick.
+/// Loading `MockInstall/Lots/mock-lot.xml`, which FreeSO matched tick for tick (`fso-oracle
+/// run-lot`, until 2026-11-20).
 @Suite struct MockLotTests {
     private let lotFile = mockInstall.deletingLastPathComponent().appendingPathComponent("Lots/mock-lot.xml")
 
