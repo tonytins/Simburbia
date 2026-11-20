@@ -31,6 +31,7 @@ is `partial, not blocking`.
 
 | Core job | Works end to end? | Evidence | Hours to pass |
 |---|---|---|---|
+| 2026-11-20 | minor | Queen Margaret's fourth pass, step C1: animation files. TSOFiles reads `.anim` (`Animation`): motions, translations, rotations, property lists, and timed events, every count checked, with little-endian floats in a big-endian file. Five animations every install has, the stereos' and jukebox's dances (`a2o-test-animation2` to `6`), write property lists as single sets; FreeSO fails on them, and Simburbia reads them (DIFF-35). TSOContent's `AnimationProvider` finds animations by name; `tsofiles-check` decodes all of them on the three installs (5,454, 5,249, and 5,240) with no failures. MockInstall's animations get timed events and a dance in that layout. Phase C is planned in four steps; decisions 1 (animations in TSOFiles) and 8 (32-bit floats, pinned by a test) are settled. |
 | Open every FAR1, FAR3, DBPF, and IFF file in a TSO install | yes | `tsofiles-check` on a real install: 94 containers, 82,131 entries, 0 failures (scorecard FID-1). The first run found `packingslips.dat` repeating file IDs across types; FAR3 now looks entries up by full asset ID (scorecard DIFF-5) | 0 |
 | Load one object with its behavior, strings, tuning, and sprites | partial, not blocking | `GameContent` loads every object on the beta with its patches, tuning, semi-global, and routines by name, matching FreeSO on all 2,649 objects FreeSO loads (scorecard FID-8). Sprite IFFs load but sprites don't decode yet | 25–40 (Hyde Park) |
 | Load one avatar: mesh, skeleton, animation, outfit, appearance | no | Not started | 50–75 (Nichol's Notch, Ocean's Edge in part) |
@@ -161,9 +162,22 @@ In order:
          the sample is weighted toward objects whose behavior can reach code nothing has run, and
          up to two visitor Sims join each lot with no owner. On 1.1097.1.0 Sims wait for phase D,
          where the template person reaches Push Interaction; on MockInstall they run.
-   - [ ] C. Animation: enough of the avatar formats (Nichol's Notch) to read animations' frames,
-     speed, and events; FreeSO's animation state; Animate Sim, Reach, Grab, Drop, and Change Suit
-     Or Accessory (as state). Made-up animations in the mock. One idle Sim runs in step.
+   - [ ] C. Animation, in four steps. Each ends with every package green, the study clean on
+     MockInstall, and the census's `pending` count down. Accepted headless: drawing Sims is a
+     client step of its own.
+     - [x] C1. Animation files: `Animation` in TSOFiles (decision 1) and `AnimationProvider` in
+       TSOContent; `tsofiles-check` decodes every animation on all three installs. MockInstall's
+       animations get timed events, and a dance in the stereos' single-set layout (DIFF-35).
+     - [ ] C2. Animation state on the VM: a Sim's animations (frame, speed, weight, direction,
+       events still to fire) and its carry animation, advanced each tick, firing events; decoded
+       animations cached. 32-bit floats, as the files and FreeSO use them, with a test that pins
+       exact frame values on every CI platform (decision 8). FreeSO never sorts the events it
+       means to (`OrderBy` with its result dropped); which order real files need is checked.
+     - [ ] C3. Animate Sim (44): starting and stopping an animation, its events back to the
+       routine, and carry animations. The most-used primitive not yet run: 8,555 instructions in
+       1.1097.1.0's buy catalog.
+     - [ ] C4. Change Suit Or Accessory (6, as state), Reach (47), Grab (4), and Drop (5); a
+       made-up mock object animates the mock Sim. Mutation testing waits until after C.
    - [ ] D. The interaction queue: interaction tables (`TTAB`), queued actions and priorities,
      action and check trees; Push Interaction, Run Functional Tree, Find Best Object For Function,
      Change Action String, and Test Sim Interacting With (moved from B: it reads the queue). A made-up interaction table in the mock.
@@ -247,8 +261,8 @@ chunks) can land whenever TS1 hybrid mode is needed; nothing in TSO mode waits o
 
 ## Decisions for the owner
 
-1. **Where the Vitaboy model formats live.** In TSOFiles (they're file formats) or a fourth package
-   `Vitaboy` (as in FreeSO). Recommended: TSOFiles, to keep three packages.
+1. **Where the Vitaboy model formats live.** Decided (2026-11-20): in TSOFiles, under `Avatars/`,
+   since they're file formats; the animations come first (phase C1), the rest with the client.
 2. **How to record replays.** Superseded (2026-11-20): Simburbia goes on without FreeSO, and
    `FSO.Oracle` stayed with SimsCraft. Replays will record Simburbia's own lots (West Darrington
    phase 3). The earlier decision, kept for the record (2026-10-15): an oracle harness. A .NET 10 console tool
@@ -284,6 +298,10 @@ chunks) can land whenever TS1 hybrid mode is needed; nothing in TSO mode waits o
    look like. Sprites without depth (every `SPR#` frame) aren't drawn in the world, as FreeSO's
    `DGRPRenderer` leaves them out; the owner checked the house drawn this way (2026-10-28) and it's
    complete, so this is taken as the game's intent.
+8. **Floating point in animation.** Decided (2026-11-20): animation frames and speeds stay 32-bit
+   floats, as the files store them and FreeSO advances them, the first floats to feed simulation
+   state (DET-4). A test pins exact frame values, so CI's Linux x86_64, Linux ARM64, and macOS
+   jobs catch any drift; fixed point stays the fallback if they ever disagree.
 
 ## Risks most likely to push estimates up
 

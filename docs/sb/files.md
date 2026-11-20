@@ -156,6 +156,34 @@ installs decodes as Pillow decodes it, pixel for pixel, but such short bitmaps, 
 refuses (three on 1.1097.1.0, one on each 2002 copy; checked 2026-11-04). FreeSO decodes these with MonoGame and
 TargaImagePCL; parity with FreeSO itself is unverified.
 
+## Animations
+
+`Animation` (`Avatars/Animation.swift`) reads a Sim's `.anim` file from the FAR3 archives under
+`avatardata/animations`. An animation is a set of motions, one per bone it moves, each a run of
+frames at 30 a second that index into shared tables of translations and rotations. A motion can
+carry timed properties: events, keyed by their time in milliseconds, such as `xevt` (an event the
+animating routine hears), `sound`, `lefthand`, and `righthand`.
+
+```swift
+let animation = try Animation(bytes: data)
+animation.frameCount                 // the longest motion's frames
+animation.timedProperties.map(\.time) // [500, 800]
+animation.timedProperties[0].properties["xevt"]  // "1"
+```
+
+The file is big-endian, but its floats are little-endian, as FreeSO's reader takes them.
+Translations and rotations are kept as the file stores them; turning them into a renderer's
+coordinates is the renderer's job. Every count is checked against the bytes that remain.
+
+Most animations write each property list as a count of sets, each a count of pairs. Five of TSO's
+(`a2o-test-animation2` to `6`, which the DJ booth, jukebox, stereos, and speakers name) write a
+single set with no set count. FreeSO fails on them. Simburbia reads a file that doesn't fit the
+usual layout again in that one, and keeps it only if it then ends exactly at the end of the data;
+`propertyLayout` says which layout it took (DIFF-35). All 5,454 animations on 1.1097.1.0, 5,249 on
+the base game, and 5,240 on the beta decode (checked 2026-11-20).
+
+A typical animation (50 KB) decodes in about 1.4 ms in a release build; the largest is 900 KB.
+
 ## Scanning and comparing installs
 
 `InstallScanner` opens every container under a folder, reads every entry, and parses every

@@ -120,7 +120,12 @@ public struct InstallScanner: Sendable {
                 for entry in archive.entries {
                     let name = "\(entry.fileName) [\(entry.assetID)]"
                     let data = check(path: path, entry: name, into: &report) { try archive.data(for: entry) }
-                    if let data { scanNestedIFF(data, path: path, entry: name, into: &report) }
+                    guard let data else { continue }
+                    if parsesChunks, entry.fileName.lowercased().hasSuffix(".anim") {
+                        scanAnimation(data, path: path, entry: name, into: &report)
+                    } else {
+                        scanNestedIFF(data, path: path, entry: name, into: &report)
+                    }
                 }
             case .dbpf:
                 let archive = try DBPFArchive(contentsOf: url)
@@ -137,6 +142,16 @@ public struct InstallScanner: Sendable {
             }
         } catch {
             report.failures.append(ScanFailure(path: path, entry: nil, message: String(describing: error)))
+        }
+    }
+
+    /// Decodes a Sim's animation (``Animation``), counted as `anim` among the chunk counts.
+    private func scanAnimation(_ data: Data, path: String, entry: String, into report: inout ScanReport) {
+        do {
+            _ = try Animation(bytes: data)
+            report.chunkCounts["anim", default: 0] += 1
+        } catch {
+            report.failures.append(ScanFailure(path: path, entry: entry, message: String(describing: error)))
         }
     }
 

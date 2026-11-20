@@ -4,7 +4,7 @@ import TSOFiles
 @testable import TSOContent
 
 /// A FAR3 archive of uncompressed files, as TSOFiles' tests build one.
-private func makeFAR3(_ files: [(name: String, id: AssetID, contents: Data)]) -> Data {
+func makeFAR3(_ files: [(name: String, id: AssetID, contents: Data)]) -> Data {
     var writer = ByteWriter()
     writer.ascii("FAR!byAZ")
     writer.uint32(3)

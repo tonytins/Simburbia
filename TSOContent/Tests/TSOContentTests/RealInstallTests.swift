@@ -36,6 +36,22 @@ struct RealInstallTests {
         #expect(global.tuning != nil)
     }
 
+    /// Every tenth animation decodes (`tsofiles-check` decodes them all), and so do the stereos'
+    /// and jukebox's `a2o-test-animation2` to `6`, the only ones in the single-set layout, which
+    /// FreeSO fails on (DIFF-35).
+    @Test func decodesTheAnimations() throws {
+        let animations = AnimationProvider(files: content.files)
+        #expect(animations.failures.isEmpty && animations.duplicates.isEmpty)
+        #expect(animations.names.count > 5_000)
+        let dances = (2...6).map { "a2o-test-animation\($0).anim" }
+        for name in dances {
+            #expect(try animations.animation(named: name)?.propertyLayout == .singleSet, "\(name)")
+        }
+        for (index, name) in animations.names.enumerated() where index % 10 == 0 && !dances.contains(name) {
+            #expect(try animations.animation(named: name)?.propertyLayout == .sets, "\(name)")
+        }
+    }
+
     /// 1.1097.1.0's tuning has every motive key, so nothing comes from Simburbia's defaults.
     @Test func takesNoMotiveTuningFromTheDefaults() throws {
         #expect(try content.globalTuning().defaultedKeys.isEmpty)

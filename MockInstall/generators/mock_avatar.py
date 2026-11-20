@@ -12,7 +12,9 @@ HandGroup, Animation), so the mock install has a whole Sim with nothing from EA 
 - a hand group whose hands have no meshes (Kenney's hands are part of the body), since FreeSO's
   SimAvatar fails on a body outfit without one;
 - placeholder animations for the walk and swim names the mock global lists (mock-walk,
-  mock-walk-fast, mock-swim) and a stand (mock-stand);
+  mock-walk-fast, mock-swim), a stand (mock-stand), and a dance (mock-dance), with timed events
+  (xevt, a sound, and hand events); the dance writes its property lists as one set with no set
+  count, the layout of TSO's own stereo dances (a2o-test-animation2 to 6);
 - the mock Sim's body strings (STR# 200 in mocksim.iff) naming the female body and head.
 
 Every file is written whole each run, so the result can be made again; the textures need
@@ -321,7 +323,13 @@ def turned(q, degrees):
     half = math.radians(degrees) / 2
     return quat_mul(q, [math.sin(half), 0, 0, math.cos(half)])
 
-def animation(name, seconds, swings, moving, distance):
+def property_list(pairs, single_set):
+    """A property list of one set of key and value pairs; a single-set list leaves out the set count."""
+    out = b"" if single_set else struct.pack(">I", 1)
+    out += struct.pack(">I", len(pairs)) + b"".join(pascal(k) + pascal(v) for k, v in pairs)
+    return out
+
+def animation(name, seconds, swings, moving, distance, events=(), single_set=False):
     frames = max(1, round(seconds * 30))
     rotations, motions = [], []
     for bone, (amplitude, phase) in swings.items():
@@ -334,19 +342,28 @@ def animation(name, seconds, swings, moving, distance):
     out += struct.pack(">I", 0)                                    # no translations
     out += struct.pack(">I", len(rotations)) + b"".join(floats(q[0], -q[1], -q[2], -q[3]) for q in rotations)
     out += struct.pack(">I", len(motions))
-    for bone, count, first in motions:
+    for index, (bone, count, first) in enumerate(motions):
         out += struct.pack(">I", 0) + pascal(bone) + struct.pack(">I", count) + floats(seconds * 1000)
-        out += bytes([0, 1]) + struct.pack(">2I", 0, first) + bytes([0, 0])
+        out += bytes([0, 1]) + struct.pack(">2I", 0, first) + bytes([0])
+        # The events ride on the first motion, as one list of (time in ms, pairs).
+        if index == 0 and events:
+            out += bytes([1]) + struct.pack(">2I", 1, len(events))
+            out += b"".join(struct.pack(">I", time) + property_list(pairs, single_set) for time, pairs in events)
+        else:
+            out += bytes([0])
     return out
 
 legs = lambda degrees: {"R_LEG": (degrees, 0.0), "L_LEG": (degrees, math.pi), "R_ARM1": (degrees / 2, math.pi), "L_ARM1": (degrees / 2, 0.0)}
-animations = [("mock-stand", 1.0, {"PELVIS": (0, 0)}, False, 0.0),
-              ("mock-walk", 1.0, legs(25), True, 2.0),
-              ("mock-walk-fast", 0.6, legs(35), True, 2.0),
-              ("mock-swim", 1.5, {"R_ARM1": (40, 0.0), "L_ARM1": (40, math.pi)}, True, 1.0)]
+# Each: name, seconds, swings, moving, distance, events (time in ms, pairs), single-set layout.
+steps = [(250, [("lefthand", "1")]), (750, [("righthand", "1")])]
+animations = [("mock-stand", 1.0, {"PELVIS": (0, 0)}, False, 0.0, [(500, [("xevt", "1")]), (800, [("sound", "mock_chime")])], False),
+              ("mock-walk", 1.0, legs(25), True, 2.0, steps, False),
+              ("mock-walk-fast", 0.6, legs(35), True, 2.0, [(150, [("lefthand", "1")]), (450, [("righthand", "1")])], False),
+              ("mock-swim", 1.5, {"R_ARM1": (40, 0.0), "L_ARM1": (40, math.pi)}, True, 1.0, [], False),
+              ("mock-dance", 2.0, {"R_ARM1": (60, 0.0), "L_ARM1": (60, math.pi), "PELVIS": (10, 0.0)}, False, 0.0,
+               [(500, [("xevt", "1")]), (1500, [("xevt", "2"), ("sound", "mock_chime")])], True)]
 write("animations/animations.dat",
-      [(f"{name}.anim", ANIMATION, 0x4D4F0701 + i, animation(name, seconds, swings, moving, distance))
-       for i, (name, seconds, swings, moving, distance) in enumerate(animations)])
+      [(f"{a[0]}.anim", ANIMATION, 0x4D4F0701 + i, animation(*a)) for i, a in enumerate(animations)])
 
 # --- The mock Sim's body strings: the female body and head, by outfit ID (file, then type).
 far_path = os.path.join(root, "objectdata/objects/objiff.far")

@@ -35,13 +35,14 @@ FAR3: 47 files
 DBPF: 7 files
 IFF: 29 files
 entries read: 84912 (IFFs inside archives: 1578)
-chunks parsed: 50798 (BCON 784, BHAV 15906, ...)
+chunks parsed: 50798 (BCON 784, BHAV 15906, ..., anim 5454, ...)
 other files: 1590
 failures: 0
 unreferenced chunks that don't parse (the game never loads them): 5
 ```
 
-Failures name the file, the archive entry, and the chunk (`objiff.far: chairs.iff: TTAB #128`).
+Every `.anim` entry in a FAR3 archive is decoded too, counted as `anim`. Failures name the file,
+the archive entry, and the chunk (`objiff.far: chairs.iff: TTAB #128`).
 `--max-failures N` limits how many are listed (all are counted), and `--headers-only` opens archives
 without reading entries. `--far1-variant a` reads The Sims 1's FAR layout.
 

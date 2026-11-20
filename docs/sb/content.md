@@ -203,6 +203,20 @@ transparent, or a Targa with the 2.0 footer. Anything else, such as 1.1097.1.0's
 error. An ID two archives both hold keeps the first and is listed in `duplicates`; an archive
 that can't be read is listed in `failures` (no install has either).
 
+## Animations
+
+`AnimationProvider` ports FreeSO's `AvatarAnimationProvider`: every `.anim` entry of the FAR3
+archives under `animations`, by file name in any letter case, as the VM asks for them.
+
+```swift
+let animations = AnimationProvider(files: content.files)
+let stand = try animations.animation(named: "a2o-standing-loop.anim")   // nil if there's none
+```
+
+Animations decode when asked for, and aren't kept. A name two entries share keeps the later
+one, as FreeSO's indexer leaves it, and is listed in `duplicates`; an archive that can't be read
+is listed in `failures` (no install has either).
+
 ## Errors
 
 Every failure is a `ContentError`:
