@@ -231,11 +231,31 @@ In order:
      autonomy, the engine nudging a Sim toward its needs; the installs here are after Betaville.
      Content can't settle it, since the engine would do it (no content calls Find Best Action).
      The interactions' motive advertisements are already read and kept for it. Held for later.
-   - [ ] E. Routing (Shannopolis): the routing frame, rectangle router, obstacles, and portals, with
-     FreeSO's floating point matched; Go To Routing Slot, Go To Relative Position, Snap, and Look
-     Towards (moved from B: it turns the Sim with a routing frame; its modes 0 and 1, which
-     don't turn the body, run since D4b). Snap's mode 2 runs as a stand-in
-     since D3 (owner's decision, 2026-11-21), so a Sim can fall asleep on the floor; E replaces it.
+   - [ ] E. Routing (Shannopolis), in five steps (owner's decisions, 2026-11-21): Go To Routing
+     Slot (45, 1,064 uses on 1.1097.1.0, the largest gap left), Go To Relative Position (27, 711),
+     Snap's other modes (Snap's mode 2 runs as a stand-in since D3, which E replaces), and Look
+     Towards' body turns (modes 2 to 5; modes 0 and 1 run since D4b). Determinism, not agreement
+     with another engine: `Float` and `Double` for the basic operations, which every machine
+     computes alike, and Simburbia's own deterministic `atan2`, `sin`, and `cos`. Routes are found
+     on a grid of sixteenth-tile steps and smoothed, simpler to keep deterministic and to test;
+     FreeSO's rectangle router stays a reference for how TSO's routes looked. How fast a Sim walks
+     (from its walk animation, or a rate per walk style) is settled in E4, from the animations and
+     TSO Mania.
+     - [ ] E1. Scaffolding: a routing frame, a kind of stack frame that isn't a BHAV routine; route
+       results and failure codes; the deterministic `atan2`, `sin`, and `cos`; and the obstacle set
+       from footprints and walls. Nothing walks yet.
+     - [ ] E2. Where to go: an object's routing slots (`SLOT` type 3) read into candidate spots, by
+       distance, facing, and standing or sitting; Snap's other modes on them, replacing the
+       stand-in.
+     - [ ] E3. The path: routes around walls and obstacles within a floor, on the sixteenth-tile
+       grid, smoothed.
+     - [ ] E4. Walking: the routing frame turns the Sim, walks it along the path with its walk
+       animations, and arrives facing the right way, stopping when its interaction is cancelled;
+       Go To Routing Slot, Go To Relative Position, and Look Towards' body turns. Walking speed is
+       settled here.
+     - [ ] E5. Doors and stairs: routes through portals between rooms and floors, and asking a Sim
+       in the way to move. Then end to end: a visitor Sim on 1.1097.1.0 picks a skill or job
+       interaction and walks to it, refusing when its mood is too low.
    - [ ] F. Relationships and services: Relationship, Old Relationship, the dialogs (headless), the
      Generic Sims Online Call, and the Online Jobs Call, against stand-in services.
    - [ ] G. A lot with Sims (the house) runs a full in-game day, clean and repeatable.
@@ -380,6 +400,7 @@ chunks) can land whenever TS1 hybrid mode is needed; nothing in TSO mode waits o
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-11-21 | patch | Phase E planned in five steps (owner's decisions): a routing frame and deterministic math, routing slots, the path on a sixteenth-tile grid, walking with Go To Routing Slot and Go To Relative Position, and portals with an end-to-end check. Determinism replaces matching FreeSO's floating point: basic `Float` and `Double` operations, and Simburbia's own `atan2`, `sin`, and `cos`. Walking speed is settled in E4. |
 | 2026-11-21 | patch | The first client's step D5, which finishes step D: the interface draws in Comic Neue and the terminal in Fira Mono. The window loads them once it opens, at 32 pixels with smooth scaling and Latin-1, and unloads them before every close; `InterfaceTheme.simburbia` is the window's theme, and the text drawn outside Hudini's controls uses it too. A missing font is a warning, with raylib's font in its place. No document needed resizing; the owner approved the screenshots. |
 | 2026-11-21 | patch | The first client's step D4: Help, MOMI, and the inspector join the terminal in Hudini's `WindowManager`, each a `ManagedWindow` (a document in Hudini's frame, opened and closed through the manager), and the client's own `DocumentWindow` is gone. The manager gives the front window the input and draws them all; Escape closes the window in front; a click on any window stays off the lot. |
 | 2026-11-21 | patch | The first client's step D3: the interface's UIScript documents are `.uix` (`topbar`, `help`, `momi`, `inspector`, `terminal`, `login-start`, `login-join`), and the loading text is read with swift-cst: the install's through `UIText`, Simburbia's own through `CSTDirectory`, whose problems still become warnings by line. Hudini's deprecated `CSTCatalog` is no longer used. |
