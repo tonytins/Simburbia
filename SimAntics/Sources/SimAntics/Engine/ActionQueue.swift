@@ -195,3 +195,13 @@ extension Interaction.Permissions {
     /// What tables before version 10 get.
     public static let everyoneButGhostsAndStaff = Interaction.Permissions(rawValue: 0x1F)
 }
+
+extension VM {
+    /// An object's interactions (``Interaction/interactions(of:)``), read once per VM.
+    public func interactions(of object: GameObject) throws(SimAnticsError) -> [Interaction] {
+        if let table = interactionTables[object.guid] { return table }
+        let table = try Interaction.interactions(of: object)
+        interactionTables[object.guid] = table
+        return table
+    }
+}

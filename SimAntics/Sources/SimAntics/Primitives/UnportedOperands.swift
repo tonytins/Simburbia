@@ -15,7 +15,6 @@ extension PrimitiveTable {
     public static let unportedOperands: [UInt8: any FSOCompatOperand.Type] = [
         1: Primitives.GenericTSOCall.Operand.self,
         9: Primitives.Burn.Operand.self,
-        13: Primitives.PushInteraction.Operand.self,
         14: Primitives.FindBestObjectForFunction.Operand.self,
         20: Primitives.RunFunctionalTree.Operand.self,
         22: Primitives.LookTowards.Operand.self,
@@ -30,7 +29,6 @@ extension PrimitiveTable {
         43: Primitives.DropOnto.Operand.self,
         45: Primitives.GotoRoutingSlot.Operand.self,
         46: Primitives.Snap.Operand.self,
-        50: Primitives.ChangeActionString.Operand.self,
         62: Primitives.InvokePlugin.Operand.self,
         65: Primitives.EmptyOperand.self,
         67: Primitives.InventoryOperations.Operand.self,
@@ -116,39 +114,6 @@ extension Primitives {
 
             public var fsoCompatFields: [(name: String, value: Int64)] {
                 [("Data", Int64(data)), ("Type", Int64(type)), ("Flags", Int64(flags))]
-            }
-        }
-    }
-
-    /// Push Interaction (opcode 13).
-    public enum PushInteraction {
-        public struct Operand: FSOCompatOperand, Equatable {
-            public var interaction: UInt8
-            /// The local or parameter that holds the object's ID.
-            public var objectLocation: UInt8
-            /// The interaction's priority.
-            public var priority: UInt8
-            public var flags: UInt8
-            public var iconLocation: UInt8
-
-            public init(bytes: [UInt8]) {
-                var reader = OperandReader(bytes)
-                interaction = reader.uint8()
-                objectLocation = reader.uint8()
-                priority = reader.uint8()
-                flags = reader.uint8()
-                iconLocation = reader.uint8()
-            }
-
-            public func encoded() -> [UInt8] {
-                OperandWriter.bytes { writer in
-                    for byte in [interaction, objectLocation, priority, flags, iconLocation] { writer.uint8(byte) }
-                }
-            }
-
-            public var fsoCompatFields: [(name: String, value: Int64)] {
-                [("Interaction", Int64(interaction)), ("ObjectLocation", Int64(objectLocation)), ("Priority", Int64(priority)),
-                 ("Flags", Int64(flags)), ("IconLocation", Int64(iconLocation))]
             }
         }
     }
@@ -262,34 +227,6 @@ extension Primitives {
             public var fsoCompatFields: [(name: String, value: Int64)] {
                 [("OldTrapCount", Int64(oldTrapCount)), ("Location", Int64(location)), ("Direction", Int64(direction)),
                  ("RouteCount", Int64(routeCount)), ("Flags", Int64(flags))]
-            }
-        }
-    }
-
-    /// Change Action String (opcode 50).
-    public enum ChangeActionString {
-        public struct Operand: FSOCompatOperand, Equatable {
-            public var stringTable: UInt16
-            public var scope: UInt16
-            public var stringID: UInt8
-
-            public init(bytes: [UInt8]) {
-                var reader = OperandReader(bytes)
-                stringTable = reader.uint16()
-                scope = reader.uint16()
-                stringID = reader.uint8()
-            }
-
-            public func encoded() -> [UInt8] {
-                OperandWriter.bytes { writer in
-                    writer.uint16(stringTable)
-                    writer.uint16(scope)
-                    writer.uint8(stringID)
-                }
-            }
-
-            public var fsoCompatFields: [(name: String, value: Int64)] {
-                [("StringTable", Int64(stringTable)), ("Scope", Int64(scope)), ("StringID", Int64(stringID))]
             }
         }
     }

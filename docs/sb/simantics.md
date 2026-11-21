@@ -247,6 +247,7 @@ ones; the names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 | 8 | `RandomNumber` | Draws a number below a limit into a variable |
 | 11 | `GetDistanceTo` | The distance from the stack object to another object, in whole tiles, into a temp |
 | 12 | `GetDirectionTo` | The direction from another object to the stack object, in eighths of a turn |
+| 13 | `PushInteraction` | Queues one of an object's interactions on the stack object, by number and priority, as an action that must run |
 | 15 | `Breakpoint` | A debugger breakpoint; with no debugger it doesn't stop, so it's always true |
 | 16 | `FindLocationFor` | Places the stack object near a reference, out of the world, or along a facing |
 | 17 | `IdleForInput` | Waits a number of ticks, or until input (a queued interaction, or the running one cancelled) or an interrupt; in main, runs what's queued |
@@ -264,6 +265,7 @@ ones; the names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 | 47 | `Reach` | Reaches for the stack object or one of its slots, and picks up or puts down on the animation's event 0 |
 | 48 | `StopAllSounds` | Stops an object's sounds; headless, nothing plays |
 | 49 | `NotifyStackObjectOutOfIdle` | Wakes the stack object: brings its next run forward and interrupts its Sleep |
+| 50 | `ChangeActionString` | Renames the running interaction from a string table of the code owner's file |
 | 63 | `GetTerrainInfo` | The ground's heights, slope, or an object's tile and level, into temps (terrain is flat: not ported) |
 
 A VM can run its own table, which is how extensions will add primitives without touching the

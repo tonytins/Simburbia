@@ -68,6 +68,8 @@ public struct PrimitiveTable: Sendable {
         table.register(Primitives.SetBalloonHeadline.self)
         table.register(Primitives.IdleForInput.self)
         table.register(Primitives.TestSimInteractingWith.self)
+        table.register(Primitives.PushInteraction.self)
+        table.register(Primitives.ChangeActionString.self)
         table.register(Primitives.Breakpoint.self)
         table.register(Primitives.SpecialEffect.self)
         table.register(Primitives.StopAllSounds.self)
