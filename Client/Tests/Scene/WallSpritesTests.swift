@@ -1,7 +1,7 @@
 // Walls as update-46's WallComponent lays them out: turned with the view, cut, and placed.
 
+@testable import simburbia
 import Foundation
-@testable import LotScene
 import SimAntics
 import Testing
 import TSOContent

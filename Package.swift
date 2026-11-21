@@ -2,18 +2,19 @@
 
 import PackageDescription
 
+// The client, `simburbia`: `swift run simburbia` from the repository root. Its sources are in
+// `Client/`, grouped by job. The libraries it uses are the packages beside it, each independent.
 let package = Package(
-    name: "Client",
+    name: "Simburbia",
     // A tool, so it may require a newer macOS than the libraries: swift-configuration needs 15.
     platforms: [.macOS(.v15)],
     products: [
         .executable(name: "simburbia", targets: ["simburbia"]),
-        .library(name: "LotScene", targets: ["LotScene"]),
     ],
     dependencies: [
-        .package(path: "../TSOFiles"),
-        .package(path: "../TSOContent"),
-        .package(path: "../SimAntics"),
+        .package(path: "TSOFiles"),
+        .package(path: "TSOContent"),
+        .package(path: "SimAntics"),
         // The owner's interface library, which NSOInterface grew into; it has no releases yet.
         .package(url: "https://github.com/tonytins/Hudini", branch: "main"),
         // The CST text Hudini reads too; the owner's library.
@@ -27,14 +28,8 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-log", from: "1.16.0"),
     ],
     targets: [
-        // What the client shows, worked out without raylib, so it's tested without a window.
-        .target(name: "LotScene", dependencies: [
-            .product(name: "SimAntics", package: "SimAntics"),
-            .product(name: "TSOContent", package: "TSOContent"),
-            .product(name: "TSOFiles", package: "TSOFiles"),
-        ]),
+        // The game: its session and scene (tested without a window), and its drawing and windows.
         .executableTarget(name: "simburbia", dependencies: [
-            "LotScene",
             .product(name: "ArgumentParser", package: "swift-argument-parser"),
             .product(name: "Configuration", package: "swift-configuration"),
             .product(name: "Hudini", package: "hudini"),
@@ -46,15 +41,15 @@ let package = Package(
             .product(name: "TSOContent", package: "TSOContent"),
             .product(name: "TSOFiles", package: "TSOFiles"),
             .product(name: "GitVersion", package: "GitVersion"),
-        ], plugins: [.plugin(name: "GitVersionPlugin", package: "GitVersion")]),
-        .testTarget(name: "LotSceneTests", dependencies: [
-            "LotScene",
+        ], path: "Client/Sources", plugins: [.plugin(name: "GitVersionPlugin", package: "GitVersion")]),
+        .testTarget(name: "SimburbiaTests", dependencies: [
+            "simburbia",
             .product(name: "SimAntics", package: "SimAntics"),
             .product(name: "TSOContent", package: "TSOContent"),
             .product(name: "TSOFiles", package: "TSOFiles"),
             // The interface documents are read with Hudini, as the client reads them.
             .product(name: "Hudini", package: "hudini"),
-        ]),
+        ], path: "Client/Tests"),
     ],
     swiftLanguageModes: [.v6]
 )

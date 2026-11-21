@@ -6,7 +6,7 @@
 #   ROOT         the repository's root
 #   APP          Simburbia, the name players see
 #   EXE          simburbia, the client's executable
-#   PACKAGE      the client's Swift package (SBClient)
+#   PACKAGE      the client's Swift package (the repository's root)
 #   DIST         where the packages go (default: $ROOT/dist/release)
 #   WORK         where they are put together (default: $ROOT/dist/work)
 #   BUILD_SHA    the commit being packaged
@@ -22,7 +22,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP=Simburbia
 EXE=simburbia
-PACKAGE="$ROOT/SBClient"
+PACKAGE="$ROOT"
 export ROOT APP EXE PACKAGE
 
 fail() {

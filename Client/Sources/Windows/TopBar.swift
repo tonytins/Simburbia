@@ -1,5 +1,4 @@
 import Hudini
-import LotScene
 import Raylib
 
 /// The bar along the top of the screen: the lot, how fast time runs, the time; then the floor,

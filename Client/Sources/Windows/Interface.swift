@@ -1,6 +1,5 @@
 import Foundation
 import Hudini
-import LotScene
 import Raylib
 
 /// The client's interface documents, read once at start (``InterfaceDocuments``).

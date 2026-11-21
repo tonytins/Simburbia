@@ -23,8 +23,10 @@ start. Design references include [Luanti](https://github.com/luanti-org),
 
 ## Project Structure
 
-Each package is independent, at the repository root. Dependencies point one way: TSOFiles, then
-TSOContent, then SimAntics, then SimsScript, with the client and tools on top.
+Each package is independent: the client is the root package (`Package.swift`, sources in
+`Client/`), and the libraries and tools are packages in the folders beside it. Dependencies point
+one way: TSOFiles, then TSOContent, then SimAntics, then SimsScript, with the client and tools on
+top.
 
 | Path | Contents |
 | --- | --- |
@@ -34,7 +36,7 @@ TSOContent, then SimAntics, then SimsScript, with the client and tools on top.
 | `TSOContent/` | The content system and the list of installs (`InstallKind`); its `TSOConfig` product reads them through swift-configuration |
 | `SimAntics/` | The VM that runs object behavior, and the lot model |
 | `SimsScript/` | BHAV text assembly and an LSL-like compiler (proof of concept) |
-| `SBClient/` | `simburbia`, the client, which loads, runs, and shows a lot |
+| `Client/` | `simburbia`, the client, which loads, runs, and shows a lot: the root package's sources, grouped by job (`App`, `Session`, `Scene`, `Drawing`, `Screens`, `Windows`, `Terminal`), and its tests |
 | `SBOracle/` | `sb-oracle`: the randomized study and the content census |
 | `ScriptOracle/` | `sso-oracle`: small experiments written in SimsScript, run on the VM |
 | `MockInstall/` | A tiny made-up TSO install for tests and CI |
@@ -59,13 +61,13 @@ Build output (`.build/`, `dist/`) is never committed.
 ## Build and Test
 
 ```sh
-for package in TSOFiles TSOContent; do   # the packages you changed and those that depend on them (CI builds them all)
+for package in TSOFiles TSOContent; do   # the packages you changed and those that depend on them; "." is the client (CI builds them all)
     swift build -j 2 --package-path "$package" && swift test -j 2 --package-path "$package"
 done
 grep -rnE 'try!|as!|fatalError|precondition|preconditionFailure' */Sources  # must print nothing
 swift run --package-path TSOFilesCheck -c release tsofiles-check            # scans every TSO_*_DIR install that's set
-swift run --package-path SBClient -c release simburbia --headless --ticks 9000    # run a lot a game hour with no window; read the log
-swift run --package-path SBClient -c release simburbia --headless --check         # the same over a game day, checking the lot's rules
+swift run -c release simburbia --headless --ticks 9000                       # the client: run a lot a game hour with no window; read the log
+swift run -c release simburbia --headless --check                            # the same over a game day, checking the lot's rules
 swift run --package-path SBOracle -c release sb-oracle study --out /tmp/study     # sample lots for five minutes; needs TSO_GAME_DIR
 swift run --package-path ScriptOracle sso-oracle run                              # the SimsScript scenarios, on MockInstall unless TSO_GAME_DIR is set
 packaging/linux/package.sh                                                   # the client as an AppImage and a .tar.gz, in dist/release

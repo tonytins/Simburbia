@@ -1,7 +1,8 @@
 name: Swift
 
-# Builds and tests the Simburbia packages. Each package is independent, so
-# each one builds and tests on its own, as AGENTS.md's "Before you finish" asks.
+# Builds and tests the Simburbia packages: the client at the root, and the
+# libraries and tools beside it. Each package is independent, so each one
+# builds and tests on its own, as AGENTS.md's "Before you finish" asks.
 # Real-install tests skip themselves here: CI has no TSO_GAME_DIR, and no
 # game data may be stored in the repository. Tests that need an install run
 # on MockInstall, a made-up one, instead.
@@ -18,7 +19,9 @@ on:
       - "SimsScript/**"
       - "SBOracle/**"
       - "ScriptOracle/**"
-      - "SBClient/**"
+      - "Client/**"
+      - "Package.swift"
+      - "Package.resolved"
       - "MockInstall/**"
       - "Lots/**"
       - "Interface/**"
@@ -38,7 +41,9 @@ on:
       - "SimsScript/**"
       - "SBOracle/**"
       - "ScriptOracle/**"
-      - "SBClient/**"
+      - "Client/**"
+      - "Package.swift"
+      - "Package.resolved"
       - "MockInstall/**"
       - "Lots/**"
       - "Interface/**"
@@ -80,8 +85,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for package in TSOFiles TSOFilesCheck TSOContent SimAntics SimsScript SBOracle ScriptOracle SBClient; do
-            echo "::group::$package"
+          # The client is the root package ("."); the libraries and tools are the folders beside it.
+          for package in TSOFiles TSOFilesCheck TSOContent SimAntics SimsScript SBOracle ScriptOracle .; do
+            echo "::group::${package/#./client}"
             swift build --package-path "$package"
             swift test --package-path "$package"
             echo "::endgroup::"
@@ -115,8 +121,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for package in TSOFiles TSOFilesCheck TSOContent SimAntics SimsScript SBOracle ScriptOracle SBClient; do
-            echo "::group::$package"
+          # The client is the root package ("."); the libraries and tools are the folders beside it.
+          for package in TSOFiles TSOFilesCheck TSOContent SimAntics SimsScript SBOracle ScriptOracle .; do
+            echo "::group::${package/#./client}"
             swift build --package-path "$package"
             swift test --package-path "$package"
             echo "::endgroup::"

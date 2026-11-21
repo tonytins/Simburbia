@@ -99,7 +99,7 @@ In order:
        swift-cst, GitVersion) as first-party, and lets the client, which is the game, use raylib
        throughout; swift-cst becomes the client's own dependency; and Comic Neue and Fira Mono,
        under the SIL Open Font License, go in `Interface/fonts` with their licenses.
-     - [ ] D2. The move: a `Package.swift` at the root holds the client, so `swift run simburbia`
+     - [x] D2. The move: a `Package.swift` at the root holds the client, so `swift run simburbia`
        runs it; `SBClient` becomes `Client`, its files grouped into folders by job, with
        `LotScene` folded into the one client target. CI, packaging, and the docs follow.
      - [ ] D3. Interface files: the UIScript documents become `.uix`, and the loading text moves
@@ -380,6 +380,7 @@ chunks) can land whenever TS1 hybrid mode is needed; nothing in TSO mode waits o
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-11-21 | minor | The first client's step D2: the client is the repository's root package, so `swift run simburbia` runs it. `SBClient` became `Client`, its sources grouped by job (`App`, `Session`, `Scene`, `Drawing`, `Screens`, `Windows`, `Terminal`), with `LotScene` folded into the one `simburbia` target and its tests (`SimburbiaTests`) importing it. Files moved with their history; CI builds the root as `.`, packaging builds from the root, and AGENTS.md, the README, and the docs follow. |
 | 2026-11-21 | patch | The first client's step D1: AGENTS.md treats the owner's libraries (Hudini, raylib-swift, swift-cst, GitVersion) as first-party and lets the client, the game, use raylib throughout; swift-cst 0.4.0 becomes the client's own dependency (it was Hudini's already, so nothing new is fetched); and Comic Neue Regular and Fira Mono Regular, from Google Fonts' repository under the SIL Open Font License, go in `Interface/fonts` with their licenses, unused until D5. |
 | 2026-11-21 | patch | The first client gains step D, planned in five steps by the owner's decision: the owner's libraries first-party, the client allowed raylib throughout, a root manifest so `swift run simburbia` runs it, its files grouped by job with `LotScene` folded in, `.uix` documents and swift-cst's `UIText`, every window in Hudini's `WindowManager`, and Comic Neue and Fira Mono. |
 | 2026-11-21 | minor | Queen Margaret's fourth pass, step D5, which finishes phase D: queueing interactions by hand. `VM` gains `availableInteractions(on:for:)` (a pie menu's choices), `queueInteraction(_:on:for:)` (user-driven, checked first, turned down with an `InteractionRequestError`), and `cancelInteraction(id:for:)`. The client updates Hudini to current main for its `WindowManager` (bringing in swift-cst as Hudini's dependency; `UIScriptView` is now `UIView`), and gains a drop-down terminal on Ctrl+Shift+C, the first window in that manager: `join` brings the install's template person (or MockInstall's Sim), and `menu`, `queue`, `cancel`, and `show` act for it, with `TerminalCommands` tested without a window. While the terminal has the keyboard, the game's keys wait. Left for later: moving the loading text from Hudini's deprecated `CSTCatalog` to swift-cst's `UIText`, and moving the other windows into the manager. |

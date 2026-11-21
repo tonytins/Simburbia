@@ -2,7 +2,6 @@ import ArgumentParser
 import Configuration
 import Foundation
 import Hudini
-import LotScene
 import Raylib
 import SimAntics
 import TSOConfig

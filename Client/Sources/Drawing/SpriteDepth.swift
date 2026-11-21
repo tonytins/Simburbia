@@ -1,4 +1,3 @@
-import LotScene
 import Raylib
 
 /// Gives each sprite pixel a depth, so sprites cover each other, and the walls and floors drawn

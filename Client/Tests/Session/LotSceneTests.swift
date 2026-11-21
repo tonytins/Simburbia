@@ -1,8 +1,8 @@
 // The client's view of a lot, checked on MockInstall's lot without a window.
 
+@testable import simburbia
 import Foundation
 import Hudini
-import LotScene
 import SimAntics
 import Testing
 import TSOContent

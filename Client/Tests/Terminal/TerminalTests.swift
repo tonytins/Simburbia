@@ -1,7 +1,7 @@
 // The terminal's commands, on MockInstall's lot without a window.
 
+@testable import simburbia
 import Foundation
-import LotScene
 import SimAntics
 import Testing
 

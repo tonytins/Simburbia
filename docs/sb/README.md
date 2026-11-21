@@ -24,7 +24,7 @@ point one way:
 TSOFiles ──▶ TSOContent ──▶ SimAntics ──▶ SimsScript ──▶ ScriptOracle (sso-oracle)
                                 │
                                 ├──▶ SBOracle (sb-oracle)
-                                └──▶ SBClient (simburbia) ◀── Hudini ◀── raylib-swift
+                                └──▶ Client (simburbia) ◀── Hudini ◀── raylib-swift
 
 TSOFiles and TSOContent ──▶ TSOFilesCheck (tsofiles-check)
 ```

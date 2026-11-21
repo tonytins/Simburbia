@@ -1,12 +1,13 @@
 # The client: simburbia
 
-`simburbia` is Simburbia's client, in [`SBClient`](../../SBClient/). It loads a lot from an
+`simburbia` is Simburbia's client, in [`Client`](../../Client/), which the repository's root
+package builds. It loads a lot from an
 install, runs it on SimAntics at TSO's 30 ticks a second, and shows it in a window. It doesn't play
 the game yet: there are no Sims, no building, and no online play. It shows how far the libraries
 have come, and it's the tool for watching a lot run.
 
 ```sh
-swift run --package-path SBClient simburbia
+swift run simburbia
 ```
 
 On Linux the build needs the X11 and GL headers; [`AGENTS.md`](../../AGENTS.md) says where they come
@@ -125,8 +126,7 @@ which also serves as Simburbia's fallback and debug interface:
 - **The inspector** shows a clicked object: what it is, where it is, and what it's running.
 - **The terminal**, opened and closed with Ctrl+Shift+C, queues a Sim's interactions by hand
   until there's a pie menu. It drops down under the top bar, and while its input has the
-  keyboard the game's keys wait. Its commands (`TerminalCommands`, in LotScene, where they're
-  tested without a window) join a Sim (the install's template person, or MockInstall's Sim) and
+  keyboard the game's keys wait. Its commands (`TerminalCommands`, tested without a window) join a Sim (the install's template person, or MockInstall's Sim) and
   act for it: `join`, `sim`, `sims`, `objects`, `menu` (what the Sim may choose on an object),
   `queue`, `cancel`, `show` (the Sim's queue), `clear`, and `help`. It goes through `VM`'s
   `availableInteractions`, `queueInteraction`, and `cancelInteraction`. It's the first window in
@@ -204,12 +204,19 @@ Mac app), and a build run from the repository finds them at the repository root.
 
 ## How it's built
 
-The client is two targets:
+The client is one target, `simburbia`, in the repository's root package. It's the game, so any
+part of it may draw with [raylib-swift](https://github.com/tonytins/raylib-swift); what can be
+worked out without a window is kept that way, and its tests (`SimburbiaTests`, which import the
+target) run without one. Its sources are grouped by job, in `Client/Sources`:
 
-- **`LotScene`**, without raylib, works out what to show: the lot's geometry, which sprites go
-  where, the inspector's lines, the system messages, the run's log lines, and the session that
-  ticks the VM. Its tests run without a window.
-- **`simburbia`**, the executable, draws with [raylib-swift](https://github.com/tonytins/raylib-swift),
-  takes input, and logs. Only it imports raylib or swift-log.
+| Folder | Holds |
+| --- | --- |
+| `App` | The command line, the window, the frame loop, and the run's log |
+| `Session` | The loaded install and lot, ticking the VM, the lots to choose from, and system messages |
+| `Scene` | The lot's geometry, and which sprites go where: worked out without a window |
+| `Drawing` | Drawing the lot through the 3D camera: floors, walls, sprites, and their depth |
+| `Screens` | The loading screen and the login window |
+| `Windows` | The interface documents, the top bar, and the windows over the lot, such as the inspector |
+| `Terminal` | The drop-down terminal and its commands |
 
 The rendering reads the VM's state and never changes it, so what's drawn can't affect the simulation.

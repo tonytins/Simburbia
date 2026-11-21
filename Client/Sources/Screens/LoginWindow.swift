@@ -1,5 +1,4 @@
 import Hudini
-import LotScene
 import Raylib
 
 /// The login window of the owner's mockup (`docs/design/login-screen.png`), over the loading

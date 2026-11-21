@@ -16,7 +16,8 @@
 
 | Folder | Holds |
 | --- | --- |
-| `TSOFiles/`, `TSOContent/`, `SimAntics/`, `SBClient/` | The Swift code: independent Swift packages at the repository root for the file formats, content, and the SimAntics VM, plus the client, tools, and SimsScript |
+| `TSOFiles/`, `TSOContent/`, `SimAntics/`, and the others | The Swift code: independent Swift packages for the file formats, content, and the SimAntics VM, plus tools and SimsScript |
+| `Client/` | The client, `simburbia`, which the repository's root package builds: `swift run simburbia` |
 | [`docs/`](./docs/README.md) | How Simburbia works, the plan, and the results, with a glossary of terms |
 
 To build and test, you need Swift 6. You don't need the game: tests run on

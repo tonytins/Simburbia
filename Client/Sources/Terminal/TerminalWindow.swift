@@ -1,5 +1,4 @@
 import Hudini
-import LotScene
 import Raylib
 import SimAntics
 

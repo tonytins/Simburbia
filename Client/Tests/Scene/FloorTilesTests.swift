@@ -1,7 +1,7 @@
 // Floors as update-46 draws them: which tiles take which texture, and where in it.
 
+@testable import simburbia
 import Foundation
-import LotScene
 import SimAntics
 import Testing
 import TSOContent

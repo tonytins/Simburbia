@@ -1,8 +1,8 @@
 // The loading screen's pacing.
 
+@testable import simburbia
 import Foundation
 import Hudini
-import LotScene
 import Testing
 
 private let simburbiaFolder = URL(fileURLWithPath: #filePath)

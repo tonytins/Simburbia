@@ -1,4 +1,3 @@
-import LotScene
 import Raylib
 import TSOFiles
 
