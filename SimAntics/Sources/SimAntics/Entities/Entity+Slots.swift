@@ -31,8 +31,8 @@ extension Entity {
     /// either way it moves to this entity's position.
     ///
     /// A Sim holds it in its hand whatever the index, which the object keeps as its slot number,
-    /// and doesn't check for loops (`VMAvatar.PlaceInSlot`). FreeSO also starts the carry animation
-    /// (`a2o-rarm-carry-loop`), which comes with animation.
+    /// doesn't check for loops, and starts the default carry animation (`a2o-rarm-carry-loop`),
+    /// as `VMAvatar.PlaceInSlot` does; with no such animation, it carries without one.
     ///
     /// - Throws: any error the object's placement or dynamic multi-tile entry point throws.
     @discardableResult
@@ -45,6 +45,7 @@ extension Entity {
             contained[0] = object
             object.container = self
             object.containerSlot = Int16(truncatingIfNeeded: index)
+            sim.carryAnimation = try vm.animationClip(named: Primitives.AnimateSim.defaultCarry).map { AnimationState(clip: $0) }
             object.position = position
             if cleanOld { try vm.takePosition(object, runsPlacementEntryPoint: true) }
             return true
@@ -60,11 +61,13 @@ extension Entity {
         return true
     }
 
-    /// Empties a container slot (`ClearSlot`). A Sim empties its hand whatever the index
-    /// (`VMAvatar.ClearSlot`); FreeSO fails clearing an empty hand, which does nothing here.
+    /// Empties a container slot (`ClearSlot`). A Sim empties its hand whatever the index, and stops
+    /// its carry animation (`VMAvatar.ClearSlot`); FreeSO fails clearing an empty hand, which does
+    /// nothing here.
     func clearSlot(_ index: Int) {
         let index = isAvatar ? 0 : index
         guard contained.indices.contains(index), let object = contained[index] else { return }
+        if isAvatar { sim.carryAnimation = nil }
         object.container = nil
         object.containerSlot = -1
         contained[index] = nil

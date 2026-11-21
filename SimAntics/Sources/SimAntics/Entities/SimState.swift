@@ -87,6 +87,14 @@ public struct SimState: Sendable, Equatable {
     public var animations: [AnimationState] = []
     /// What the Sim's arm plays while carrying something (`CarryAnimationState`).
     public var carryAnimation: AnimationState?
+    /// Appearances bound over the body, such as an apron, by file name (`BoundAppearances`, a
+    /// list that can hold one twice); only drawing reads them.
+    public var boundAppearances: [String] = []
+    /// Outfits an object can put a Sim in (`VMAvatarDynamicSuits`), FreeSO's defaults until set.
+    public var dynamicDaywear: UInt64 = 0x24C_0000_000D
+    public var dynamicSwimwear: UInt64 = 0x547_0000_000D
+    public var dynamicSleepwear: UInt64 = 0x544_0000_000D
+    public var dynamicCostume: UInt64 = 0x24C_0000_000D
     /// Hand poses from animation events (`lefthand`, `righthand`), which only drawing reads.
     public var leftHandPose: Int16 = 0
     public var rightHandPose: Int16 = 0

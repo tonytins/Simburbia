@@ -8,7 +8,8 @@ by tick, the same way on every machine.
 What runs today: the VM core, entities and their entry points, creating and deleting objects
 (multi-tile ones included), threads with subroutine calls and check threads, every variable scope
 objects use, the scheduler and clock, placing objects and putting them in slots, Sims'
-animations, and 22 of the 49 primitives TSO uses (Animate Sim, Sleep, Expression, Refresh, Random Number, Get Distance To, Get Direction To,
+animations, and 26 of the 49 primitives TSO uses (Animate Sim, Change Suit Or Accessory, Grab, Drop,
+Reach, Sleep, Expression, Refresh, Random Number, Get Distance To, Get Direction To,
 Breakpoint, Find Location For, Idle For Input, Remove Object Instance, Play Sound, Transfer Funds,
 Run Tree By Name, Set To Next, Test Object Type, Special Effect, Set Balloon Headline, Create
 Object Instance, Stop All Sounds, Notify Stack Object Out Of Idle, and Get Terrain Info). Balloon headlines aren't drawn, but each counts down and keeps its entity running every
@@ -194,6 +195,9 @@ ones; FreeSO's names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 | --- | --- | --- |
 | 0 | `Sleep` | Waits a number of ticks held in an argument |
 | 2 | `Expression` | Compares, assigns, does arithmetic and flag operations, pushes and pops lists |
+| 4 | `Grab` | Takes the stack object in the caller's hand |
+| 5 | `Drop` | Puts what the caller holds on a tile beside it, the one it faces first |
+| 6 | `ChangeSuitOrAccessory` | Binds or unbinds an accessory, or changes the body outfit (as state; drawing it is the client's) |
 | 7 | `Refresh` | Refreshes graphics, lighting, or room score (headless: changes nothing yet) |
 | 8 | `RandomNumber` | Draws a number below a limit into a variable |
 | 11 | `GetDistanceTo` | The distance from the stack object to another object, in whole tiles, into a temp |
@@ -211,6 +215,7 @@ ones; FreeSO's names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 | 41 | `SetBalloonHeadline` | Shows or clears a balloon over the caller or the stack object (headless: it counts down) |
 | 42 | `CreateObjectInstance` | Creates an object beside, in front of, or under another, and makes it the stack object |
 | 44 | `AnimateSim` | Plays an animation on the calling Sim and hands the routine its events; sets or stops the carry animation; ID 0 goes back to the posture's walk |
+| 47 | `Reach` | Reaches for the stack object or one of its slots, and picks up or puts down on the animation's event 0 |
 | 48 | `StopAllSounds` | Stops an object's sounds; headless, nothing plays |
 | 49 | `NotifyStackObjectOutOfIdle` | Wakes the stack object: brings its next run forward and interrupts its Sleep |
 | 63 | `GetTerrainInfo` | The ground's heights, slope, or an object's tile and level, into temps (terrain is flat: not ported) |
@@ -296,7 +301,20 @@ code owner's animation table (its `OBJD`'s, else `STR#` 129), the stack object's
 NPC social objects (`petsocialsdog`, `petsocialscat`, `npcsocials`). FreeSO skips those and goes
 true, and so does Simburbia for now. plumbob-engine reads the table of the object the Sim is
 interacting with instead, which neither the person objects' nor the global's tables fit well.
-Which table they use is an open question for phase D, when interactions show who calls them.
+Which table they use is an open question for phase D, when interactions show who calls them. One
+lead (the owner's, **Unverified**): pets came only with New & Improved, and TSO was player-driven,
+so the tables may have been delivered by TSO's patcher rather than shipped in these files.
+
+A Sim's hand is its one container slot: Grab (4) puts the stack object in it, Reach (47) takes or
+puts on its animation's event 0, and Drop (5) sets it on a tile beside the Sim. Holding something
+starts the default carry animation, `a2o-rarm-carry-loop`, and emptying the hand stops it, as
+FreeSO's `VMAvatar` does. Reach picks one of TSO's four reach animations by the slot's height, so
+TSO's files need those names. 1.1097.1.0's objects name `CT - Grab` 101 times and `CT - Put` 118
+times, the trees plumbob-engine runs on the target after a reach; FreeSO doesn't, and nor does
+Simburbia yet (an open question for phase D).
+
+Change Suit Or Accessory (6) keeps what drawing will need: the appearances bound over the body
+(`sim.boundAppearances`), the body outfit, and `CurrentOutfit` (person data 8).
 
 ## Scheduling, the clock, and randomness
 

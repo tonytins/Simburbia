@@ -7,6 +7,8 @@ public enum PersonData {
     /// 0 standing, 1 sitting, 2 kneeling (`Posture`).
     public static let posture = 0
     public static let moneyAmountOverHead = 1
+    /// The suit index the Sim last changed into (`CurrentOutfit`).
+    public static let currentOutfit = 8
     public static let neatPersonality = 7
     public static let isHousemate = 21
     public static let tickCounter = 27

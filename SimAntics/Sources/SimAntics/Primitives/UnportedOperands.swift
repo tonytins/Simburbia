@@ -10,13 +10,10 @@ public protocol FSOCompatOperand: PrimitiveOperand {
 
 extension PrimitiveTable {
     /// Operand types for primitives FreeSO registers in TSO mode that this port doesn't run yet,
-    /// by opcode. Primitives with no operand (grab, drop, syslog, test sim interacting with, find
-    /// best action) decode to ``Primitives/EmptyOperand``.
+    /// by opcode. Primitives with no operand (syslog, test sim interacting with, find best action)
+    /// decode to ``Primitives/EmptyOperand``.
     public static let unportedOperands: [UInt8: any FSOCompatOperand.Type] = [
         1: Primitives.GenericTSOCall.Operand.self,
-        4: Primitives.EmptyOperand.self,
-        5: Primitives.EmptyOperand.self,
-        6: Primitives.ChangeSuitOrAccessory.Operand.self,
         9: Primitives.Burn.Operand.self,
         13: Primitives.PushInteraction.Operand.self,
         14: Primitives.FindBestObjectForFunction.Operand.self,
@@ -34,7 +31,6 @@ extension PrimitiveTable {
         43: Primitives.DropOnto.Operand.self,
         45: Primitives.GotoRoutingSlot.Operand.self,
         46: Primitives.Snap.Operand.self,
-        47: Primitives.Reach.Operand.self,
         50: Primitives.ChangeActionString.Operand.self,
         62: Primitives.InvokePlugin.Operand.self,
         65: Primitives.EmptyOperand.self,
@@ -55,35 +51,6 @@ extension Primitives {
         public init(bytes: [UInt8]) {}
         public func encoded() -> [UInt8] { OperandWriter.bytes { _ in } }
         public var fsoCompatFields: [(name: String, value: Int64)] { [] }
-    }
-
-    /// Change Suit or Accessory (opcode 6). FreeSO's `VMChangeSuitOrAccessoryOperand`.
-    public enum ChangeSuitOrAccessory {
-        public struct Operand: FSOCompatOperand, Equatable {
-            public var suitData: UInt8
-            /// Where the suit comes from (`VMSuitScope`).
-            public var suitScope: UInt8
-            public var flags: UInt16
-
-            public init(bytes: [UInt8]) {
-                var reader = OperandReader(bytes)
-                suitData = reader.uint8()
-                suitScope = reader.uint8()
-                flags = reader.uint16()
-            }
-
-            public func encoded() -> [UInt8] {
-                OperandWriter.bytes { writer in
-                    writer.uint8(suitData)
-                    writer.uint8(suitScope)
-                    writer.uint16(flags)
-                }
-            }
-
-            public var fsoCompatFields: [(name: String, value: Int64)] {
-                [("SuitData", Int64(suitData)), ("SuitScope", Int64(suitScope)), ("Flags", Int64(flags))]
-            }
-        }
     }
 
     /// Dialog (opcodes 36, 38, and 39: private, global, and semi-global strings). FreeSO's
@@ -455,32 +422,6 @@ extension Primitives {
             }
             public func encoded() -> [UInt8] { OperandWriter.bytes { $0.uint16(function) } }
             public var fsoCompatFields: [(name: String, value: Int64)] { [("Function", Int64(function))] }
-        }
-    }
-
-    /// Reach (opcode 47). FreeSO's `VMReachOperand`.
-    public enum Reach {
-        public struct Operand: FSOCompatOperand, Equatable {
-            public var mode: UInt16
-            public var grabOrDrop: UInt16
-            public var slotParameter: UInt16
-
-            public init(bytes: [UInt8]) {
-                var reader = OperandReader(bytes)
-                mode = reader.uint16()
-                grabOrDrop = reader.uint16()
-                slotParameter = reader.uint16()
-            }
-
-            public func encoded() -> [UInt8] {
-                OperandWriter.bytes { writer in
-                    for value in [mode, grabOrDrop, slotParameter] { writer.uint16(value) }
-                }
-            }
-
-            public var fsoCompatFields: [(name: String, value: Int64)] {
-                [("Mode", Int64(mode)), ("GrabOrDrop", Int64(grabOrDrop)), ("SlotParam", Int64(slotParameter))]
-            }
         }
     }
 

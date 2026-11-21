@@ -146,8 +146,10 @@ let chairGUID: UInt32 = 0x100
 /// `objects` lists the GUIDs of other objects in `chair.iff` (their `OBJD`s go in `chair`).
 func withVM(chair: [ChunkFixture] = [], chairWords: [Int: UInt16] = [:], chairOTF: Data? = nil,
             semiGlobal: [ChunkFixture] = [], global: [ChunkFixture] = [], seed: UInt64 = 1,
-            objects: [UInt32] = [], _ body: (VM, Entity) throws -> Void) throws {
+            objects: [UInt32] = [], files: [(path: String, contents: Data)] = [],
+            _ body: (VM, Entity) throws -> Void) throws {
     let install = try FakeInstall()
+    for file in files { try install.write(file.contents, to: file.path) }
     let entries = ([chairGUID] + objects).map { #"<I g="0x\#(String($0, radix: 16))" n="chair" m="0" i="0"/>"# }
     try install.write(Data("<ObjectInfoTable>\(entries.joined())</ObjectInfoTable>".utf8),
                       to: "packingslips/objecttable.xml")
@@ -207,4 +209,85 @@ func required<Value>(_ value: Value?, _ what: @autoclosure () -> String = "a fix
                      sourceLocation: SourceLocation = #_sourceLocation) throws -> Value {
     guard let value else { throw MissingFixtureValue(description: "missing \(what()) at \(sourceLocation)") }
     return value
+}
+
+/// A FAR3 archive of uncompressed files.
+func makeFAR3(_ files: [(name: String, id: AssetID, contents: Data)]) -> Data {
+    var writer = ByteWriter()
+    writer.ascii("FAR!byAZ")
+    writer.uint32(3)
+    writer.uint32(0)
+    var offsets: [Int] = []
+    for file in files {
+        offsets.append(writer.count)
+        writer.raw(file.contents)
+    }
+    writer.patchUInt32(UInt32(writer.count), at: 12)
+    writer.uint32(UInt32(files.count))
+    for (file, offset) in zip(files, offsets) {
+        writer.uint32(UInt32(file.contents.count))
+        writer.uint24(UInt32(file.contents.count))
+        writer.uint8(0)
+        writer.uint32(UInt32(offset))
+        writer.uint8(0)
+        writer.uint8(0)
+        writer.uint16(UInt16(file.name.utf8.count))
+        writer.uint32(file.id.typeID)
+        writer.uint32(file.id.fileID)
+        writer.ascii(file.name)
+    }
+    return writer.bytes
+}
+
+/// A made-up `.anim`: one motion of `frames` frames, with `xevt`s at these times (ms).
+func animationFile(_ name: String, frames: UInt32, xevts: [(time: Int32, value: Int16)]) -> Data {
+    var writer = ByteWriter(bigEndian: true)
+    func float(_ value: Float) {
+        let bits = value.bitPattern
+        for shift in stride(from: 0, to: 32, by: 8) { writer.uint8(UInt8(truncatingIfNeeded: bits >> UInt32(shift))) }
+    }
+    func pascal(_ text: String) {
+        writer.uint8(UInt8(text.utf8.count))
+        writer.ascii(text)
+    }
+    writer.uint32(2)
+    writer.uint16(UInt16(name.utf8.count))
+    writer.ascii(name)
+    float(Float(frames) * 1000 / 30)
+    float(0)
+    writer.uint8(0)
+    writer.uint32(0)                      // translations
+    writer.uint32(0)                      // rotations
+    writer.uint32(1)                      // one motion
+    writer.uint32(0)
+    pascal("PELVIS")
+    writer.uint32(frames)
+    float(Float(frames) * 1000 / 30)
+    writer.uint8(0)
+    writer.uint8(1)
+    writer.uint32(0)
+    writer.uint32(0)
+    writer.uint8(0)                       // no property lists
+    writer.uint8(xevts.isEmpty ? 0 : 1)
+    if !xevts.isEmpty {
+        writer.uint32(1)
+        writer.uint32(UInt32(xevts.count))
+        for event in xevts {
+            writer.int32(event.time)
+            writer.uint32(1)              // one set
+            writer.uint32(1)              // one pair
+            pascal("xevt")
+            pascal(String(event.value))
+        }
+    }
+    return writer.bytes
+}
+
+/// Animations as an install keeps them, in `avatardata/animations/animations.dat`.
+func animationsArchive(_ animations: [(name: String, frames: UInt32, xevts: [(time: Int32, value: Int16)])]) -> (path: String, contents: Data) {
+    let files = animations.enumerated().map { index, animation in
+        (name: animation.name + ".anim", id: AssetID(fileID: UInt32(index + 1), typeID: 7),
+         contents: animationFile(animation.name, frames: animation.frames, xevts: animation.xevts))
+    }
+    return ("avatardata/animations/animations.dat", makeFAR3(files))
 }
