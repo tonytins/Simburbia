@@ -28,7 +28,6 @@ extension PrimitiveTable {
         40: Primitives.OnlineJobsCall.Operand.self,
         43: Primitives.DropOnto.Operand.self,
         45: Primitives.GotoRoutingSlot.Operand.self,
-        46: Primitives.Snap.Operand.self,
         62: Primitives.InvokePlugin.Operand.self,
         65: Primitives.EmptyOperand.self,
         67: Primitives.InventoryOperations.Operand.self,
@@ -227,35 +226,6 @@ extension Primitives {
             public var fsoCompatFields: [(name: String, value: Int64)] {
                 [("OldTrapCount", Int64(oldTrapCount)), ("Location", Int64(location)), ("Direction", Int64(direction)),
                  ("RouteCount", Int64(routeCount)), ("Flags", Int64(flags))]
-            }
-        }
-    }
-
-    /// Snap (opcode 46).
-    public enum Snap {
-        public struct Operand: FSOCompatOperand, Equatable {
-            public var index: UInt16
-            /// How ``index`` picks the slot.
-            public var mode: UInt16
-            public var flags: UInt8
-
-            public init(bytes: [UInt8]) {
-                var reader = OperandReader(bytes)
-                index = reader.uint16()
-                mode = reader.uint16()
-                flags = reader.uint8()
-            }
-
-            public func encoded() -> [UInt8] {
-                OperandWriter.bytes { writer in
-                    writer.uint16(index)
-                    writer.uint16(mode)
-                    writer.uint8(flags)
-                }
-            }
-
-            public var fsoCompatFields: [(name: String, value: Int64)] {
-                [("Index", Int64(index)), ("Mode", Int64(mode)), ("Flags", Int64(flags))]
             }
         }
     }
