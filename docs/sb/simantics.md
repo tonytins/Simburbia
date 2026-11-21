@@ -245,6 +245,17 @@ less a third of the Sim's distance; only a slot with "random scoring" adds a ran
 from the VM's seed. With no spot, the search says why: no valid goals, a wall in the way, no
 chair, or the tile taken.
 
+**Paths** (E3): `VM.findPath(for:from:to:)` finds the way from a position to the nearest of some
+goals within one room. It searches sixteenths of a tile, eight ways (A*: a straight step costs
+10, a diagonal 14, and no diagonal cuts a blocked corner), keeping the Sim's middle out of the
+walls and footprints in its way grown by half its width (3 sixteenths). An obstacle the start
+or a goal is already inside is left out, so a Sim can step away from a counter or up to a chair.
+The path is then cut to the points the Sim turns at, each the farthest it can walk to straight.
+Equal choices always break the same way. A goal in another room or on another level is "no room
+route" until doors and stairs (E5); none reachable, or more than 250,000 points searched, is "no
+path". The grid is worked out as it's reached, so a whole outdoor lot costs only what the route
+touches: across the owner's 64-tile lot on 1.1097.1.0, a route takes 2 to 16 ms (release build).
+
 Anything routing feeds into the simulation, such as a Sim's facing, uses `DeterministicMath`'s
 `sin`, `cos`, and `atan2`, which give the same bits on every machine: they use only operations
 IEEE 754 rounds exactly, in a fixed order, and stay within a last bit or two of the platform's.

@@ -247,7 +247,7 @@ In order:
      - [x] E2. Where to go: an object's routing slots (`SLOT` type 3) read into candidate spots, by
        distance, facing, and standing or sitting; Snap's other modes on them, replacing the
        stand-in.
-     - [ ] E3. The path: routes around walls and obstacles within a floor, on the sixteenth-tile
+     - [x] E3. The path: routes around walls and obstacles within a floor, on the sixteenth-tile
        grid, smoothed.
      - [ ] E4. Walking: the routing frame turns the Sim, walks it along the path with its walk
        animations, and arrives facing the right way, stopping when its interaction is cancelled;
@@ -400,6 +400,7 @@ chunks) can land whenever TS1 hybrid mode is needed; nothing in TSO mode waits o
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-11-21 | minor | Phase E's step E3: paths within a room. `VM.findPath(for:from:to:)` searches sixteenths of a tile eight ways (A*, whole-number costs, no corner cutting, ties broken by order), keeps the Sim's middle out of walls and footprints grown by its half-width, leaves out an obstacle the start or a goal is inside, and smooths the path to its turns. Another room or level is "no room route" until E5; more than 250,000 points is "no path". The grid is worked out as it's reached; routes across the owner's 64-tile lot on 1.1097.1.0 take 2 to 16 ms in a release build. Nothing calls it until E4. |
 | 2026-11-21 | minor | Phase E's step E2: routing slots. `VM.findSpots(for:around:for:)` turns a routing slot (an object's `SLOT` type 3, or the global's `SLOT` 100) into spots, best first: one for a slot that snaps to a direction or has an offset, else the points at its proximity in its directions and the object's room; each on the lot, with no wall between it and the object (`Architecture.wallBetween`), fitting the Sim or holding a chair. Snap (46) runs all five modes on them, replacing D3's stand-in; the template person still falls asleep on the floor, and still next needs Relationship. Deliberate differences: random scoring only with the slot's flag (DIFF-39), and a wall in the way reported (DIFF-40). `SLOT.Slot` gains a public initializer. |
 | 2026-11-21 | minor | Phase E's step E1, scaffolding: `RoutingFrame`, a stack frame that runs a route instead of instructions (pushed with `VMThread.pushRoute`), returning true when the Sim arrives or false with TSO's `RouteFailure` code in its `PrimitiveResult` and the blocker in `PrimitiveResultID`; a route with no goals fails, and walking waits for E4. `Architecture.wallObstacles` and `VM.routeObstacles` give what a route keeps out of: walls as bands and squares, and the footprints that don't let a Sim through. `DeterministicMath`'s `sin`, `cos`, and `atan2` give the same bits everywhere, within 4e-16 of the platform's, pinned by tests. |
 | 2026-11-21 | patch | Phase E planned in five steps (owner's decisions): a routing frame and deterministic math, routing slots, the path on a sixteenth-tile grid, walking with Go To Routing Slot and Go To Relative Position, and portals with an end-to-end check. Determinism replaces matching FreeSO's floating point: basic `Float` and `Double` operations, and Simburbia's own `atan2`, `sin`, and `cos`. Walking speed is settled in E4. |
