@@ -1,9 +1,8 @@
 extension Primitives {
     /// Finds a place for the stack object (opcode 16).
     ///
-    /// Ports FreeSO's `VMFindLocationFor`. The reference is the caller, or the object whose ID is in
-    /// a local. Each mode tries placements (``VM/place(_:at:facing:flags:)``, accepting slots) until
-    /// one fits:
+    /// The reference is the caller, or the object whose ID is in a local. Each mode tries
+    /// placements (``VM/place(_:at:facing:flags:)``, accepting slots) until one fits:
     ///
     /// - 0: at the reference's tile in each compass facing, then on rings of tiles around it, out
     ///   to nine tiles;
@@ -12,7 +11,7 @@ extension Primitives {
     ///   with the default flags;
     /// - 3 and 4: along the reference's facing, or across it, alternately ahead and behind, up to
     ///   15 tiles out, facing that way;
-    /// - 5: random, which FreeSO leaves as true without moving anything.
+    /// - 5: random, which is true without moving anything.
     ///
     /// Other modes are false.
     public enum FindLocationFor: Primitive {

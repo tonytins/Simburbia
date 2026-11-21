@@ -4,7 +4,7 @@ extension Primitives {
     /// Reaches for the stack object, or into one of its slots, picking up or putting down on the
     /// animation's event 0 (opcode 47).
     ///
-    /// Ports FreeSO's `VMReach`. 1.1097.1.0 has 118 instructions: 40 in mode 0, 78 in mode 1.
+    /// 1.1097.1.0 has 118 instructions: 40 in mode 0, 78 in mode 1.
     ///
     /// - **Mode 0** reaches for the stack object and takes it in hand. The height is that of the
     ///   slot the object is in, or 0 on the floor or in a Sim's hand.
@@ -14,24 +14,21 @@ extension Primitives {
     ///
     /// The animation follows the height: sitting, `a2o-sit-reach-table`; below 2,
     /// `a2o-reach-floorht`; below 4, `a2o-reach-seatht`; else `a2o-reach-tableht`. A slot's height
-    /// is its standard height's offset (floor 0, low table 2.5, table and counter 4, sitting 7,
-    /// end table 4), or its own offset for a non-standard slot, rounded half to even as .NET's
+    /// is its standard height's offset (floor 0, low table 2.5, table and counter 4, sitting 7, end
+    /// table 4), or its own offset for a non-standard slot, rounded half to even as .NET's
     /// `Math.Round` does, so a low table counts as 2. The first run starts the animation and waits;
     /// later ones act on event 0, drop each event, and wait, until the animation ends, then go
-    /// true, whether or not the pickup worked, as in FreeSO.
+    /// true, whether or not the pickup worked.
     ///
-    /// Where it differs: FreeSO fails with no stack object, or a slot number past its slots, as a
-    /// .NET exception; Simburbia fails with an error for the routine. A height that isn't one of
-    /// the nine standard ones is an error too, where FreeSO's lookup would fail. plumbob-engine
-    /// (a The Sims 1 engine) can go false when a pickup is refused, and after one runs the
-    /// target's `CT - Grab` or `CT - Put` tree, which 1.1097.1.0's objects also have; FreeSO runs
-    /// neither, and neither does Simburbia yet. Mode 2, reaching to the mouth, which TSO doesn't
-    /// use, is unsupported, as FreeSO leaves it.
+    /// No stack object, a slot number past its slots, or a height that isn't one of the nine
+    /// standard ones fails, with an error for the routine. The target's `CT - Grab` or `CT - Put`
+    /// tree, which an object runs when a reach takes it or puts something in it, comes with phase
+    /// D. Mode 2, reaching to the mouth, which TSO doesn't use, is unsupported.
     public enum Reach: Primitive {
         public static let name = "reach"
         public static let opcode: UInt8 = 47
 
-        /// FreeSO's `VMReachOperand`.
+        /// The operand.
         public struct Operand: PrimitiveOperand, Equatable {
             public var mode: UInt16
             public var grabOrDrop: UInt16
@@ -104,7 +101,7 @@ extension Primitives {
             return .continueNextTick
         }
 
-        /// The pickup or putting down, on event 0. Failing is not reported, as in FreeSO.
+        /// The pickup or putting down, on event 0. Failing is not reported.
         private static func act(_ operand: Operand, sim: Entity, target: Entity, in frame: StackFrame) throws(SimAnticsError) {
             if operand.mode == 0 {
                 if sim.slot(0) == nil { try sim.placeInSlot(target, slot: 0, cleanOld: true) }

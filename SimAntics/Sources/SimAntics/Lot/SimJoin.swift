@@ -1,23 +1,23 @@
 extension VM {
-    /// The person template every player's Sim is made from (`VMAvatar.TEMPLATE_PERSON`).
+    /// The person template every player's Sim is made from.
     public static let templatePerson: UInt32 = 0x7FD9_6B54
 
-    /// The mailbox GUIDs a joining Sim is placed by (`VMNetSimJoinCmd`): the mailbox's part that
-    /// stands on the lot (which TSO's mailbox objects create), and the job lots' vacation mailbox.
+    /// The mailbox GUIDs a joining Sim is placed by: the mailbox's part that stands on the lot
+    /// (which TSO's mailbox objects create), and the job lots' vacation mailbox.
     public static let mailboxGUIDs: Set<UInt32> = [0xEF12_1974, 0x1D95_C9B0]
 
-    /// The tile a joining Sim is put on when the lot has no mailbox (`VMNetSimJoinCmd`'s fallback):
-    /// 3,3 on the ground floor, facing north.
+    /// The tile a joining Sim is put on when the lot has no mailbox: 3,3 on the ground floor,
+    /// facing north.
     public static let arrivalFallback = LotPosition.center(ofTileX: 3, y: 3, level: 1)
 
-    /// A Sim arrives on the lot as a player joins one (`VMNetSimJoinCmd` outside TS1 mode): the
-    /// template is created out of the world, then placed by the first mailbox part in object ID
-    /// order (``findLocation(for:near:flags:)``), or without one on ``arrivalFallback``; then the
+    /// A Sim arrives on the lot as a player joins one: the template is created out of the world,
+    /// then placed by the first mailbox part in object ID order
+    /// (``findLocation(for:near:flags:)``), or without one on ``arrivalFallback``; then the
     /// player's saved state is applied (``SimIdentity``), and the Sim takes its persist ID.
     ///
-    /// Kept from FreeSO: if the fallback tile is taken, nothing else is tried, and the Sim stays
-    /// out of the world. FreeSO's roommate bookkeeping for players with more than a visitor's
-    /// permissions, and the chat event, aren't ported.
+    /// If the fallback tile is taken, nothing else is tried, and the Sim stays out of the world.
+    /// Roommate bookkeeping for players with more than a visitor's permissions, and the chat
+    /// event, aren't ported.
     ///
     /// - Returns: the Sim, or `nil` if the content has no such object.
     /// - Throws: Any error an entry point throws, or the identity's values throw.

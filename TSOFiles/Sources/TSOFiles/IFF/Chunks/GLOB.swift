@@ -2,9 +2,8 @@ import Foundation
 
 /// The name of the semi-global IFF an object uses for shared behavior.
 ///
-/// Ports FreeSO's `GLOB`. The name is either a Pascal string or a C string:
-/// a first byte below 48 (`0`, the lowest valid file name character) is
-/// read as a length.
+/// The name is either a Pascal string or a C string: a first byte below 48 (`0`, the lowest valid
+/// file name character) is read as a length.
 public struct GLOB: IFFChunk {
     public static let typeCode = "GLOB"
 

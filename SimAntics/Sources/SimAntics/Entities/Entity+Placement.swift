@@ -7,12 +7,12 @@ extension Entity {
     }
 
     /// The rectangle the entity would take up at a position and facing, or `nil` if it takes up
-    /// none (`VMGameObject.GetObstacle`): the definition's footprint mask, rotated a quarter turn
-    /// per compass point, trims each side of a square half the tile width (8 by default) wide.
+    /// none: the definition's footprint mask, rotated a quarter turn per compass point, trims
+    /// each side of a square half the tile width (8 by default) wide.
     ///
     /// A Sim's is a square 3 sixteenths of a tile each way around its position, whatever its
-    /// facing or flags (`VMAvatar.GetObstacle`). FreeSO gives a Sim that's being removed from the
-    /// lot no obstacle, unless it has zero extent; Sims leaving the lot aren't ported yet.
+    /// facing or flags. A Sim that's being removed from the lot will have no obstacle; Sims
+    /// leaving the lot aren't ported yet.
     public func obstacle(at position: LotPosition, facing direction: Direction) -> Obstacle? {
         if isAvatar {
             let x = Int(position.x), y = Int(position.y)
@@ -29,11 +29,11 @@ extension Entity {
                         x - half + Int((mask >> 12) & 0xF), y - half + Int(mask & 0xF))
     }
 
-    /// Whether the entity may go to a position (`VMEntity.PositionValid`): on the lot, against the
-    /// walls it needs and clear of those it can't have, on a floor it allows, and clear of other
-    /// objects, unless `flags` allow overlapping. With `userBuildableLimit`, it must also be in the
-    /// buildable area. The lot is flat, so slopes never fail. A Sim isn't checked against walls,
-    /// and other objects are in its way as ``avatarPlacement(at:facing:)`` decides.
+    /// Whether the entity may go to a position: on the lot, against the walls it needs and clear of
+    /// those it can't have, on a floor it allows, and clear of other objects, unless `flags` allow
+    /// overlapping. With `userBuildableLimit`, it must also be in the buildable area. The lot is
+    /// flat, so slopes never fail. A Sim isn't checked against walls, and other objects are in its
+    /// way as ``avatarPlacement(at:facing:)`` decides.
     ///
     /// - Throws: any error an "allow intersection" entry point throws.
     public func placement(at position: LotPosition, facing direction: Direction,
@@ -108,9 +108,9 @@ extension Entity {
         ((sides << (4 - quarterTurns)) & 15) | ((sides & 15) >> quarterTurns)
     }
 
-    /// `VMContext.GetObjPlace`: whether another object in the room is in the way. Each one that
-    /// overlaps is asked through "allow intersection" (entry point 5), this object first; if
-    /// neither allows it, it's in the way, unless this object can stack on its first slot.
+    /// Whether another object in the room is in the way. Each one that overlaps is asked
+    /// through "allow intersection" (entry point 5), this object first; if neither allows it,
+    /// it's in the way, unless this object can stack on its first slot.
     func objectPlacement(at position: LotPosition, facing direction: Direction) throws(SimAnticsError) -> PlacementResult {
         let allowedHeights = data(.allowedHeightFlags)
         let weight = data(.weight)
@@ -146,13 +146,13 @@ extension Entity {
         return result
     }
 
-    /// `VMContext.GetAvatarPlace`: whether something in the room is in a Sim's way. Each entity
-    /// whose footprint overlaps the Sim's is asked through "allow intersection" (entry point 5),
-    /// the Sim first; if neither allows it, it's in the way unless it lets people through: another
-    /// Sim when this one has "allow person intersection", or anything, Sims included, with "allow
-    /// person intersection" and not "disallow person intersection". The search stops at the first one in
-    /// the way that has a chair's entry point (26); otherwise the last one in the way is named.
-    /// A Sim never stacks or sits in a slot here.
+    /// Whether something in the room is in a Sim's way. Each entity whose footprint overlaps the
+    /// Sim's is asked through "allow intersection" (entry point 5), the Sim first; if neither
+    /// allows it, it's in the way unless it lets people through: another Sim when this one has
+    /// "allow person intersection", or anything, Sims included, with "allow person intersection"
+    /// and not "disallow person intersection". The search stops at the first one in the way that
+    /// has a chair's entry point (26); otherwise the last one in the way is named. A Sim never
+    /// stacks or sits in a slot here.
     func avatarPlacement(at position: LotPosition, facing direction: Direction) throws(SimAnticsError) -> PlacementResult {
         var result = PlacementResult()
         guard let footprint = obstacle(at: position, facing: direction), position.level >= 1 else { return result }
@@ -180,7 +180,7 @@ extension Entity {
         let tileX = Int(position.tileX), tileY = Int(position.tileY), level = Int(position.level)
         var wall = try vm.architecture.wall(atX: tileX, y: tileY, level: level)
         let rotate = (8 - (direction.wallOffset + 1)) % 4
-        // FreeSO takes the flags modulo 15, not masked with 15.
+        // The flags are taken modulo 15, not masked with 15.
         let sides = UInt8(truncatingIfNeeded: Self.rotate(Int(data(.wallPlacementFlags)) % 15, by: rotate))
         guard sides != 0 else { return }
 
@@ -198,10 +198,10 @@ extension Entity {
         try vm.architecture.setWall(wall, atX: tileX, y: tileY, level: level)
     }
 
-    /// `SetWallStyle` for a door or window: puts a style on the top-left (side 3) or top-right
-    /// (side 0) wall of its tile; FreeSO leaves the other two sides alone. A door also marks the
-    /// wall as having one. FreeSO first swaps a style from 22 to 255 for a generated one, which
-    /// only drawing sees; this keeps the definition's value.
+    /// For a door or window: puts a style on the top-left (side 3) or top-right (side 0) wall of
+    /// its tile; the other two sides are left alone. A door also marks the wall as having one. A
+    /// style from 22 to 255 is kept as the definition's value; the client makes its own from the
+    /// object's sprites (DIFF-20).
     func setWallStyle(side: Int, to value: UInt16) throws(SimAnticsError) {
         guard side == 0 || side == 3 else { return }
         let tileX = Int(position.tileX), tileY = Int(position.tileY), level = Int(position.level)
@@ -222,10 +222,10 @@ extension Entity {
         for side in architecturalWallSides { try setWallStyle(side: side, to: value) }
     }
 
-    /// The sides of its tile a door or window puts its wall style on, in the order FreeSO's
-    /// `VMGameObject.PositionChange` sets them: 0 is the tile's top-right edge and 3 its top-left
-    /// one; 1 and 2 name edges the neighbors own, which `SetWallStyle` leaves alone. Empty for an
-    /// object that's neither. The client reads it to draw a door's or window's own wall style.
+    /// The sides of its tile a door or window puts its wall style on, in order: 0 is the tile's
+    /// top-right edge and 3 its top-left one; 1 and 2 name edges the neighbors own, which are
+    /// left alone. Empty for an object that's neither. The client reads it to draw a door's or
+    /// window's own wall style.
     public var architecturalWallSides: [Int] {
         guard data(.flagField2) & (EntityFlag.architecturalWindow | EntityFlag.architecturalDoor) != 0 else { return [] }
         let flags = WallPlacementFlags(rawValue: data(.wallPlacementFlags))

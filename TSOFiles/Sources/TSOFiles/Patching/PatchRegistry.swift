@@ -2,10 +2,10 @@ import Foundation
 
 /// The PIFF patches and OTF replacements found under a patch folder.
 ///
-/// Ports FreeSO's `PIFFRegistry`. Every `.piff` file is filed under the IFF it
-/// patches. Patches under a `User/` folder win: once one exists for an IFF, the
-/// shipped patches for that IFF are dropped. Every `.otf` file replaces the OTF
-/// with the same file name. Differences from FreeSO, all for reliable results:
+/// Every `.piff` file is filed under the IFF it patches. Patches under a
+/// `User/` folder win: once one exists for an IFF, the shipped patches for that
+/// IFF are dropped. Every `.otf` file replaces the OTF with the same file name.
+/// For reliable results (DIFF-10, DIFF-11):
 ///
 /// - Files are read in sorted path order, where .NET's order was undefined.
 /// - `User/` is matched in the path relative to the patch folder, not the full path.
@@ -89,7 +89,7 @@ public struct PatchRegistry: Sendable {
         }
     }
 
-    /// Adds a patch file, following FreeSO's precedence for user patches.
+    /// Adds a patch file, user patches taking precedence.
     public mutating func register(_ patchFile: IFFFile, named name: String, isUserPatch: Bool) throws(PIFFError) {
         guard let record = patchFile.chunk(ofType: PIFF.typeCode) else { throw .missingPatchChunk }
         let source: String
@@ -124,10 +124,9 @@ public struct PatchRegistry: Sendable {
     ///
     /// Each patch is applied as a whole or not at all. It's kept only if it applies
     /// cleanly and every chunk it changes or adds, of a type this package can
-    /// parse, still parses. On the files a patch was written for, every patch fits
-    /// and the result matches FreeSO. On other versions of the game (such as the
-    /// 2002 beta) a patch that doesn't fit is skipped and reported, where FreeSO
-    /// would fail to load the object.
+    /// parse, still parses. On the files a patch was written for, every patch fits.
+    /// On other versions of the game (such as the 2002 beta) a patch that doesn't
+    /// fit is skipped and reported, and the object loads unpatched.
     public func applyingPatches(to iff: IFFFile, fileName: String) -> Outcome {
         var outcome = Outcome(file: iff, applied: [], skipped: [])
         for patch in patches(for: fileName) {

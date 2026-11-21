@@ -3,11 +3,10 @@ import Foundation
 extension Primitives {
     /// The distance from the stack object to another object, in whole tiles, into a temp (opcode 11).
     ///
-    /// Ports FreeSO's `VMGetDistanceTo`. The object is read from a variable; FreeSO's operand reader
-    /// makes it the caller's ID (`MyObject` 11) when flag 1 is clear, so the caller is never used
-    /// directly. The distance is the straight line between the two positions, ignoring levels, in
-    /// sixteenths of a tile, divided by 16 and rounded down. A missing stack object or object, or a
-    /// temp past the last, fails, as FreeSO's null reference and index do.
+    /// The object is read from a variable; it's the caller's ID (`MyObject` 11) when flag 1 is
+    /// clear, so the caller is never used directly. The distance is the straight line between the
+    /// two positions, ignoring levels, in sixteenths of a tile, divided by 16 and rounded down. A
+    /// missing stack object or object, or a temp past the last, fails.
     public enum GetDistanceTo: Primitive {
         public static let name = "get_distance_to"
         public static let opcode: UInt8 = 11
@@ -45,7 +44,7 @@ extension Primitives {
                 }
             }
 
-            /// The object as FreeSO's reader leaves it: the caller's ID when flag 1 is clear.
+            /// The object: the caller's ID when flag 1 is clear.
             var effectiveObject: Variable {
                 flags & 1 == 0 ? Variable(.myObject, Int16(ObjectVariable.objectID.rawValue)) : object
             }

@@ -2,9 +2,9 @@ import Foundation
 
 /// An object's interactions: what appears in its pie menu and the routines behind each entry.
 ///
-/// Ports FreeSO's `TTAB`. Pie menu text lives in the ``TTAs`` chunk with the
-/// same ID. Versions 9 and 10 (TSO's) are field-encoded; earlier versions are
-/// plain little-endian. Flags are kept as raw values, as stored.
+/// Pie menu text lives in the ``TTAs`` chunk with the same ID. Versions 9 and 10 (TSO's) are
+/// field-encoded; earlier versions are plain little-endian. Flags are kept as raw values, as
+/// stored.
 public struct TTAB: IFFChunk {
     public static let typeCode = "TTAB"
 
@@ -33,13 +33,13 @@ public struct TTAB: IFFChunk {
         public var attenuationValue: Float
         public var autonomyThreshold: UInt32
         public var joiningIndex: Int32
-        /// The `TSOFlags` bits, version 10 and up. Earlier versions get 0x1F, as in FreeSO.
+        /// The `TSOFlags` bits, version 10 and up. Earlier versions get 0x1F.
         public var tsoFlags: UInt32 = 0x1F
     }
 
     public let id: UInt16
     public let label: String
-    /// The format version, or `nil` when the table is empty (FreeSO's reader stops before it).
+    /// The format version, or `nil` when the table is empty (reading stops before it).
     public let version: UInt16?
     public let interactions: [Interaction]
 
@@ -69,7 +69,7 @@ public struct TTAB: IFFChunk {
                 interactions = try Self.readInteractions(count: count, version: version, from: &values)
             }
 
-            // FreeSO's reader indexes interactions by string index and fails on a repeat.
+            // Interactions are indexed by string index, so a repeat is an error.
             var seen = Set<UInt32>()
             for interaction in interactions where !seen.insert(interaction.ttaIndex).inserted {
                 throw ChunkFormatError(reason: "repeated TTA index \(interaction.ttaIndex)")

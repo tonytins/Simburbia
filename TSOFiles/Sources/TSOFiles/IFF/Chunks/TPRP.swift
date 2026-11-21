@@ -2,9 +2,8 @@ import Foundation
 
 /// Names for a ``BHAV``'s parameters and local variables, with the same ID.
 ///
-/// Ports FreeSO's `TPRP`. Version 5 stores names with a one-byte length;
-/// other versions store them NUL-terminated. Trailing flags aren't read,
-/// as in FreeSO.
+/// Version 5 stores names with a one-byte length; other versions store them NUL-terminated.
+/// Trailing flags aren't read.
 public struct TPRP: IFFChunk {
     public static let typeCode = "TPRP"
 

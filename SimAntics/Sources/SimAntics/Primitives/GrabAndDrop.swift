@@ -1,10 +1,9 @@
 extension Primitives {
     /// Puts the stack object in the caller's hand, its first container slot (opcode 4).
     ///
-    /// Ports FreeSO's `VMGrab`: true if the object is there afterwards, false if the slot holds
-    /// something else or doesn't exist. plumbob-engine (a The Sims 1 engine) also goes false with
-    /// no stack object, where FreeSO fails; Simburbia fails too, with an error for the routine.
-    /// 209 instructions on 1.1097.1.0.
+    /// True if the object is there afterwards, false if the slot holds something else or doesn't
+    /// exist. With no stack object it fails, with an error for the routine. 209 instructions on
+    /// 1.1097.1.0.
     public enum Grab: Primitive {
         public static let name = "grab"
         public static let opcode: UInt8 = 4
@@ -18,16 +17,15 @@ extension Primitives {
 
     /// Puts down what the caller holds in its first slot, on a tile beside it (opcode 5).
     ///
-    /// Ports FreeSO's `VMDrop`: false with no slot or nothing in it; otherwise it tries the eight
-    /// tiles around the caller's, at their centers, starting with the one it faces and then
-    /// alternating either side of it, and goes true at the first where the object's group can be
-    /// placed, facing the caller's way; false if none can. plumbob-engine tries only the tile in
-    /// front. 21 instructions on 1.1097.1.0.
+    /// False with no slot or nothing in it; otherwise it tries the eight tiles around the
+    /// caller's, at their centers, starting with the one it faces and then alternating either
+    /// side of it, and goes true at the first where the object's group can be placed, facing the
+    /// caller's way; false if none can. 21 instructions on 1.1097.1.0.
     public enum Drop: Primitive {
         public static let name = "drop"
         public static let opcode: UInt8 = 5
 
-        /// North, then clockwise round the compass, in sixteenths of a tile (FreeSO's `Positions`).
+        /// North, then clockwise round the compass, in sixteenths of a tile.
         static let offsets: [(x: Int, y: Int)] = [(0, -16), (16, -16), (16, 0), (16, 16), (0, 16), (-16, 16), (-16, 0), (-16, -16)]
 
         public static func execute(_ operand: EmptyOperand, in frame: StackFrame) throws(SimAnticsError) -> ExitCode {

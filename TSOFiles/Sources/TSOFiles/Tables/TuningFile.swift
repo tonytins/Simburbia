@@ -2,10 +2,9 @@ import Foundation
 
 /// The global tuning constants in `tuning.dat`.
 ///
-/// Ports FreeSO's `Tuning`. The file is a Persist container (body type 1 or 3)
-/// holding RefPack-compressed data: a list of named entries, each a list of
-/// key and value strings. Strings are obfuscated by adding 13 to every byte.
-/// Entry names are matched in lower case, as in FreeSO.
+/// The file is a Persist container (body type 1 or 3) holding RefPack-compressed data: a list of
+/// named entries, each a list of key and value strings. Strings are obfuscated by adding 13 to
+/// every byte. Entry names are matched in lower case.
 public struct TuningFile: Sendable, Equatable {
     /// One named group of settings.
     public struct Entry: Sendable, Equatable {
@@ -75,7 +74,8 @@ public struct TuningFile: Sendable, Equatable {
         try self.init(bytes: Data(contentsOf: url))
     }
 
-    /// Reads the Persist header, or returns `nil` if the body type or compression isn't one FreeSO accepts.
+    /// Reads the Persist header, or returns `nil` if the body type or compression isn't one the
+    /// game uses.
     private static func readContainer(_ bytes: Data) throws(EndOfDataError) -> (data: Data, decompressedSize: Int)? {
         var reader = ByteReader(bytes, byteOrder: .littleEndian)
         let bodyType = try reader.readUInt8()
@@ -95,7 +95,7 @@ public struct TuningFile: Sendable, Equatable {
         var seenNames = Set<String>()
         for _ in 0..<count {
             let name = try readString(&reader)
-            // FreeSO files entries by lower-case name in a dictionary, which fails on a repeat.
+            // Entries are filed by lower-case name, so a repeat is an error.
             guard seenNames.insert(name.lowercased()).inserted else { throw TuningError.repeatedEntry(name) }
             let valueCount = try reader.readUInt32()
             var values: [(key: String, value: String)] = []
@@ -128,7 +128,7 @@ public struct TuningFile: Sendable, Equatable {
 
 /// An error from reading `tuning.dat`.
 public enum TuningError: Error, Equatable, Sendable {
-    /// The Persist body type or compression ID isn't one FreeSO accepts.
+    /// The Persist body type or compression ID isn't one the game uses.
     case notATuningFile
     case truncated(EndOfDataError)
     case decompressionFailed(RefPackError)

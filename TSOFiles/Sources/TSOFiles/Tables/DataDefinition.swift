@@ -2,10 +2,9 @@ import Foundation
 
 /// The data service's schema, from `TSOData_datadefinition.dat`.
 ///
-/// Ports FreeSO's `TSODataDefinition`. The file holds three lists (two of
-/// structs, one of derived structs, which are masked views of a parent struct)
-/// and a string table that names them. The data service uses these to map
-/// avatar, lot, and city fields to wire IDs.
+/// The file holds three lists (two of structs, one of derived structs, which are masked views of a
+/// parent struct) and a string table that names them. The data service uses these to map avatar,
+/// lot, and city fields to wire IDs.
 public struct DataDefinition: Sendable, Equatable {
     /// How a struct field holds its values.
     public enum FieldClassification: UInt8, Sendable {
@@ -97,7 +96,7 @@ public struct DataDefinition: Sendable, Equatable {
         }
 
         let structs = (raw.list1 + raw.list2).map { Struct(id: $0.nameID, name: name($0.nameID), fields: fields(of: $0)) }
-        // FreeSO indexes structs by name in a dictionary, which fails on a missing or repeated name.
+        // Structs are indexed by name, so a missing or repeated name is an error.
         var names = Set<String>()
         for item in structs {
             guard let structName = item.name else { throw .unnamedStruct(id: item.id) }

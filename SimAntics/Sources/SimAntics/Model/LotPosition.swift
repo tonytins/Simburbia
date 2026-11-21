@@ -1,7 +1,7 @@
 /// Where something is on a lot: a point in sixteenths of a tile, and a level.
 ///
-/// Corresponds to FreeSO's `LotTilePos`. Level 1 is the ground floor. Objects that aren't on
-/// the lot (in an inventory, or not placed yet) are at ``outOfWorld``.
+/// Level 1 is the ground floor. Objects that aren't on the lot (in an inventory, or not
+/// placed yet) are at ``outOfWorld``.
 public struct LotPosition: Sendable, Hashable, CustomStringConvertible {
     /// Sixteenths of a tile.
     public var x: Int16
@@ -38,7 +38,7 @@ public struct LotPosition: Sendable, Hashable, CustomStringConvertible {
     }
 }
 
-/// The eight compass facings, as FreeSO stores them: one bit each, north first, clockwise.
+/// The eight compass facings: one bit each, north first, clockwise.
 public enum Direction: UInt8, Sendable, CaseIterable {
     case north = 0x01, northEast = 0x02, east = 0x04, southEast = 0x08
     case south = 0x10, southWest = 0x20, west = 0x40, northWest = 0x80

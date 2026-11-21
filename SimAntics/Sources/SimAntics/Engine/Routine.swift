@@ -3,7 +3,6 @@ import TSOFiles
 
 /// A BHAV prepared to run: every operand decoded once.
 ///
-/// Ports FreeSO's `VMRoutine` and `VMTranslator.Assemble`.
 public struct Routine: Sendable {
     public let id: UInt16
     public let name: String
@@ -67,16 +66,17 @@ public enum DecodedOperand: Sendable {
     case subroutine(SubroutineOperand)
     /// A primitive, ready to run.
     case primitive(PrimitiveTable.Prepared)
-    /// A primitive opcode with no implementation in FreeSO; it takes the true branch.
+    /// An opcode no TSO primitive uses; it takes the true branch.
     case missingPrimitive
-    /// A primitive FreeSO has that this port doesn't yet; running it throws ``SimAnticsError/unsupported(_:)``.
+    /// A TSO primitive Simburbia doesn't run yet; running it throws
+    /// ``SimAnticsError/unsupported(_:)``.
     case unportedPrimitive(String)
 }
 
 /// The arguments of a subroutine call.
 ///
-/// Ports `VMSubRoutineOperand`: four little-endian 16-bit arguments. When any of
-/// arguments 1 to 3 is non-zero, an argument of -1 takes the temp register with its index.
+/// Four little-endian 16-bit arguments. When any of arguments 1 to 3 is non-zero, an
+/// argument of -1 takes the temp register with its index.
 public struct SubroutineOperand: Sendable, Equatable {
     public var arguments: [Int16]
     public var usesTemps: Bool

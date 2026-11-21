@@ -1,9 +1,9 @@
 extension Primitives {
     /// Draws a random number below a range (opcode 8).
     ///
-    /// Corresponds to FreeSO's `VMRandomNumber`. The range is read as unsigned 16-bit, so -1
-    /// means 65,535; a range of 0 gives 0 without advancing the generator. The result is written
-    /// as a 16-bit value, so a `TempXL` destination fails, as in FreeSO. Always true.
+    /// The range is read as unsigned 16-bit, so -1 means 65,535; a range of 0 gives 0 without
+    /// advancing the generator. The result is written as a 16-bit value, so a `TempXL`
+    /// destination fails. Always true.
     public enum RandomNumber: Primitive {
         public static let name = "random_number"
         public static let opcode: UInt8 = 8

@@ -1,11 +1,10 @@
 extension Primitives {
     /// Reads the ground around the caller or the stack object into temps (opcode 63).
     ///
-    /// Ports FreeSO's `VMGetTerrainInfo`. Out of the world it's false. Mode 0 gives the heights at
-    /// the four corners of its tile (TSO's units, FreeSO's divided by 10); mode 1 the slope across
-    /// and down; mode 2 its tile, the position within the tile, and its level; modes 3 (grass) and
-    /// 4 (a ceiling above) are 0, as in FreeSO. Terrain isn't ported, so heights and slopes are 0,
-    /// as on every blueprint lot. A missing object fails, as FreeSO's null reference does.
+    /// Out of the world it's false. Mode 0 gives the heights at the four corners of its tile
+    /// (TSO's units); mode 1 the slope across and down; mode 2 its tile, the position within the
+    /// tile, and its level; modes 3 (grass) and 4 (a ceiling above) are 0. Terrain isn't ported,
+    /// so heights and slopes are 0, as on every blueprint lot. A missing object fails.
     public enum GetTerrainInfo: Primitive {
         public static let name = "get_terrain_info"
         public static let opcode: UInt8 = 63

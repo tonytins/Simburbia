@@ -3,7 +3,6 @@ import TSOFiles
 
 /// An object definition with the files it runs from.
 ///
-/// Ports FreeSO's `GameObject`.
 public struct GameObject: Sendable {
     public var guid: UInt32 { definition.guid }
     public let definition: OBJD
@@ -12,23 +11,21 @@ public struct GameObject: Sendable {
 
 /// The game's objects, by GUID.
 ///
-/// Ports FreeSO's `WorldObjectProvider` in TSO mode. Objects come from
-/// `objectdata/objects/objiff.far`, listed in `packingslips/objecttable.xml`, plus
-/// standalone IFFs (FreeSO's `Content/Objects`), whose every `OBJD` is registered.
-/// Each IFF loads on first use with its patches, sprites (if enabled), tuning, and
-/// semi-global, and is shared by every object in it.
+/// Objects come from `objectdata/objects/objiff.far`, listed in
+/// `packingslips/objecttable.xml`, plus standalone IFFs, whose every `OBJD` is
+/// registered. Each IFF loads on first use with its patches, sprites (if enabled),
+/// tuning, and semi-global, and is shared by every object in it.
 ///
-/// As in FreeSO, when patches change an archived IFF, its objects are registered
-/// again from the patched file, since a patch can add, remove, or change `OBJD`s.
+/// When patches change an archived IFF, its objects are registered again from the
+/// patched file, since a patch can add, remove, or change `OBJD`s.
 ///
-/// Differences from FreeSO, all to keep loading instead of failing:
+/// To keep loading instead of failing:
 ///
 /// - A GUID listed twice keeps its first registration; the rest are in ``duplicates``.
-///   FreeSO fails on the second.
 /// - An entry whose IFF isn't in `objiff.far` throws ``ContentError/missingFile(_:)``
-///   for that object only. FreeSO fails with a null reference.
-/// - A tuning file that fails to load is reported in ``ObjectResource/tuningFailure``.
-///   FreeSO ignores it silently; both load the object without tuning.
+///   for that object only.
+/// - A tuning file that fails to load is reported in ``ObjectResource/tuningFailure``,
+///   and the object loads without tuning.
 public final class ObjectProvider: @unchecked Sendable {
     /// Where an object's IFF comes from.
     public enum Source: Sendable, Equatable {
@@ -86,12 +83,12 @@ public final class ObjectProvider: @unchecked Sendable {
     /// Reads the object table and registers every object.
     ///
     /// - Parameters:
-    ///   - standaloneDirectories: Folders of extra `*.iff` objects, searched recursively, in
-    ///     order: FreeSO's `Content/Objects`, then Simburbia's `Mods/Objects`. A folder that doesn't
+    ///   - standaloneDirectories: Folders of extra `*.iff` objects, searched recursively, in order:
+    ///     a content folder's `Objects`, then Simburbia's `Mods/Objects`. A folder that doesn't
     ///     exist holds nothing. An IFF that doesn't read is skipped and listed in
-    ///     ``standaloneFailures``, where FreeSO would fail to start: these are files nobody
-    ///     controls. A GUID already registered keeps its first registration (``duplicates``),
-    ///     so a mod can't silently replace one of the game's objects.
+    ///     ``standaloneFailures``: these are files nobody controls. A GUID already registered keeps
+    ///     its first registration (``duplicates``), so a mod can't silently replace one of the
+    ///     game's objects.
     ///   - loadsSprites: Whether to load sprite IFFs from `objspf*.far`. Servers don't need them.
     /// - Throws: An error if the object table or an archive is missing or malformed, or a
     ///   standalone folder exists but can't be listed.
@@ -153,7 +150,7 @@ public final class ObjectProvider: @unchecked Sendable {
     /// An object by GUID, loading its IFF if needed.
     ///
     /// - Returns: The object, or `nil` if the GUID isn't registered or its IFF has no
-    ///   `OBJD` with that GUID (as FreeSO returns null).
+    ///   `OBJD` with that GUID.
     /// - Throws: An error if the object's files are missing or don't parse, or its semi-global can't load.
     public func object(guid: UInt32) throws(ContentError) -> GameObject? {
         lock.lock()
@@ -177,7 +174,7 @@ public final class ObjectProvider: @unchecked Sendable {
         return stored
     }
 
-    /// Matches FreeSO's unanchored `.*/objotf.*\.far` and `.*/objspf.*\.far`, ignoring letter case.
+    /// Any path holding `/objotf` or `/objspf` and then `.far`, in any letter case.
     private static func isArchive(_ lowerCasePath: String, prefix: String) -> Bool {
         guard let match = lowerCasePath.range(of: "/\(prefix)") else { return false }
         return lowerCasePath[match.upperBound...].contains(".far")
@@ -246,7 +243,7 @@ public final class ObjectProvider: @unchecked Sendable {
                                 tuningFailure: tuningFailure)
     }
 
-    /// Standalone files are patched by file name too, but their objects aren't registered again (as in FreeSO).
+    /// Standalone files are patched by file name too, but their objects aren't registered again.
     private func loadStandaloneResource(at path: String) throws(ContentError) -> ObjectResource {
         let url = URL(fileURLWithPath: path)
         let outcome = patches.applyingPatches(to: try Self.readIFF(at: url, path: path), fileName: url.lastPathComponent)
@@ -255,7 +252,7 @@ public final class ObjectProvider: @unchecked Sendable {
                                 tuningFailure: nil)
     }
 
-    /// FreeSO loads tuning from a patch replacement or `objotf*.far`, and ignores any failure.
+    /// Tuning comes from a patch replacement or `objotf*.far`; a failure is kept to report.
     private func loadTuning(named otfName: String) -> (OTFFile?, String?) {
         do {
             if let replacement = patches.tuningReplacement(for: otfName) {
@@ -268,7 +265,7 @@ public final class ObjectProvider: @unchecked Sendable {
         }
     }
 
-    /// Replaces the registrations for an archived IFF with the `OBJD`s now in it (FreeSO's `ResetFile`).
+    /// Replaces the registrations for an archived IFF with the `OBJD`s now in it.
     private func reregisterObjects(in file: IFFFile, fileName: String) throws(ContentError) {
         referencesByGUID = referencesByGUID.filter { $0.value.fileName != fileName }
         for definition in try Self.definitions(in: file, path: fileName) {

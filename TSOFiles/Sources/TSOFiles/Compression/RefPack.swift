@@ -2,17 +2,15 @@ import Foundation
 
 /// Decompresses RefPack (QFS) data, the compression FAR3 archives use.
 ///
-/// This follows FreeSO's `Decompresser.Decompress`, which was ported from
-/// DBPF4J. The format is described at http://wiki.niotso.org/RefPack.
-/// Behavior on valid data matches FreeSO's code, including these quirks:
+/// The format is described at http://wiki.niotso.org/RefPack. Valid data reads as the game wrote
+/// it, including these quirks:
 ///
 /// - Input of 6 bytes or fewer is returned unchanged.
 /// - Output grows past `decompressedSize` if the stream writes more.
 /// - Control bytes 0xFD to 0xFF copy their literal bytes and keep going;
 ///   only 0xFC ends the stream.
 ///
-/// Where FreeSO's code would index out of bounds, this throws
-/// ``RefPackError`` instead.
+/// Data that would run past either end throws ``RefPackError``.
 public enum RefPack {
     /// Decompresses a RefPack stream that starts after its 5-byte header.
     ///

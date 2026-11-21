@@ -35,7 +35,8 @@ extension UserFolderLocator {
 
 @available(macOS 15, iOS 18, tvOS 18, watchOS 11, visionOS 2, *)
 extension FreeSOContentLocator {
-    /// The setting that names FreeSO's content folder, read from the environment as ``environmentVariable``.
+    /// The setting that names a FreeSO-style content folder, read from the environment as
+    /// ``environmentVariable``.
     public static let configKey: ConfigKey = ["fso", "content", "dir"]
 
     /// A locator that takes the folder from a configuration, else beside the executable, else `fallback`.

@@ -32,7 +32,7 @@ final class LotView {
     var spriteScale: Float { Self.zoomSteps[zoomStep].scale }
     /// Screen pixels per world unit.
     var pixelsPerUnit: Float { spriteZoom.pixelsPerUnit * spriteScale }
-    /// FreeSO's `WorldRotation` for this view: turning the view one way turns the world the other.
+    /// The world rotation for this view: turning the view one way turns the world the other.
     var worldRotation: UInt32 { UInt32((4 - rotation) % 4) }
 
     func center(on point: SIMD3<Float>) {
@@ -93,10 +93,10 @@ final class LotView {
     // MARK: Drawing
 
     /// The lot's floors and walls, and the boxes of objects without sprites. Floors and the ground
-    /// are drawn a little back and down (``SpriteZoom/floorBias(scale:towardViewer:)``), as FreeSO
-    /// draws them, so the sprites standing on them aren't cut off. With `floors`, floors are drawn
-    /// with their textures; without, as plain tiles tinted by room.
-    /// With `wallsAsSprites`, walls and fences are left to ``WallPass``.
+    /// are drawn a little back and down (``SpriteZoom/floorBias(scale:towardViewer:)``), so the
+    /// sprites standing on them aren't cut off. With `floors`, floors are drawn with their
+    /// textures; without, as plain tiles tinted by room. With `wallsAsSprites`, walls and fences
+    /// are left to ``WallPass``.
     func draw(_ scene: LotScene, camera: Camera3D, floors: FloorPass?, wallsAsSprites: Bool, objectsWithSprites: Set<Int16>,
               selected: Int16?, hovered: Int16?) {
         let eye = SIMD3(camera.position.x, camera.position.y, camera.position.z)
@@ -220,7 +220,7 @@ final class LotView {
     // MARK: Picking
 
     /// The point on a level's floor under a point on the screen, in tiles, or `nil` if the ray
-    /// misses it (FreeSO's `EstTileAtPosWithScroll`).
+    /// misses it.
     func tile(at point: Vector2, camera: Camera3D, level: Int) -> SIMD2<Float>? {
         let ray = GetScreenToWorldRay(point, camera)
         let floor = Float(level - 1) * LotScene.levelHeight

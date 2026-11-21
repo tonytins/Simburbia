@@ -2,24 +2,24 @@ extension Primitives {
     /// Sets how a Sim's motive changes over time, or changes it once (opcode 29, Set Motive
     /// Deltas).
     ///
-    /// Ports FreeSO's `VMSetMotiveChange` in TSO mode. With Clear All, every motive change
-    /// stops (``Entity/clearMotiveChanges()``). Otherwise the delta is scaled for the lot
-    /// (``VM/scaledMotiveRate(_:motive:)``) and cut to 16 bits. With Once, the motive moves by
-    /// the delta at once, stopping at the limit, unless it's already past it; without, the motive
-    /// changes by the delta an hour from now on (``Entity/setMotiveChange(_:perHour:max:)``), if
-    /// its change has ticked since it was last set. Always true.
+    /// With Clear All, every motive change stops (``Entity/clearMotiveChanges()``). Otherwise the
+    /// delta is scaled for the lot (``VM/scaledMotiveRate(_:motive:)``) and cut to 16 bits. With
+    /// Once, the motive moves by the delta at once, stopping at the limit, unless it's already
+    /// past it; without, the motive changes by the delta an hour from now on
+    /// (``Entity/setMotiveChange(_:perHour:max:)``), if its change has ticked since it was last
+    /// set. Always true.
     ///
-    /// FreeSO casts the caller to a Sim, so an object caller fails, as does a motive past the
-    /// sixteenth, and anything the rate's scaling fails on.
+    /// An object caller fails, as does a motive past the sixteenth, and anything the rate's
+    /// scaling fails on.
     public enum SetMotiveChange: Primitive {
         public static let name = "set_motive_deltas"
         public static let opcode: UInt8 = 29
 
-        /// FreeSO's `VMSetMotiveChangeOperand`; its owner and data pairs are ``Variable``s here.
+        /// Its owner and data pairs are ``Variable``s.
         public struct Operand: VariableOperand, Equatable {
             public var delta: Variable
             public var max: Variable
-            /// The motive (`VMMotive`).
+            /// The motive.
             public var motive: UInt8
             /// 1 Clear All, 2 Once.
             public var flags: UInt8

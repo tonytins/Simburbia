@@ -40,9 +40,8 @@ public struct DBPFGroupID: RawRepresentable, Hashable, Sendable {
 
 /// A database-packed file (DBPF), which TSO uses for audio.
 ///
-/// Matches FreeSO's `DBPFFile`, including its version handling: version 1.0
-/// has creation and modification dates, versions below 2.0 use the 1.x index
-/// header, and version 2.0 stores the index offset later in the header.
+/// Version 1.0 has creation and modification dates, versions below 2.0 use the 1.x index header,
+/// and version 2.0 stores the index offset later in the header.
 public struct DBPFArchive: Sendable {
     /// One file in the archive.
     public struct Entry: Sendable, Equatable {
@@ -54,7 +53,7 @@ public struct DBPFArchive: Sendable {
         /// The size of the entry's data.
         public var fileSize: UInt32
 
-        /// The ID FreeSO looks entries up by: `(instanceID << 32) + typeID`.
+        /// The ID entries are looked up by: `(instanceID << 32) + typeID`.
         public var lookupID: UInt64 { UInt64(instanceID) << 32 + UInt64(typeID.rawValue) }
     }
 
@@ -110,8 +109,7 @@ public struct DBPFArchive: Sendable {
 
     /// Every entry of one type, in index order.
     ///
-    /// FreeSO's reader throws when the archive has no entry of the type; this
-    /// returns an empty array.
+    /// An archive with no entry of the type gives an empty array.
     public func entries(ofType typeID: DBPFTypeID) -> [Entry] {
         entries.filter { $0.typeID == typeID }
     }
@@ -141,7 +139,7 @@ public struct DBPFArchive: Sendable {
 
         let majorVersion = try reader.readUInt32()
         let minorVersion = try reader.readUInt32()
-        // Computed as in FreeSO, so the version comparisons below behave the same.
+        // Computed, so the version comparisons below behave the same.
         let version = Double(majorVersion) + Double(minorVersion) / 10.0
         try reader.skip(12)
 
@@ -164,7 +162,7 @@ public struct DBPFArchive: Sendable {
             _ = try reader.readUInt32() // index minor version
             indexOffset = try reader.readUInt32()
         }
-        // FreeSO's reader then skips padding, but seeks to the index right after, so the skip has no effect.
+        // Padding follows, but the index is sought right after, so it doesn't matter.
         try reader.seek(to: Int(indexOffset))
 
         var entries: [Entry] = []

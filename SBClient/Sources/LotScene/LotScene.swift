@@ -6,7 +6,7 @@ import SimAntics
 /// The architecture (ground, floors, walls) is rebuilt with ``rebuildArchitecture(of:)`` when
 /// walls, floors, or rooms change; objects are rebuilt every frame, into the same storage.
 public struct LotScene: Sendable {
-    /// How tall a floor is, in tiles. FreeSO's walls stand about three tiles high.
+    /// How tall a floor is, in tiles: walls stand about three tiles high.
     public static let levelHeight: Float = 2.95
     /// How tall a fence is.
     public static let fenceHeight: Float = 0.8
@@ -71,7 +71,7 @@ public struct LotScene: Sendable {
                 let pattern = floors[index]
                 guard pattern != 0 else { continue }
                 let tileX = index % lotWidth, tileY = index / lotWidth
-                // A floor's top is the floor line, where objects stand, as in FreeSO.
+                // A floor's top is the floor line, where objects stand.
                 let center = SIMD3(Float(tileX) + 0.5, base - 0.02, Float(tileY) + 0.5)
                 if pattern >= Architecture.poolPattern - 1 {
                     append(.water, level + 1, center - SIMD3(0, 0.1, 0), SIMD3(1, 0.04, 1))

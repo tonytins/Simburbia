@@ -2,11 +2,11 @@ import Foundation
 
 /// The copies of The Sims Online a machine can name, each through its own setting.
 ///
-/// Simburbia's own: FreeSO finds a single install (see ``GameLocator``). Tools, tests, and the
-/// client check several, in ``allCases`` order, so this is the one list of them.
+/// Tools, tests, and the client check several, in ``allCases`` order, so this is the one list
+/// of them.
 public enum InstallKind: String, CaseIterable, Sendable {
-    /// The main install, `TSO_GAME_DIR`: the copy closest to the files FreeSO was built
-    /// against (TSO after its New & Improved update).
+    /// The main install, `TSO_GAME_DIR`: TSO after its New & Improved update
+    /// (1.1097.1.0 on the owner's machine).
     case game
     /// An older production copy, `TSO_CLASSIC_DIR`, such as one from 2002.
     case classic
@@ -52,10 +52,9 @@ public struct NamedInstall: Sendable, Equatable {
 
 /// The game version an install's `version` file records, such as 1.1097.1.0.
 ///
-/// Simburbia's own: FreeSO doesn't read this file (its `version.txt` is FreeSO's). Two layouts
-/// are known. Production installs hold one dotted line, `1.1097.1.0`. The 2002 beta holds
-/// `key:value` lines, `major:1`, `minor:3`, `patch:2`, and `build:121`. Any other layout,
-/// including an unknown key, is reported as an error rather than guessed at.
+/// Two layouts are known. Production installs hold one dotted line, `1.1097.1.0`. The 2002
+/// beta holds `key:value` lines, `major:1`, `minor:3`, `patch:2`, and `build:121`. Any other
+/// layout, including an unknown key, is reported as an error rather than guessed at.
 public struct GameVersion: Sendable, Hashable, Comparable, CustomStringConvertible {
     public var major: Int
     public var minor: Int

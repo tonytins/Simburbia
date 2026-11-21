@@ -1,11 +1,11 @@
-/// The loading screen's lines, sliding in one after another as loading goes on, as FreeSO's
-/// `LoadingScreen` slides them: each new line comes in from the right as the last goes out to the
-/// left, both moving the screen's width in a second, at an even pace. A line comes in only when
-/// the one before it has settled and loading has reached its share: with four lines, the second
-/// at a quarter, the third at half, the last at three quarters. So the lines take at least a
-/// second each however quickly the lot loads, which gives what's loaded time to settle.
+/// The loading screen's lines, sliding in one after another as loading goes on: each new line
+/// comes in from the right as the last goes out to the left, both moving the screen's width in a
+/// second, at an even pace. A line comes in only when the one before it has settled and loading
+/// has reached its share: with four lines, the second at a quarter, the third at half, the last
+/// at three quarters. So the lines take at least a second each however quickly the lot loads,
+/// which gives what's loaded time to settle.
 public struct SlidingLines: Sendable, Equatable {
-    /// How long a line takes to slide in, in seconds (FreeSO's tween of 1.0).
+    /// How long a line takes to slide in, in seconds.
     public static let slideSeconds = 1.0
 
     public let lines: [String]
@@ -28,8 +28,7 @@ public struct SlidingLines: Sendable, Equatable {
         slid = 0
     }
 
-    /// Whether every line has had its turn and loading is done, so the screen can give way (FreeSO
-    /// moves on when the last line has settled and loading is complete).
+    /// Whether every line has had its turn and loading is done, so the screen can give way.
     public func isFinished(progress: Double) -> Bool {
         progress >= 1 && slid >= 1 && current + 1 >= lines.count
     }

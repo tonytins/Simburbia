@@ -3,10 +3,9 @@ import TSOFiles
 
 /// Every file in an install, found by relative path in any letter case.
 ///
-/// Installs mix letter case (`UIGraphics` beside `uigraphics`), and FreeSO's code
-/// joined paths as written, which works on Windows and fails on case-sensitive file
-/// systems. Looking every path up here fixes that. Paths use `/` separators; `\` is
-/// accepted in lookups.
+/// Installs mix letter case (`UIGraphics` beside `uigraphics`), which Windows hides
+/// and case-sensitive file systems don't, so every path is looked up in any case.
+/// Paths use `/` separators; `\` is accepted in lookups.
 public struct GameFileIndex: Sendable {
     /// The install folder.
     public let root: URL

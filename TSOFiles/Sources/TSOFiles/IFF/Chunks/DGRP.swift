@@ -2,14 +2,14 @@ import Foundation
 
 /// A drawing group: how one tile of an object looks from each direction at each zoom.
 ///
-/// Ports FreeSO's `DGRP`. Each image names a direction and zoom and lists the sprites
-/// (`SPR2` or `SPR#` frames) drawn for it, each with an offset on screen and, from version
-/// 20001, an offset in the world. That world offset is what turns a sprite's depth into depth
-/// across the lot (roadmap decision 7).
+/// Each image names a direction and zoom and lists the sprites (`SPR2` or `SPR#` frames)
+/// drawn for it, each with an offset on screen and, from version 20001, an offset in the
+/// world. That world offset is what turns a sprite's depth into depth across the lot (roadmap
+/// decision 7).
 ///
 /// Versions below 20003 use 16-bit fields; 20003 and later use 32-bit ones, and 20004 adds
-/// the world offset's x and y. FreeSO reads any version from 20003 up as 20003, and so does
-/// this. A count larger than the data could hold is an error, where FreeSO would allocate it.
+/// the world offset's x and y. Any version from 20003 up reads as 20003. A count larger than
+/// the data could hold is an error.
 public struct DGRP: IFFChunk {
     public static let typeCode = "DGRP"
 
@@ -18,10 +18,9 @@ public struct DGRP: IFFChunk {
     public let version: UInt16
     public let images: [Image]
 
-    /// One direction and zoom of a drawing group (FreeSO's `DGRPImage`).
+    /// One direction and zoom of a drawing group.
     public struct Image: Sendable, Hashable {
-        /// A direction bit: 0x01, 0x04, 0x10, or 0x40 (FreeSO's `RightBack`, `RightFront`,
-        /// `LeftFront`, `LeftBack`).
+        /// A direction bit: 0x01, 0x04, 0x10, or 0x40.
         public var direction: UInt32
         /// 1 is the farthest zoom, 3 the closest.
         public var zoom: UInt32
@@ -29,7 +28,7 @@ public struct DGRP: IFFChunk {
         public var sprites: [Sprite]
     }
 
-    /// One sprite of an image (FreeSO's `DGRPSprite`).
+    /// One sprite of an image.
     public struct Sprite: Sendable, Hashable {
         /// The `SPR2` or `SPR#` chunk's ID.
         public var spriteID: UInt32
@@ -42,7 +41,7 @@ public struct DGRP: IFFChunk {
         public var objectOffset: SIMD3<Float>
     }
 
-    /// A sprite's flags (FreeSO's `DGRPSpriteFlags`). Unnamed bits are kept.
+    /// A sprite's flags. Unnamed bits are kept.
     public struct Flags: OptionSet, Sendable, Hashable {
         public var rawValue: UInt32
         public init(rawValue: UInt32) { self.rawValue = rawValue }
@@ -122,11 +121,10 @@ public struct DGRP: IFFChunk {
     }
 
     /// The image for an object facing `direction` (a direction bit) at a zoom, in a world
-    /// turned `worldRotation` quarter turns, as FreeSO's `GetImage` finds it: the direction bit
-    /// rotated two bits a quarter turn, wrapping within a byte. The first match wins; `nil`
-    /// when there's none.
+    /// turned `worldRotation` quarter turns: the direction bit rotated two bits a quarter turn,
+    /// wrapping within a byte. The first match wins; `nil` when there's none.
     public func image(direction: UInt32, zoom: UInt32, worldRotation: UInt32) -> Image? {
-        // FreeSO computes this in a C# int: the shift count is masked to 5 bits, and the
+        // This is computed in a C# int: the shift count is masked to 5 bits, and the
         // right shift keeps the sign.
         let shifted = Int32(truncatingIfNeeded: direction) &<< Int32(truncatingIfNeeded: worldRotation &* 2)
         let rotated = UInt32(bitPattern: (shifted & 255) | (shifted &>> 8))

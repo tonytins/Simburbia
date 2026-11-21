@@ -1,9 +1,9 @@
 extension Primitives {
     /// Tests whether an object is of a type (opcode 32).
     ///
-    /// Ports FreeSO's `VMTestObjectType`. The object ID comes from a variable. It's true when
-    /// the object's GUID, or its multi-tile lead's, is the operand's GUID, false otherwise, and
-    /// an error exit (not an exception) when there's no object with that ID.
+    /// The object ID comes from a variable. It's true when the object's GUID, or its multi-tile
+    /// lead's, is the operand's GUID, false otherwise, and an error exit (not an exception)
+    /// when there's no object with that ID.
     public enum TestObjectType: Primitive {
         public static let name = "test_object_type"
         public static let opcode: UInt8 = 32

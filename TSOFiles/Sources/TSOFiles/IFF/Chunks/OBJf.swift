@@ -2,8 +2,8 @@ import Foundation
 
 /// An object's event table: which BHAVs handle each object event.
 ///
-/// Ports FreeSO's `OBJf`. The events are listed in `behavior.iff` chunk 0x00F5;
-/// entry `n` here handles event `n`.
+/// The events are listed in `behavior.iff` chunk 0x00F5; entry `n` here handles
+/// event `n`.
 public struct OBJf: IFFChunk {
     public static let typeCode = "OBJf"
 

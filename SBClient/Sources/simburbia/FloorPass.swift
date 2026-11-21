@@ -6,9 +6,9 @@ import TSOFiles
 /// `GrassShader` draw them: each floor's sprite is a texture that repeats across the lot, so a
 /// tile's diamond takes its part of it (``LotScene/textureCoordinates(x:y:texture:worldRotation:zoom:)``).
 ///
-/// As in FreeSO, floors are opaque and texels under half alpha are discarded; floor patterns
-/// are filtered smoothly (with mipmaps), pools and water by nearest texel; a water tile has a
-/// plain tile drawn under it, the ground's color here since grass isn't drawn yet.
+/// Floors are opaque and texels under half alpha are discarded; floor patterns are filtered
+/// smoothly (with mipmaps), pools and water by nearest texel; a water tile has a plain tile
+/// drawn under it, the ground's color here since grass isn't drawn yet.
 final class FloorPass {
     private let images: FloorImages
     private var textures: [Key: Texture2D] = [:]
@@ -21,7 +21,7 @@ final class FloorPass {
         var zoom: SpriteZoom
     }
 
-    /// How far a water tile is drawn above its floor: FreeSO's 0.05 world units.
+    /// How far a water tile is drawn above its floor: 0.05 world units.
     private static let waterRaise: Float = 0.05 / 3
     static let groundColor = Color(r: 74, g: 112, b: 62, a: 255)
 
@@ -116,7 +116,7 @@ final class FloorPass {
         if let shader { UnloadShader(shader) }
     }
 
-    // raylib's default fragment shader, discarding as FreeSO's GrassShader does.
+    // raylib's default fragment shader, discarding texels under half alpha.
     private static let fragmentShader = """
         #version 330
         in vec2 fragTexCoord;

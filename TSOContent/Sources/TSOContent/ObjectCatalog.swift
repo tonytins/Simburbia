@@ -6,14 +6,13 @@ import FoundationXML
 
 /// `packingslips/catalog.xml`: the objects buy mode offers, by GUID.
 ///
-/// Ports the table read in FreeSO's `WorldObjectCatalog.Init`. Each `P` element is a
-/// catalog entry with a GUID (`g`, hexadecimal), a category (`s`), a price (`p`), and a
-/// display name (`n`). A negative category means the entry isn't in the catalog (a
-/// multi-tile part, a cursor, and so on), and is left out, as FreeSO leaves it out.
+/// Each `P` element is a catalog entry with a GUID (`g`, hexadecimal), a category
+/// (`s`), a price (`p`), and a display name (`n`). A negative category means the entry
+/// isn't in the catalog (a multi-tile part, a cursor, and so on), and is left out.
 ///
-/// FreeSO also merges `Content/Objects/catalog_downloads.xml` when FreeSO's own content
-/// folder has one. This type reads one file; a caller that wants the downloads too reads
-/// a second catalog and joins them.
+/// A FreeSO-style content folder may have `Objects/catalog_downloads.xml` too. This type
+/// reads one file; a caller that wants the downloads too reads a second catalog and
+/// joins them.
 public struct ObjectCatalog: Sendable, Equatable {
     public struct Entry: Sendable, Equatable {
         public var guid: UInt32

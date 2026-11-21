@@ -1,14 +1,13 @@
 extension Primitives {
     /// Plays a sound event on the caller or the stack object (opcode 23).
     ///
-    /// Corresponds to FreeSO's `VMPlaySound`. The simulation doesn't play sound: FreeSO returns
-    /// true at once whenever the VM has no world to present, as on the lot server, and that's
-    /// the behavior here. Playing the event (its `FWAV` from the code owner's file or the
+    /// The simulation doesn't play sound: it's true at once, as on a lot server, which has no
+    /// world to present. Playing the event (its `FWAV` from the code owner's file or the
     /// global) belongs to a presentation layer built on top of the VM.
     ///
-    /// Unlike FreeSO clients, an object playing a sound isn't made to run every tick: that is a
-    /// client-only scheduling change the server never makes, so the headless behavior is the
-    /// one lockstep play agrees on.
+    /// An object playing a sound isn't made to run every tick (DIFF-17): that is a client-only
+    /// scheduling change the server never makes, so the headless behavior is the one lockstep
+    /// play agrees on.
     public enum PlaySound: Primitive {
         public static let name = "play_sound"
         public static let opcode: UInt8 = 23
@@ -33,7 +32,7 @@ extension Primitives {
         public struct Operand: PrimitiveOperand, Equatable {
             /// The `FWAV` chunk naming the sound event.
             public var event: UInt16
-            /// Two bytes FreeSO reads and keeps but never uses.
+            /// Two bytes that are kept but never used.
             public var padding: UInt16
             public var options: Options
             public var volume: UInt8

@@ -3,10 +3,9 @@ import TSOFiles
 
 /// An object on the lot.
 ///
-/// Ports the parts of FreeSO's `VMEntity` and `VMGameObject` that SimAntics variables
-/// read and write, its place in its ``MultitileGroup``, and the objects in its container slots.
-/// Sims (`VMAvatar`) and interactions aren't ported yet; reading values that need them throws
-/// ``SimAnticsError/unsupported(_:)``.
+/// An object on the lot: the values SimAntics variables read and write, its place in its
+/// ``MultitileGroup``, and the objects in its container slots. Sims and interactions aren't
+/// ported yet; reading values that need them throws ``SimAnticsError/unsupported(_:)``.
 ///
 public final class Entity {
     public let objectID: Int16
@@ -14,15 +13,15 @@ public final class Entity {
     public unowned let vm: VM
     /// The 80 object data values (see ``ObjectVariable``).
     public var objectData = [Int16](repeating: 0, count: ObjectVariable.count)
-    /// Whether this entity is a Sim (`VMAvatar`); Sims carry person and motive data.
+    /// Whether this entity is a Sim; Sims carry person and motive data.
     public var isAvatar: Bool = false
-    /// Person data values (FreeSO's `PersonData`, 101 entries).
+    /// Person data values (101 entries).
     public var personData = [Int16](repeating: 0, count: 101)
-    /// Motive data values (FreeSO's `MotiveData`, 16 entries).
+    /// Motive data values (16 entries).
     public var motiveData = [Int16](repeating: 0, count: 16)
     /// The rest of a Sim's state (``SimState``); for anything else, untouched defaults.
     public var sim = SimState()
-    /// Attributes, grown with zeros whenever an index past the end is read or written, as in FreeSO.
+    /// Attributes, grown with zeros whenever an index past the end is read or written.
     public private(set) var attributes: [Int16] = []
     /// The entity's list (`MyList`), front first.
     public var list: [Int16] = []
@@ -39,7 +38,7 @@ public final class Entity {
     public var persistID: UInt32 = 0
     /// The entity's money (`TSOState.Budget`), from 0 up.
     public var budget: UInt32 = 0
-    /// The persist ID of the object's owner (`VMTSOObjectState.OwnerID`); 0 on a blueprint lot.
+    /// The persist ID of the object's owner; 0 on a blueprint lot.
     public var ownerID: UInt32 = 0
 
     /// The rectangle the entity takes up on the lot, or `nil` out of the world or with no extent
@@ -81,9 +80,8 @@ public final class Entity {
     /// The entity's interpreter.
     public private(set) lazy var thread = VMThread(entity: self)
 
-    /// A new entity, as the `VMEntity` constructor builds it: zeroed object data except the
-    /// chair-facing flag, and the entry point table.
-    /// The entity joins `group`, or a new group of one.
+    /// A new entity: zeroed object data except the chair-facing flag, and the entry point
+    /// table. The entity joins `group`, or a new group of one.
     init(objectID: Int16, object: GameObject, vm: VM, group: MultitileGroup? = nil) throws(SimAnticsError) {
         self.objectID = objectID
         self.object = object
@@ -99,7 +97,7 @@ public final class Entity {
         self.group.add(self)
     }
 
-    /// `VMEntityFlags.ChairFacing`.
+    /// The chair-facing flag.
     static let chairFacingFlag: Int16 = 1 << 8
 
     // MARK: Entry points
@@ -121,8 +119,8 @@ public final class Entity {
         case prepareForSale, houseUnload
     }
 
-    /// The table FreeSO builds: from the definition's tree IDs when it doesn't use a function
-    /// table, else from the `OBJf` with the definition's chunk ID, if there is one.
+    /// The table: from the definition's tree IDs when it doesn't use a function table, else
+    /// from the `OBJf` with the definition's chunk ID, if there is one.
     static func entryPoints(of object: GameObject) throws(SimAnticsError) -> [EntryPoint]? {
         let definition = object.definition
         var table: [EntryPoint]?
@@ -147,7 +145,7 @@ public final class Entity {
             }
             table = functionTable?.functions.map { EntryPoint(conditionFunction: $0.conditionFunction, actionFunction: $0.actionFunction) }
         }
-        // FreeSO clears entry point 17 of one object by GUID.
+        // Entry point 17 of one object is cleared, by GUID.
         if object.guid == 0xA9BB_3A76 {
             guard var entries = table else { throw .nullReference("no entry point table") }
             guard entries.count > 17 else { throw .indexOutOfRange("entry point 17") }
@@ -182,22 +180,22 @@ public final class Entity {
 
     // MARK: Running
 
-    /// Why the object is disabled (`VMGameObjectDisableFlags`), or 0.
+    /// Why the object is disabled, or 0.
     public var disabledFlags: UInt8 = 0
-    /// `VMGameObjectDisableFlags.LotCategoryWrong`: the lot's category isn't one the object allows.
+    /// The lot's category isn't one the object allows.
     public static let lotCategoryWrong: UInt8 = 1 << 2
 
     /// Whether the entity runs every tick however long it idles: Sims, objects with a headline
     /// or a sound (neither ported yet), and disabled objects.
     public var runsEveryTick: Bool { disabledFlags != 0 || headline != nil }
 
-    /// The balloon over the entity, if any (`Headline`), set by Set Balloon Headline. Headless, only
-    /// its countdown matters: while it's up the entity runs every tick, as in FreeSO.
+    /// The balloon over the entity, if any (`Headline`), set by Set Balloon Headline. Headless,
+    /// only its countdown matters: while it's up the entity runs every tick.
     public var headline: Headline?
 
     private var isResetting = false
 
-    /// Runs an entry point, as `VMEntity.ExecuteEntryPoint` does.
+    /// Runs an entry point.
     ///
     /// Run immediately, the routine runs to completion on a check thread and this returns
     /// whether it returned true. Otherwise it's pushed onto the entity's thread and this
@@ -213,9 +211,8 @@ public final class Entity {
     public func executeEntryPoint(at index: Int, runImmediately: Bool, stackObject: Entity? = nil,
                                   arguments: [Int16]? = nil) throws(SimAnticsError) -> Bool {
         // User placement (entry point 11) also lays or clears the floor under the upper part of
-        // stairs and elevators (an OBJD level offset above 0), as FreeSO's "auto floor removal/
-        // placement for stairs" in `VMEntity.ExecuteEntryPoint` does: `InAir` clears it, and
-        // `OnFloor` lays pattern 1 where there was none. An object out of the world is skipped.
+        // stairs and elevators (an OBJD level offset above 0): `InAir` clears it, and `OnFloor`
+        // lays pattern 1 where there was none. An object out of the world is skipped.
         if index == EntryPointIndex.userPlace.rawValue, object.definition.levelOffset > 0, !position.isOutOfWorld {
             let x = Int(position.tileX), y = Int(position.tileY), level = Int(position.level)
             let floor = try vm.architecture.floor(atX: x, y: y, level: level)
@@ -236,10 +233,11 @@ public final class Entity {
         return false
     }
 
-    /// Starts the entity, as `VMGameObject.Init` does: schedules it, runs init to completion,
-    /// pushes main (with ``mainParameter`` and ``mainStackObjectID``), then disables it if the lot's category isn't one its definition allows.
+    /// Starts the entity: schedules it, runs init to completion, pushes main (with
+    /// ``mainParameter`` and ``mainStackObjectID``), then disables it if the lot's category isn't
+    /// one its definition allows.
     public func initialize() throws(SimAnticsError) {
-        // A Sim's one slot is its hand (`VMAvatar.TotalSlots`), whatever its definition has.
+        // A Sim's one slot is its hand, whatever its definition has.
         contained = Array(repeating: nil, count: isAvatar ? 1 : containerSlots.count)
         vm.scheduler.scheduleTick(for: self, in: 1)
         try executeEntryPoint(.initialize, runImmediately: true)
@@ -254,7 +252,7 @@ public final class Entity {
             mainStackObjectID = 0
         }
         try executeEntryPoint(.main, runImmediately: false, stackObject: stackObject, arguments: arguments)
-        // `VMAvatar.Init`, after `VMEntity.Init`.
+        // A Sim is set up after its entity is initialized.
         if isAvatar { setUpSim() }
         let categories = (masterDefinition ?? object.definition).lotCategories
         if categories > 0 && Int(categories) & (1 << (Int(vm.propertyCategory) & 31)) == 0 {
@@ -264,10 +262,10 @@ public final class Entity {
         }
     }
 
-    /// Restarts the entity, as `VMEntity.Reset` does: clears its stack, runs its reset entry point
-    /// (cleanup) to completion if it has one, pushes main, and schedules it for the next tick.
+    /// Restarts the entity: clears its stack, runs its reset entry point (cleanup) to completion
+    /// if it has one, pushes main, and schedules it for the next tick.
     ///
-    /// FreeSO treats an error here as fatal; this reports it and carries on.
+    /// An error here is reported, and the lot carries on.
     public func reset() {
         guard !isResetting else { return }
         isResetting = true
@@ -288,15 +286,15 @@ public final class Entity {
         vm.scheduler.scheduleTick(for: self, in: 1)
     }
 
-    /// Runs one scheduled tick, as `VMEntity.Tick` does; an entity that didn't schedule itself runs next tick.
+    /// Runs one scheduled tick; an entity that didn't schedule itself runs next tick.
     func tick() {
         thread.scheduledTick = 0
         thread.instructionsThisTick = 0
         thread.tick()
         if thread.scheduledTick == 0 { vm.scheduler.scheduleTick(for: self, in: 1) }
         if isAvatar { tickSim() }
-        // The headline counts down after the thread runs (`VMHeadlineRenderer.Update`); a negative
-        // duration lasts until something replaces it.
+        // The headline counts down after the thread runs; a negative duration lasts until
+        // something replaces it.
         if var shown = headline, shown.duration >= 0 {
             shown.duration -= 1
             headline = shown.duration <= 0 ? nil : shown
@@ -324,7 +322,7 @@ public final class Entity {
 
     // MARK: Object data
 
-    /// An object data value, as `VMEntity.GetValue` reads it.
+    /// An object data value.
     public func value(of variable: Int16) throws(SimAnticsError) -> Int16 {
         switch ObjectVariable(rawValue: variable) {
         case .objectID:
@@ -349,7 +347,7 @@ public final class Entity {
         }
     }
 
-    /// Sets an object data value, as `VMEntity.SetValue` does. Always returns `true`, as in FreeSO.
+    /// Sets an object data value. Always returns `true`.
     @discardableResult
     public func setValue(_ value: Int16, of variable: Int16) throws(SimAnticsError) -> Bool {
         var value = value
@@ -360,7 +358,8 @@ public final class Entity {
             let step = objectData[Int(ObjectVariable.rotationNotches.rawValue)]
             direction = Direction(notch: Int(step > 1 ? value - value % step : value))
         case .flags:
-            // FreeSO recomputes the footprint before storing the flags, so it still sees the old ones.
+            // The footprint is worked out before the flags are stored, so it still sees the old
+            // ones.
             if (value ^ objectData[Int(ObjectVariable.flags.rawValue)]) & EntityFlag.hasZeroExtent != 0 {
                 footprint = obstacle(at: position, facing: direction)
             }

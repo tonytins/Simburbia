@@ -3,9 +3,9 @@ import LotScene
 import Raylib
 
 /// The login window of the owner's mockup (`docs/design/login-screen.png`), over the loading
-/// screen's art, as TSO's and FreeSO's login dialog sits over theirs: a movable window without a
-/// close button, with a Start tab to pick a lot and play it, and a Join tab to join someone else's
-/// game, shown disabled until Simburbia has networking.
+/// screen's art, as TSO's login dialog sat over its own: a movable window without a close button,
+/// with a Start tab to pick a lot and play it, and a Join tab to join someone else's game, shown
+/// disabled until Simburbia has networking.
 final class LoginWindow {
     private static let titles = ["Start Game", "Join Game"]
 

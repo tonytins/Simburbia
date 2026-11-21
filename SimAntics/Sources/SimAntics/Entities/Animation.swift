@@ -9,17 +9,15 @@ import TSOFiles
 /// in time order:
 ///
 /// - **Sorted by time, ties in file order.** 86 of 1.1097.1.0's animations list events out of
-///   time order, since each motion lists its own. FreeSO means to sort them and doesn't (its
-///   `OrderBy` result is dropped), so it fires some late; plumbob-engine sorts them.
+///   time order, since each motion lists its own (DIFF-37).
 /// - **Negative times are dropped.** 1,653 events in 363 animations, mostly pets' and
-///   children's, have negative times. Neither FreeSO (which reads them as unsigned, so they wait
-///   forever) nor plumbob-engine fires them. **Unverified** for TSO's own client.
-/// - **Keys match in any letter case**, as plumbob-engine matches them, so the tub's `XEVT`
-///   counts. A value is trimmed of spaces and tabs first (six of TSO's `xevt`s end with one),
-///   as .NET's `short.Parse` trims them; an empty or unparsable value is skipped, a tolerance
-///   two of TSO's reach animations need (FreeSO's `short.Parse` throws on them).
+///   children's, have negative times (DIFF-37). Whether TSO fired them at the start is
+///   **Unverified**.
+/// - **Keys match in any letter case**, so the tub's `XEVT` counts. A value is trimmed of
+///   spaces and tabs first (six of TSO's `xevt`s end with one); an empty or unparsable value
+///   is skipped, a tolerance two of TSO's reach animations need.
 ///
-/// Times past the last frame never fire, in FreeSO or plumbob-engine; TSO has 1,683 of them.
+/// Times past the last frame never fire; TSO has 1,683 of them.
 public struct AnimationClip: Sendable, Equatable {
     /// One timed event: what an animation does at a time, in the properties the VM reads.
     public struct Event: Sendable, Equatable {
@@ -36,10 +34,9 @@ public struct AnimationClip: Sendable, Equatable {
 
     /// The name in the animation's file, which the state digest uses.
     public var name: String
-    /// The file's name, lower case, without `.anim`: what tells two animations apart (FreeSO
-    /// compares the decoded animations themselves, one per file).
+    /// The file's name, lower case, without `.anim`: what tells two animations apart.
     public var key: String
-    /// The longest motion's frames (FreeSO's `NumFrames`).
+    /// The longest motion's frames.
     public var frameCount: Int
     /// Events with times of 0 or more, sorted by time, ties in file order.
     public var events: [Event]
@@ -83,12 +80,11 @@ extension AnimationClip.Event {
     }
 }
 
-/// One animation a Sim is playing (FreeSO's `VMAnimationState`).
+/// One animation a Sim is playing.
 ///
-/// Frames, speed, and weight are 32-bit floats, as the files and FreeSO keep them: the first
-/// floats that feed simulation state (roadmap decision 8). Adding a speed of 1 to a whole frame
-/// is exact; a test pins the values a fractional speed gives, so each platform CI runs on must
-/// agree.
+/// Frames, speed, and weight are 32-bit floats, as the files keep them: the first floats that
+/// feed simulation state (roadmap decision 8). Adding a speed of 1 to a whole frame is exact; a
+/// test pins the values a fractional speed gives, so each platform CI runs on must agree.
 public struct AnimationState: Sendable, Equatable {
     public var clip: AnimationClip
     public var frame: Float
@@ -98,7 +94,7 @@ public struct AnimationState: Sendable, Equatable {
     public var playsBackwards: Bool
     public var loops: Bool
     public var endReached = false
-    /// `xevt`s below 100 fired so far (FreeSO's `EventsRun`, a byte that wraps).
+    /// `xevt`s below 100 fired so far, a byte that wraps.
     public var eventsRun: UInt8 = 0
     /// `xevt`s fired and not yet heard by the routine, oldest first.
     public var eventQueue: [Int16] = []
@@ -114,8 +110,8 @@ public struct AnimationState: Sendable, Equatable {
         nextEvent = playsBackwards ? clip.events.count - 1 : 0
     }
 
-    /// The milliseconds a frame stands for: 30 frames a second, as FreeSO times events, which
-    /// TSO's files agree with (their durations are a frame or so short of their frames' time).
+    /// The milliseconds a frame stands for: 30 frames a second, which TSO's files agree with
+    /// (their durations are a frame or so short of their frames' time).
     static func milliseconds(atFrame frame: Float) -> Float {
         frame * 1000 / 30
     }
@@ -131,23 +127,20 @@ public struct AnimationState: Sendable, Equatable {
 }
 
 extension Entity {
-    /// Advances each of a Sim's animations a tick, as `VMAvatar.Tick` does, firing the events
-    /// it passes.
+    /// Advances each of a Sim's animations a tick, firing the events it passes.
     ///
     /// An animation that hasn't ended and has weight moves its frame by its speed, then fires
     /// every event whose time it has reached: forward, times at or before the current time;
     /// backward, times at or after it. Then, past either end, a looping animation wraps by its
     /// length and arms its events again, and any other ends.
     ///
-    /// Where it differs from FreeSO: a looping animation's events fire on every pass, as in
-    /// plumbob-engine; FreeSO fires them on the first pass only, since it removes each event as
-    /// it fires and never puts them back (DIFF-36). 175 of 1.1097.1.0's looping animations have
-    /// `xevt`s.
+    /// A looping animation's events fire on every pass (DIFF-36). 175 of 1.1097.1.0's looping
+    /// animations have `xevt`s.
     ///
-    /// An `xevt` goes to the Sim's first animation, as FreeSO's `CurrentAnimationState` takes
-    /// it, and counts toward its ``AnimationState/eventsRun`` when below 100. Hand poses are kept
-    /// for drawing; sounds wait for a client with audio. The carry animation doesn't advance, as
-    /// in FreeSO ("I don't think any of them are animated").
+    /// An `xevt` goes to the Sim's first animation, and counts toward its
+    /// ``AnimationState/eventsRun`` when below 100. Hand poses are kept for drawing; sounds wait
+    /// for a client with audio. The carry animation doesn't advance ("I don't think any of them
+    /// are animated").
     func advanceAnimations() {
         for index in sim.animations.indices {
             var fired: [AnimationClip.Event] = []

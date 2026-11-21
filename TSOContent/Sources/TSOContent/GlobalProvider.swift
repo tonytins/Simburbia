@@ -3,9 +3,8 @@ import TSOFiles
 
 /// Globals and semi-globals from `objectdata/globals`, by name.
 ///
-/// Ports FreeSO's `WorldGlobalProvider` in TSO mode. `global` is the global every
-/// object can call; the others are semi-globals, named by an object's `GLOB` chunk.
-/// Each loads once and is kept.
+/// `global` is the global every object can call; the others are semi-globals, named
+/// by an object's `GLOB` chunk. Each loads once and is kept.
 public final class GlobalProvider: @unchecked Sendable {
     private let files: GameFileIndex
     private let patches: PatchRegistry
@@ -20,8 +19,8 @@ public final class GlobalProvider: @unchecked Sendable {
     /// A global or semi-global by file name without extension, in any letter case.
     ///
     /// Applies the patches registered for `<name>.iff`, and reads `<name>.otf` from the
-    /// patches or beside the IFF if either has it. As in FreeSO, a missing OTF is
-    /// fine, and a missing IFF is an error. Failures aren't kept, so a later call tries again.
+    /// patches or beside the IFF if either has it. A missing OTF is fine, and a missing IFF is
+    /// an error. Failures aren't kept, so a later call tries again.
     ///
     /// - Throws: ``ContentError/missingFile(_:)`` if the IFF doesn't exist, or
     ///   ``ContentError/invalidFile(path:reason:)`` if it or the OTF doesn't parse.

@@ -1,4 +1,4 @@
-/// Why an object can't go where it was asked to, or `success` (FreeSO's `VMPlacementError`).
+/// Why an object can't go where it was asked to, or `success`.
 ///
 /// The raw values index the game's placement error strings (`placementerrs.cst`).
 public enum PlacementError: Int, Sendable, Hashable {
@@ -18,8 +18,8 @@ public enum PlacementError: Int, Sendable, Hashable {
     case tooManyObjectsOnTheLot, cantPlaceOnForSaleObject
 }
 
-/// The outcome of a placement check (`VMPlacementResult`): the status, and the object it concerns,
-/// such as the one in the way or the one to stack onto.
+/// The outcome of a placement check: the status, and the object it concerns, such as the one in
+/// the way or the one to stack onto.
 public struct PlacementResult {
     public var status: PlacementError
     public var object: Entity?
@@ -30,7 +30,7 @@ public struct PlacementResult {
     }
 }
 
-/// How a placement request bends the rules (`VMPlaceRequestFlags`).
+/// How a placement request bends the rules.
 public struct PlaceRequestFlags: OptionSet, Sendable, Hashable {
     public var rawValue: Int
     public init(rawValue: Int) { self.rawValue = rawValue }
@@ -45,7 +45,7 @@ public struct PlaceRequestFlags: OptionSet, Sendable, Hashable {
     public static let userPlacement: PlaceRequestFlags = [.acceptSlots, .userBuildableLimit]
 }
 
-/// Where an object may stand, from object data 42 (`VMPlacementFlags`).
+/// Where an object may stand, from object data 42.
 public struct PlacementFlags: OptionSet, Sendable, Hashable {
     public var rawValue: Int16
     public init(rawValue: Int16) { self.rawValue = rawValue }
@@ -86,7 +86,7 @@ public struct WallPlacementFlags: OptionSet, Sendable, Hashable {
     public static let wallNotAllowedOnLeft = WallPlacementFlags(rawValue: 1 << 11)
 }
 
-/// The rectangle an object takes up on the lot, in sixteenths of a tile (FreeSO's `VMObstacle`).
+/// The rectangle an object takes up on the lot, in sixteenths of a tile.
 public struct Obstacle: Sendable, Hashable {
     public var x1: Int
     public var y1: Int

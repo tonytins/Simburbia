@@ -1,18 +1,17 @@
 import TSOFiles
 
 /// The global motive tuning a Sim's decay and Set Motive Deltas read: `tuning.dat`'s
-/// `simmotives` and `lotmotives` entries, as FreeSO's `VMAvatarMotiveDecay` reads them, each
-/// value already in thousandths (``fixed1000(_:)``).
+/// `simmotives` and `lotmotives` entries, each value already in thousandths
+/// (``fixed1000(_:)``).
 ///
 /// They come from ``GameContent/globalTuning()``: Simburbia's defaults with the install's
 /// `tuning.dat` laid over them, so 1.1097.1.0 runs on its own values and the unpatched 2002 and
 /// beta discs, which lack them, on Simburbia's (DIFF-33).
 ///
-/// FreeSO looks every value up as it needs it, and fails on the first that's missing; Simburbia
-/// reads them all once, when a VM's first Sim needs them, and fails if any is missing or can't be
-/// used.
+/// They're read all at once, when a VM's first Sim needs them, and fails if any is missing or
+/// can't be used.
 struct MotiveTuning: Sendable, Equatable {
-    /// The lot categories by property category (`VMAvatarMotiveDecay.CategoryNames`).
+    /// The lot categories by property category.
     static let categoryNames = ["None", "Money", "Offbeat", "Romance", "Services", "Shopping", "Skills", "Welcome",
                                 "Games", "Entertain", "Residence"]
     /// The motives that decay, in the order they're worked out (`DecrementMotives`).
@@ -32,7 +31,7 @@ struct MotiveTuning: Sendable, Equatable {
     let socialDecrementBase: Int32
     let socialDecrementMultiplier: Int32
     /// Energy's fixed loss a minute: `EnergySpan` in thousandths over 60 times `WakeHours`
-    /// (truncated to a whole number first, as FreeSO casts it).
+    /// (truncated to a whole number first).
     let energyPerMinute: Int32
     /// Each category's weights for the seven decaying motives, in ``decrementMotives`` order.
     let weights: [[Int32]]
@@ -83,8 +82,7 @@ struct MotiveTuning: Sendable, Equatable {
 
     /// The weights for a lot's property category.
     ///
-    /// - Throws: ``SimAnticsError/indexOutOfRange(_:)`` past the last category, where FreeSO's
-    ///   lookup of the category's name fails.
+    /// - Throws: ``SimAnticsError/indexOutOfRange(_:)`` past the last category.
     func weights(category: UInt8) throws(SimAnticsError) -> [Int32] {
         guard Int(category) < weights.count else { throw .indexOutOfRange("property category \(category)") }
         return weights[Int(category)]
@@ -96,8 +94,7 @@ struct MotiveTuning: Sendable, Equatable {
         Int32(exactly: (value * 1000).rounded(.towardZero))
     }
 
-    /// Thousandths times thousandths (`FracMul`). As in FreeSO, the 64-bit product is cut to 32
-    /// bits before it's divided.
+    /// Thousandths times thousandths. The 64-bit product is cut to 32 bits before it's divided.
     static func fracMul(_ value: Int32, _ fraction: Int32) -> Int32 {
         Int32(truncatingIfNeeded: Int64(value) * Int64(fraction)) / 1000
     }
@@ -124,13 +121,11 @@ extension VM {
         return (tuning, true)
     }
 
-    /// Set Motive Deltas' rate in TSO mode (`VMMotiveChange.ScaleRate`): half again on a Services
-    /// lot (category 4) for any motive past the first; Comfort as it is; the other decaying
-    /// motives over their lot weight.
+    /// Set Motive Deltas' rate in TSO mode: half again on a Services lot (category 4) for any
+    /// motive past the first; Comfort as it is; the other decaying motives over their lot weight.
     ///
-    /// - Throws: An error where FreeSO's would fail: the tuning can't be read, the motive doesn't
-    ///   decay (FreeSO indexes its names with -1), the category is past the last, or the weight is
-    ///   0 (a division by zero).
+    /// - Throws: An error when the tuning can't be read, the motive doesn't decay, the category is
+    ///   past the last, or the weight is 0 (a division by zero).
     func scaledMotiveRate(_ rate: Int32, motive: Int) throws(SimAnticsError) -> Int32 {
         let tuning = try motiveTuning().tuning.get()
         var rate = rate
@@ -147,20 +142,21 @@ extension VM {
 }
 
 extension Entity {
-    /// A Sim's motive decay each tick (`VMAvatarMotiveDecay.Tick`): the Room motive becomes its
-    /// room's score; then, once each game minute, the seven decaying motives each gain their rate
-    /// in thousandths of a point and lose whole points, no lower than -100, and Mood becomes the
-    /// sum of those seven and the room score over 8.
+    /// A Sim's motive decay each tick: the Room motive becomes its room's score; then, once each
+    /// game minute, the seven decaying motives each gain their rate in thousandths of a point and
+    /// lose whole points, no lower than -100, and Mood becomes the sum of those seven and the
+    /// room score over 8.
     ///
-    /// Kept from FreeSO: a minute's rate is cut to 16 bits before it's added, and the thousandths
-    /// wrap as a `short` does, so a rate past 32,767 can come out negative (the mock install's
-    /// Hunger does), and points come off only on the minutes the sum wraps back past 1,000. Hunger's rate is worked out again for Bladder
-    /// after Hunger has dropped. Mood counts the motives as they are, even ones that haven't
-    /// changed. The first minute that passes is any minute but 0, since decay starts at minute 0.
+    /// Quirks real content relies on: a minute's rate is cut to 16 bits before it's added, and the
+    /// thousandths wrap as a `short` does, so a rate past 32,767 can come out negative (the mock
+    /// install's Hunger does), and points come off only on the minutes the sum wraps back past
+    /// 1,000. Hunger's rate is worked out again for Bladder after Hunger has dropped. Mood counts
+    /// the motives as they are, even ones that haven't changed. The first minute that passes is any
+    /// minute but 0, since decay starts at minute 0.
     ///
-    /// Where FreeSO would fail, Simburbia reports it and the Sim doesn't decay: with no
-    /// `tuning.dat` or unusable motive tuning (reported once per VM), or with a property category
-    /// past the last (reported each game minute).
+    /// Where the tuning is missing or off, Simburbia reports it and the Sim doesn't decay: with
+    /// no `tuning.dat` or unusable motive tuning (reported once per VM), or with a property
+    /// category past the last (reported each game minute).
     func decayMotives() {
         let (result, isNew) = vm.motiveTuning()
         let tuning: MotiveTuning
@@ -210,15 +206,14 @@ extension Entity {
         motiveData[Motive.mood] = Self.clampedMotive(Int32(Int16(truncatingIfNeeded: moodSum / 8)))
     }
 
-    /// One motive's change this tick (`VMMotiveChange.Tick` in TSO mode): the rate a tick is the
-    /// change an hour over 60, then 30, then 5 (FreeSO's timing for 5-second minutes, in TSO's
-    /// fifth of that), gathered until it makes a whole point. A motive already past the change's
-    /// limit is left alone, its fraction still growing; one that would go past it stops there.
-    /// The change stays set when the motive reaches its limit, as FreeSO's does.
+    /// One motive's change this tick: the rate a tick is the change an hour over 60, then 30,
+    /// then 5 (a game minute is 5 real seconds), gathered until it makes a whole point. A motive
+    /// already past the change's limit is left alone, its fraction still growing; one that would
+    /// go past it stops there. The change stays set when the motive reaches its limit.
     ///
-    /// The whole points are cut to 16 bits as .NET 9 and later do it, saturating; FreeSO built
-    /// on older .NET would wrap, but only a fraction kept growing for days past the limit gets
-    /// that far. The arithmetic is IEEE double, so it's the same on every machine.
+    /// The whole points are cut to 16 bits as .NET 9 and later do it, saturating; older .NET
+    /// would wrap, but only a fraction kept growing for days past the limit gets that far. The
+    /// arithmetic is IEEE double, so it's the same on every machine.
     func tickMotiveChange(_ index: Int) {
         sim.motiveChanges[index].ticked = true
         let change = sim.motiveChanges[index]
@@ -240,8 +235,8 @@ extension Entity {
         motiveData[index] = Self.clampedMotive(Int32(motive))
     }
 
-    /// Sets a motive change if it has ticked since it was last set (`VMAvatar.SetMotiveChange`);
-    /// otherwise the call does nothing.
+    /// Sets a motive change if it has ticked since it was last set; otherwise the call does
+    /// nothing.
     func setMotiveChange(_ index: Int, perHour: Int16, max: Int16) {
         guard sim.motiveChanges[index].ticked else { return }
         sim.motiveChanges[index].perHourChange = perHour
@@ -249,8 +244,7 @@ extension Entity {
         sim.motiveChanges[index].ticked = false
     }
 
-    /// Stops every motive change (`VMAvatar.ClearMotiveChanges`): no change an hour, and the
-    /// limit at 32,767.
+    /// Stops every motive change: no change an hour, and the limit at 32,767.
     func clearMotiveChanges() {
         for index in sim.motiveChanges.indices {
             sim.motiveChanges[index].perHourChange = 0

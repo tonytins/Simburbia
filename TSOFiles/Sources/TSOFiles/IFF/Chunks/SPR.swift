@@ -2,11 +2,10 @@ import Foundation
 
 /// An older sprite with color only, from The Sims 1's formats: some TSO objects still use it.
 ///
-/// Ports FreeSO's `SPR` (type code `SPR#`). A file whose first 16-bit word is 0 is big-endian,
-/// and its version is the next word, byte-swapped. FreeSO swaps it with `(version2 | 0xFF00)
-/// >> 8` where `&` was meant, so its low byte is always 0xFF and a big-endian version 1001 reads
-/// as 1023 and takes the offset table; Simburbia swaps it correctly (DIFF-26). Version 1001 reads
-/// frames until the data ends, each with its own size, ignoring the frame count.
+/// Type code `SPR#`. A file whose first 16-bit word is 0 is big-endian, and its version is the
+/// next word, byte-swapped. It's swapped correctly, so a big-endian version 1001 reads as 1001
+/// (DIFF-26). Version 1001 reads frames until the data ends, each with its own size, ignoring the
+/// frame count.
 public struct SPR: IFFChunk {
     public static let typeCode = "SPR#"
 
@@ -15,11 +14,11 @@ public struct SPR: IFFChunk {
     /// The version, byte-swapped for a big-endian file.
     public let version: UInt32
     public let byteOrder: ByteOrder
-    /// The `PALT` every frame uses (the low 16 bits of a 32-bit field, as FreeSO casts it).
+    /// The `PALT` every frame uses (the low 16 bits of a 32-bit field).
     public let paletteID: UInt16
     public let frames: [Frame]
 
-    /// One frame's size and run-length data (FreeSO's `SPRFrame`).
+    /// One frame's size and run-length data.
     public struct Frame: Sendable, Hashable {
         public var width: Int
         public var height: Int
@@ -76,7 +75,7 @@ public struct SPR: IFFChunk {
     }
 
     /// Decodes a frame with the chunk's palette, which the caller finds by ``paletteID``; pass
-    /// `nil` when the IFF has none, and every color is opaque black, FreeSO's `DEFAULT_PALT`.
+    /// `nil` when the IFF has none, and every color is opaque black.
     public func decode(frameAt index: Int, palette: PALT?) throws(SpriteError) -> SpriteImage {
         guard frames.indices.contains(index) else { throw .noSuchFrame(index) }
         return try SpriteDecoder.decodeSPR(frames[index], palette: palette ?? PALT(uniform: .black))
@@ -84,11 +83,11 @@ public struct SPR: IFFChunk {
 }
 
 extension SpriteDecoder {
-    /// Decodes a `SPR#` frame as FreeSO's `SPRFrame.Decode` does.
+    /// Decodes a `SPR#` frame.
     ///
     /// Pixels the data skips stay transparent black; every colored pixel is opaque. The format
     /// has no depth. Unknown commands do nothing, and a frame without an end marker runs until
-    /// its data does, which is an error, as FreeSO's read past the end is.
+    /// its data does, which is an error.
     static func decodeSPR(_ frame: SPR.Frame, palette: PALT) throws(SpriteError) -> SpriteImage {
         let width = frame.width
         let pixelCount = frame.width * frame.height
@@ -153,7 +152,7 @@ extension SpriteDecoder {
             case 0x09:
                 y += count
             default:
-                // 0x00 and 0x10 mark a start; anything else is skipped as FreeSO skips it.
+                // 0x00 and 0x10 mark a start; anything else is skipped.
                 break
             }
         }

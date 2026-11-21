@@ -18,16 +18,15 @@ public struct RGBColor: Sendable, Hashable {
 
 /// A palette of up to 256 colors that sprites index into.
 ///
-/// Ports FreeSO's `PALT`: a version, an entry count, eight reserved bytes, then three bytes
-/// (red, green, blue) for each entry. FreeSO gives each color full alpha; sprites decide
-/// which index is transparent. A count larger than the data that follows is an error, where
-/// FreeSO would allocate the whole count and then run out of data.
+/// A version, an entry count, eight reserved bytes, then three bytes (red, green, blue) for
+/// each entry. Each color has full alpha; sprites decide which index is transparent. A
+/// count larger than the data that follows is an error.
 public struct PALT: IFFChunk {
     public static let typeCode = "PALT"
 
     public let id: UInt16
     public let label: String
-    /// The version field, which FreeSO doesn't use.
+    /// The version field, which nothing uses.
     public let version: UInt32
     /// The colors, by index.
     public let colors: [RGBColor]
@@ -51,7 +50,7 @@ public struct PALT: IFFChunk {
         }
     }
 
-    /// A palette of one color, as FreeSO makes for `SPR#`'s missing palettes (`DEFAULT_PALT`).
+    /// A palette of one color for `SPR#`'s missing palettes (`DEFAULT_PALT`).
     public init(uniform color: RGBColor, id: UInt16 = 0) {
         self.id = id
         label = ""

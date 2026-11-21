@@ -3,21 +3,21 @@ import TSOFiles
 
 /// The content of one TSO install: its files, patches, globals, and objects.
 ///
-/// Replaces FreeSO's `Content` singleton for the parts SimAntics needs. Create one
-/// per install; nothing is global, so tests and tools can load several side by side.
+/// An install's content. Create one per install; nothing is global, so tests and
+/// tools can load several side by side.
 public final class GameContent: Sendable {
-    /// Where to find the game and FreeSO's additions.
+    /// Where to find the game and its additions.
     public struct Configuration: Sendable {
         /// The install folder; see ``GameLocator``.
         public var gameDirectory: URL
         /// A folder of PIFF and OTF patches (FreeSO's `Content/Patch`), or `nil` for none.
         public var patchDirectory: URL?
-        /// A folder of standalone object IFFs (FreeSO's `Content/Objects`), or `nil` for none.
+        /// A folder of standalone object IFFs, or `nil` for none.
         public var standaloneObjectDirectory: URL?
         /// Simburbia's mods folder, with a player's custom objects in `Objects` and patches in
         /// `Patch`, or `nil` for none; see ``UserFolderLocator``. Its patches count as user
         /// patches, so they replace the shipped ones for the same file; its objects load after
-        /// FreeSO's, and can't replace an object that's already registered.
+        /// the content folder's, and can't replace an object that's already registered.
         public var modsDirectory: URL?
         /// Whether to load object sprites. Servers don't need them.
         public var loadsSprites: Bool
@@ -122,9 +122,9 @@ public final class GameContent: Sendable {
     /// unpatched 2002 and beta discs have no `SimMotives` or `LotMotives` (patches delivered
     /// them), so those come from the defaults.
     ///
-    /// - Throws: ``ContentError/missingFile(_:)`` if the install has no `tuning.dat`, as FreeSO
-    ///   fails without one; ``ContentError/invalidFile(path:reason:)`` if it can't be read, or if
-    ///   the defaults can't (which a test rules out).
+    /// - Throws: ``ContentError/missingFile(_:)`` if the install has no `tuning.dat` without one;
+    ///   ``ContentError/invalidFile(path:reason:)`` if it can't be read, or if the defaults can't
+    ///   (which a test rules out).
     public func globalTuning() throws(ContentError) -> GlobalTuning {
         let path = "tuning.dat"
         guard let url = files.url(for: path) else { throw .missingFile(path) }

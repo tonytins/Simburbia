@@ -28,10 +28,9 @@ public enum StringLanguage: UInt8, Sendable, CaseIterable {
 
 /// Localized strings, shared by the `STR#`, `CTSS`, and `TTAs` chunks.
 ///
-/// Ports the parsing and lookup of FreeSO's `STR`. Five formats exist, named
-/// by their first two bytes: 0 (Pascal strings), -1 (UTF-8 C strings), -2
-/// (Latin-1 string pairs), -3 (pairs with a language code), and -4 (TSO's
-/// length-prefixed sets, one per language).
+/// Five formats exist, named by their first two bytes: 0 (Pascal strings), -1 (UTF-8 C strings), -2
+/// (Latin-1 string pairs), -3 (pairs with a language code), and -4 (TSO's length-prefixed sets, one
+/// per language).
 public struct StringTable: Sendable, Equatable {
     /// One string with its comment.
     public struct Item: Sendable, Equatable {
@@ -52,9 +51,8 @@ public struct StringTable: Sendable, Equatable {
 
     /// The strings to use for a language.
     ///
-    /// Like FreeSO's lookup, a language with no strings falls back to English (US).
-    /// A language beyond the stored sets (possible in format -4, where the FreeSO
-    /// code would crash) falls back the same way.
+    /// A language with no strings falls back to English (US), and so does a
+    /// language beyond the stored sets (possible in format -4; DIFF-8).
     ///
     /// - Parameters:
     ///   - language: The language to look up.
@@ -78,7 +76,7 @@ public struct StringTable: Sendable, Equatable {
         return items.indices.contains(index) ? items[index].value : nil
     }
 
-    /// The number of English (US) strings, which FreeSO's code treats as the table's length.
+    /// The number of English (US) strings, which the VM treats as the table's length.
     public var count: Int { languageSets.first?.count ?? 0 }
 
     static let fixedLanguageSetCount = 20
@@ -88,7 +86,7 @@ public struct StringTable: Sendable, Equatable {
         let formatCode = try reader.readInt16()
         var sets = [[Item]](repeating: [], count: fixedLanguageSetCount)
 
-        // FreeSO's reader returns empty sets when fewer than two bytes follow the format code.
+        // Fewer than two bytes after the format code give empty sets.
         guard reader.remaining >= 2 else { return StringTable(formatCode: formatCode, languageSets: sets) }
 
         switch formatCode {
@@ -137,7 +135,7 @@ public struct StringTable: Sendable, Equatable {
                 sets.append(items)
             }
         default:
-            // FreeSO's reader leaves every set null here, so any later lookup crashes.
+            // An unknown format fails to parse (DIFF-7).
             throw ChunkFormatError(reason: "unknown string table format \(formatCode)")
         }
         return StringTable(formatCode: formatCode, languageSets: sets)

@@ -3,11 +3,10 @@ import TSOFiles
 
 /// Sims' animations, by file name: every `.anim` entry of the FAR3 archives under `animations`.
 ///
-/// Ports FreeSO's `AvatarAnimationProvider` and the `FAR3Provider` it builds on. Names match in
-/// any letter case, with the `.anim` extension (`a2o-standing-loop.anim`), as the VM asks for
-/// them. Where two entries share a name, the later archive's wins, as FreeSO's indexer leaves
-/// it; the names are listed in ``duplicates``. An archive that doesn't read is listed in
-/// ``failures`` and the others still load.
+/// Names match in any letter case, with the `.anim` extension (`a2o-standing-loop.anim`), as
+/// the VM asks for them. Where two entries share a name, the later archive's wins; the names
+/// are listed in ``duplicates``. An archive that doesn't read is listed in ``failures`` and the
+/// others still load.
 ///
 /// Animations decode when asked for and aren't kept; a caller that asks often keeps its own.
 public struct AnimationProvider: Sendable {
@@ -20,8 +19,8 @@ public struct AnimationProvider: Sendable {
     /// Archives that couldn't be read, each with why.
     public let failures: [BuildContentFailure]
 
-    /// Opens every archive whose path holds `/animations/` and then `.dat`, in path order
-    /// (FreeSO's unanchored `.*/animations/.*\.dat`, here in any letter case).
+    /// Opens every archive whose path holds `/animations/` and then `.dat`, in path
+    /// order, in any letter case.
     public init(files: GameFileIndex) {
         var archives: [FAR3Archive] = [], paths: [String] = []
         var entriesByName: [String: (archive: Int, entry: FAR3Archive.Entry)] = [:]

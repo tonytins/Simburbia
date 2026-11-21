@@ -1,17 +1,17 @@
 extension Entity {
     /// The number of container slots (`TotalSlots`): the definition's slots of type 0, once
-    /// initialized. A Sim has one, its hand (`VMAvatar.TotalSlots`).
+    /// initialized. A Sim has one, its hand.
     public var totalSlots: Int { contained.count }
 
     /// The object in a container slot, or `nil` for an empty or unknown slot (`GetSlot`). A Sim's
-    /// hand answers for every index (`VMAvatar.GetSlot`).
+    /// hand answers for every index.
     public func slot(_ index: Int) -> Entity? {
         if isAvatar { return contained.first ?? nil }
         return contained.indices.contains(index) ? contained[index] : nil
     }
 
     /// The height of the first container slot, whatever the index, or -1 past the last
-    /// (`GetSlotHeight`). A Sim's hand is at height 5, whatever the index (`VMAvatar.GetSlotHeight`).
+    /// (`GetSlotHeight`). A Sim's hand is at height 5, whatever the index.
     func slotHeight(_ index: Int) -> Int {
         if isAvatar { return 5 }
         return index < totalSlots ? Int(containerSlots[0].height) : -1
@@ -31,8 +31,8 @@ extension Entity {
     /// either way it moves to this entity's position.
     ///
     /// A Sim holds it in its hand whatever the index, which the object keeps as its slot number,
-    /// doesn't check for loops, and starts the default carry animation (`a2o-rarm-carry-loop`),
-    /// as `VMAvatar.PlaceInSlot` does; with no such animation, it carries without one.
+    /// doesn't check for loops, and starts the default carry animation (`a2o-rarm-carry-loop`);
+    /// with no such animation, it carries without one.
     ///
     /// - Throws: any error the object's placement or dynamic multi-tile entry point throws.
     @discardableResult
@@ -62,8 +62,7 @@ extension Entity {
     }
 
     /// Empties a container slot (`ClearSlot`). A Sim empties its hand whatever the index, and stops
-    /// its carry animation (`VMAvatar.ClearSlot`); FreeSO fails clearing an empty hand, which does
-    /// nothing here.
+    /// its carry animation; clearing an empty hand does nothing (DIFF-34).
     func clearSlot(_ index: Int) {
         let index = isAvatar ? 0 : index
         guard contained.indices.contains(index), let object = contained[index] else { return }

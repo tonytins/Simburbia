@@ -150,7 +150,7 @@ final class ClientApp {
     }
 
     /// Follows the pointer for the cutaway: the tile it's over, and the indoor room there, kept
-    /// with the two before it. Stays put while the view is being dragged, as in FreeSO.
+    /// with the two before it. Stays put while the view is being dragged.
     private func followPointer(_ mouse: Vector2, overInterface: Bool, always: Bool = false) {
         guard always || (followsPointer && !overInterface && !IsMouseButtonDown(.right)) else { return }
         let camera = view.camera(screenHeight: Int(GetScreenHeight()))

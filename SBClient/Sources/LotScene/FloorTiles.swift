@@ -14,7 +14,7 @@ public enum FloorTexture: Hashable, Sendable, Comparable {
 
     /// The texture of a converted tile ID, or `nil` for one drawn without a texture: grass (0) and
     /// the air tile (65503), which the client doesn't draw yet. A raw blueprint pattern in the
-    /// water or pool range is drawn as that shape, as in FreeSO.
+    /// water or pool range is drawn as that shape.
     public init?(convertedID id: UInt16) {
         switch id {
         case 0, LotScene.airTileID: return nil
@@ -31,7 +31,7 @@ public enum FloorTexture: Hashable, Sendable, Comparable {
         return true
     }
 
-    /// FreeSO draws a water tile with a plain tile under it, and itself a little above
+    /// A water tile is drawn with a plain tile under it, and itself a little above
     /// (0.05 world units, a sixtieth of a tile).
     public var isRaised: Bool {
         if case .water = self { return true }
@@ -57,10 +57,10 @@ extension LotScene {
     /// The build-mode air tile's ID.
     static let airTileID: UInt16 = 65503
 
-    /// FreeSO's `_3DFloorGeometry.PatternConvert` outside build mode: a pattern below 65534 is
-    /// itself; pool (65535) and water (65534) become a shape from the four tiles beside it:
-    /// bit 1 the tile at y − 1, 2 at x − 1, 4 at y + 1, and 8 at x + 1, each set when that tile
-    /// holds the same pattern or is on (or past) the lot's edge.
+    /// Outside build mode, a pattern below 65534 is itself; pool (65535) and water (65534)
+    /// become a shape from the four tiles beside it: bit 1 the tile at y − 1, 2 at x − 1, 4 at
+    /// y + 1, and 8 at x + 1, each set when that tile holds the same pattern or is on (or past)
+    /// the lot's edge.
     static func convertedID(of pattern: UInt16, x: Int, y: Int, level floors: [UInt16], width: Int, height: Int) -> UInt16 {
         guard pattern >= 65534 else { return pattern }
         func joins(_ dx: Int, _ dy: Int) -> Bool {
@@ -164,7 +164,7 @@ public final class FloorImages {
         self.floors = floors
     }
 
-    /// A texture's image at a zoom, or `nil` if the install has none (FreeSO skips those tiles).
+    /// A texture's image at a zoom, or `nil` if the install has none (those tiles are skipped).
     public func image(for texture: FloorTexture, zoom: SpriteZoom) -> SpriteImage? {
         let key = Key(texture: texture, zoom: zoom)
         if let image = images[key] { return image }

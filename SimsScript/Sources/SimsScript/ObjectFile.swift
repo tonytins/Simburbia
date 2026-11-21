@@ -2,12 +2,13 @@ import Foundation
 import TSOFiles
 
 extension CompiledObject {
-    /// The `OBJD` version written: 142, the newest FreeSO reads, with 103 words.
+    /// The `OBJD` version written: 142, the newest TSO's readers know, with 103
+    /// words.
     static let definitionVersion: UInt32 = 142
 
-    /// The object as an IFF file on its own, such as FreeSO loads from its `Content/Objects`
-    /// folder: an `OBJD` (ID 128) with the GUID, the attribute count, and a function table, the
-    /// `OBJf` that table is (ID 128), and the routines.
+    /// The object as an IFF file on its own, such as a content folder's `Objects` holds: an
+    /// `OBJD` (ID 128) with the GUID, the attribute count, and a function table, the `OBJf`
+    /// that table is (ID 128), and the routines.
     ///
     /// The `OBJD` is a normal object (type 4) with every other field zero: no graphics, price,
     /// or catalog entry. That's enough to create and run it out of the world, which is all a

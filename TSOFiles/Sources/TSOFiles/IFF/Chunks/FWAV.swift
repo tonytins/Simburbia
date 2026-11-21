@@ -2,7 +2,7 @@ import Foundation
 
 /// The name of a sound event an object plays, such as `piano_play`.
 ///
-/// Ports FreeSO's `FWAV`. The name is a NUL-terminated Latin-1 string.
+/// The name is a NUL-terminated Latin-1 string.
 public struct FWAV: IFFChunk {
     public static let typeCode = "FWAV"
 

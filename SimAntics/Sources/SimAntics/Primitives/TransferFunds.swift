@@ -1,22 +1,22 @@
 extension Primitives {
     /// Moves money between the caller, the stack object, owners, and the game (opcode 25).
     ///
-    /// Ports FreeSO's `VMTransferFunds` against its standalone global link (see
-    /// ``VM/performTransaction(testOnly:from:to:amount:)``). The amount is a 32-bit variable. Each
-    /// transfer type names a payer and a payee by persist ID, or Maxis; old types do nothing and are
-    /// true. In a check tree a transaction can only be tested, at once: true if it could happen, and
-    /// a real one is false. Otherwise the thread waits a tick for the answer, then puts the amount
-    /// in `TempXL` 0 and is true if it went through. "Put stack object's cash into TempXL 0" reads
-    /// the stack object's budget instead. A stack object the type needs and doesn't have fails, as
-    /// FreeSO's null reference does.
+    /// Moves money through the lot's stand-in for a server
+    /// (``VM/performTransaction(testOnly:from:to:amount:)``). The amount is a 32-bit variable. Each
+    /// transfer type names a payer and a payee by persist ID, or Maxis; old types do nothing and
+    /// are true. In a check tree a transaction can only be tested, at once: true if it could
+    /// happen, and a real one is false. Otherwise the thread waits a tick for the answer, then puts
+    /// the amount in `TempXL` 0 and is true if it went through. "Put stack object's cash into
+    /// TempXL 0" reads the stack object's budget instead. A stack object the type needs and doesn't
+    /// have fails.
     ///
-    /// On a blueprint lot every object's persist ID is 0, which FreeSO resolves to the
-    /// lowest-numbered object, so "me" and "the stack object" pay from, and are paid into, its budget.
+    /// On a blueprint lot every object's persist ID is 0, which resolves to the lowest-numbered
+    /// object, so "me" and "the stack object" pay from, and are paid into, its budget.
     public enum TransferFunds: Primitive {
         public static let name = "transfer_funds"
         public static let opcode: UInt8 = 25
 
-        /// Who pays whom (`VMTransferFundsType`).
+        /// Who pays whom.
         public enum TransferType: UInt8, Sendable {
             case deprecatedAdd = 0, deprecatedSubtract, meToMaxis, deprecatedMeToStackObject
             case deprecatedMeToStackObjectsOwner, maxisToMe, maxisToStackObjectsOwner, stackObjectsOwnerToMaxis
@@ -37,7 +37,7 @@ extension Primitives {
             /// Bit 0: only test the transaction.
             public var flags: UInt8
             public var unused: UInt8
-            /// What the money is for (`VMTransferFundsExpenseType`); FreeSO scales none of them.
+            /// What the money is for; none is scaled.
             public var expenseType: UInt8
             public var transferType: UInt8
 

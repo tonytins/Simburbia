@@ -3,20 +3,19 @@ import TSOFiles
 
 /// The install's floors: the build catalog's entries, and each floor's sprites.
 ///
-/// Ports FreeSO's `WorldFloorProvider`. Floors 1 up are the global ones, in
-/// `objectdata/globals/floors.iff`; 256 up are the IFFs of `housedata/floors/floors.far`, then
-/// `floors2`, `floors3`, and `floors4`, numbered in archive and manifest order. 65534 (water) and
-/// 65535 (pool) are catalog entries only; their tiles come from ``globalSprite(id:)``. Everything
-/// is read when the provider is made, and a sprite is parsed when it's asked for.
+/// Floors 1 up are the global ones, in `objectdata/globals/floors.iff`; 256 up are the IFFs of
+/// `housedata/floors/floors.far`, then `floors2`, `floors3`, and `floors4`, numbered in archive
+/// and manifest order. 65534 (water) and 65535 (pool) are catalog entries only; their tiles come
+/// from ``globalSprite(id:)``. Everything is read when the provider is made, and a sprite is
+/// parsed when it's asked for.
 ///
-/// Where it differs from FreeSO (DIFF-29, DIFF-30 in the scorecard):
+/// Deliberate differences (DIFF-29, DIFF-30 in the scorecard):
 /// - The global floors' names, prices, and descriptions come from `build.iff`'s floor strings
-///   (`STR#` 0x82). FreeSO reads the wallpaper strings (0x83) instead, and so names every global
-///   floor after a wallpaper. It counts the floors from that table too, one fewer than a third of
-///   its strings; a third of the floor strings gives the same 29 floors on every install.
+///   (`STR#` 0x82), not the wallpaper strings (0x83). A third of the floor strings gives the 29
+///   global floors on every install.
 /// - An archive the install doesn't have holds no floors: the base game and the beta have only
-///   `floors.far`, where FreeSO would stop. An IFF in an archive that can't be read takes its ID
-///   and is reported in ``failures``.
+///   `floors.far`. An IFF in an archive that can't be read takes its ID and is reported in
+///   ``failures``.
 public struct FloorProvider: Sendable {
     /// The archives that hold floors 256 up, in the order they're numbered.
     public static let archivePaths = ["housedata/floors/floors.far", "housedata/floors2/floors2.far",
@@ -26,7 +25,7 @@ public struct FloorProvider: Sendable {
     /// The catalog ID of water tiles.
     public static let waterID: UInt16 = 65534
 
-    /// A floor's sprites at each zoom (FreeSO's `Floor`), and the file their palettes are in.
+    /// A floor's sprites at each zoom, and the file their palettes are in.
     public struct Floor: Sendable {
         public let id: UInt16
         public let far: SPR2?
@@ -56,7 +55,7 @@ public struct FloorProvider: Sendable {
     ///
     /// - Throws: ``ContentError/missingFile(_:)`` if `floors.iff` or `build.iff` is missing, or
     ///   ``ContentError/invalidFile(path:reason:)`` if one of them, its floor or pool strings, or
-    ///   an archive doesn't read. FreeSO stops on each.
+    ///   an archive doesn't read.
     public init(files: GameFileIndex) throws(ContentError) {
         globals = try buildGlobal(Self.globalsPath, in: files)
         let build = try buildGlobal(Self.buildPath, in: files)
@@ -100,10 +99,10 @@ public struct FloorProvider: Sendable {
         entriesByID[id]
     }
 
-    /// A floor's sprites, as FreeSO's `Get` finds them: a global floor's from `floors.iff` (far
-    /// `id`, medium `id + 256`, near `id + 512`), an archive floor's from its IFF (`SPR2` 1, 257,
-    /// and 513). `nil` for an ID with no floor, pool and water included, or an IFF that didn't
-    /// read. A sprite the file lacks is `nil`, where FreeSO would stop.
+    /// A floor's sprites: a global floor's from `floors.iff` (far `id`, medium `id + 256`, near
+    /// `id + 512`), an archive floor's from its IFF (`SPR2` 1, 257, and 513). `nil` for an ID
+    /// with no floor, pool and water included, or an IFF that didn't read. A sprite the file
+    /// lacks is `nil`.
     ///
     /// - Throws: ``ContentError/invalidFile(path:reason:)`` if a sprite chunk doesn't parse.
     public func floor(id: UInt16) throws(ContentError) -> Floor? {
@@ -121,24 +120,24 @@ public struct FloorProvider: Sendable {
                      file: file)
     }
 
-    /// A sprite from `floors.iff` by chunk ID (FreeSO's `GetGlobalSPR`): the pool tiles (0x400 up)
-    /// and water tiles (0x800 up), or `nil` if there's none.
+    /// A sprite from `floors.iff` by chunk ID: the pool tiles (0x400 up) and water tiles (0x800
+    /// up), or `nil` if there's none.
     ///
     /// - Throws: ``ContentError/invalidFile(path:reason:)`` if the chunk doesn't parse.
     public func globalSprite(id: UInt16) throws(ContentError) -> SPR2? {
         try buildSprite(SPR2.self, id: id, in: globals, path: Self.globalsPath)
     }
 
-    /// Whether FreeSO's `GetGlobalSPR` turns a global sprite's depth into alpha: the water tiles
-    /// 0x801 to 0x80F. Its test is `id > 0x800`, so 0x800, water with no pool tile beside it,
-    /// keeps its depth; kept, as that's how FreeSO draws it.
+    /// Whether a global sprite's depth becomes alpha: the water tiles 0x801 to 0x80F. 0x800,
+    /// water with no pool tile beside it, keeps its depth.
     public static func globalSpriteTakesDepthAsAlpha(_ id: UInt16) -> Bool {
         id > 0x800 && id < 0x810
     }
 
-    /// A floor sprite's frame as the texture FreeSO draws: decoded with its palette from `file`
-    /// (none is transparent black, as in FreeSO), floor-copied so it repeats across tiles
-    /// (`SPR2.decode(frameAt:palette:floorCopy:depthAsAlpha:)`), and for water, with depth as alpha.
+    /// A floor sprite's frame as the texture to draw: decoded with its palette from `file`
+    /// (none is transparent black), floor-copied so it repeats across tiles
+    /// (`SPR2.decode(frameAt:palette:floorCopy:depthAsAlpha:)`), and for water, with depth as
+    /// alpha.
     ///
     /// - Throws: ``SpriteError/unreadableChunk(_:)`` if the palette doesn't parse, or the
     ///   decode's errors.

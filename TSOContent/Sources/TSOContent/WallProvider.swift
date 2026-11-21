@@ -4,28 +4,27 @@ import TSOFiles
 /// The install's walls: wall patterns (the wallpaper a wall shows), wall styles (the shape that
 /// masks it: a full wall, a cut-down one, a fence), and the junction pieces drawn where walls meet.
 ///
-/// Ports FreeSO's `WorldWallProvider`. Patterns 0 to 255 and styles 1 to 255 are global, in
-/// `objectdata/globals/walls.iff`; patterns 256 up are the IFFs of `housedata/walls/walls.far`,
-/// then `walls2`, `walls3`, and `walls4`, numbered in archive and manifest order. Everything is
-/// read when the provider is made, and a sprite is parsed when it's asked for. Styles objects add
-/// while a lot runs (FreeSO's `AddDynamicWallStyle`, 256 up) aren't here yet.
+/// Patterns 0 to 255 and styles 1 to 255 are global, in `objectdata/globals/walls.iff`; patterns
+/// 256 up are the IFFs of `housedata/walls/walls.far`, then `walls2`, `walls3`, and `walls4`,
+/// numbered in archive and manifest order. Everything is read when the provider is made, and a
+/// sprite is parsed when it's asked for. Styles objects add while a lot runs (256 up) aren't
+/// here yet.
 ///
-/// Where it differs from FreeSO (DIFF-29, DIFF-30 in the scorecard):
+/// Deliberate differences (DIFF-29, DIFF-30 in the scorecard):
 /// - Only the five styles the catalog sells (wall, picket, iron, and privacy fences, and
-///   banisters) have catalog strings. FreeSO's `TryGetValue` leaves every other style at index
-///   0, so each takes the plain wall's name and price.
+///   banisters) have catalog strings; every other style has none.
 /// - An archive the install doesn't have holds no walls: the base game and the beta have only
-///   `walls.far`, where FreeSO would stop. An IFF in an archive that can't be read takes its ID
-///   and is reported in ``failures``.
+///   `walls.far`. An IFF in an archive that can't be read takes its ID and is reported in
+///   ``failures``.
 public struct WallProvider: Sendable {
     /// The archives that hold patterns 256 up, in the order they're numbered.
     public static let archivePaths = ["housedata/walls/walls.far", "housedata/walls2/walls2.far",
                                       "housedata/walls3/walls3.far", "housedata/walls4/walls4.far"]
-    /// The styles the catalog sells, in the order of their strings (FreeSO's `WallStyleIDs`).
+    /// The styles the catalog sells, in the order of their strings.
     public static let catalogStyleIDs: [UInt16] = [0x1, 0x2, 0xD, 0xC, 0xE]
 
-    /// A pattern's sprites at each zoom (FreeSO's `Wall`), and the file their palettes are in.
-    /// Each sprite has a frame per side the wall can be drawn on.
+    /// A pattern's sprites at each zoom, and the file their palettes are in. Each sprite has a
+    /// frame per side the wall can be drawn on.
     public struct Pattern: Sendable {
         public let id: UInt16
         public let far: SPR?
@@ -34,8 +33,8 @@ public struct WallProvider: Sendable {
         public let file: IFFFile
     }
 
-    /// A style's masks at each zoom, with walls up and cut down (FreeSO's `WallStyle`). A style
-    /// without its own cut-down masks uses the full ones for both, as in FreeSO.
+    /// A style's masks at each zoom, with walls up and cut down. A style without its own
+    /// cut-down masks uses the full ones for both.
     public struct Style: Sendable {
         public let id: UInt16
         public let wallsUp: (far: SPR?, medium: SPR?, near: SPR?)
@@ -57,7 +56,7 @@ public struct WallProvider: Sendable {
 
     private let filesByName: [String: IFFFile]
     private let entriesByID: [UInt16: BuildCatalogEntry]
-    /// The first archive pattern, which FreeSO falls back to for an unknown ID.
+    /// The first archive pattern, the fallback for an unknown ID.
     private let firstArchiveEntry: BuildCatalogEntry?
 
     static let globalsPath = "objectdata/globals/walls.iff"
@@ -66,7 +65,7 @@ public struct WallProvider: Sendable {
     ///
     /// - Throws: ``ContentError/missingFile(_:)`` if `walls.iff` or `build.iff` is missing, or
     ///   ``ContentError/invalidFile(path:reason:)`` if one of them, its style or wallpaper
-    ///   strings, or an archive doesn't read. FreeSO stops on each.
+    ///   strings, or an archive doesn't read.
     public init(files: GameFileIndex) throws(ContentError) {
         globals = try buildGlobal(Self.globalsPath, in: files)
         let build = try buildGlobal(FloorProvider.buildPath, in: files)
@@ -101,12 +100,11 @@ public struct WallProvider: Sendable {
         entriesByID[id]
     }
 
-    /// A pattern's sprites, as FreeSO's `Get` finds them. Patterns 0 to 255 always exist, with
-    /// their sprites from `walls.iff` (far `id + 1536`, medium `id + 1792`, near `id + 2048`),
-    /// any of which may be missing. An archive pattern's come from its IFF (`SPR#` 1, 1793, and
-    /// 2049). An unknown ID from 256 up falls back to the first archive pattern, a tolerance
-    /// FreeSO had that lots made with other content rely on; `nil` if there's no archive pattern
-    /// or its IFF didn't read.
+    /// A pattern's sprites. Patterns 0 to 255 always exist, with their sprites from `walls.iff`
+    /// (far `id + 1536`, medium `id + 1792`, near `id + 2048`), any of which may be missing. An
+    /// archive pattern's come from its IFF (`SPR#` 1, 1793, and 2049). An unknown ID from 256 up
+    /// falls back to the first archive pattern, a tolerance lots made with other content rely
+    /// on; `nil` if there's no archive pattern or its IFF didn't read.
     ///
     /// - Throws: ``ContentError/invalidFile(path:reason:)`` if a sprite chunk doesn't parse.
     public func pattern(id: UInt16) throws(ContentError) -> Pattern? {
@@ -126,7 +124,7 @@ public struct WallProvider: Sendable {
 
     /// A style's masks, from `walls.iff`: style `n` keeps its full masks at `2n` (far), `2n + 512`
     /// (medium), and `2n + 1024` (near), and its cut-down ones one after each. When the far
-    /// cut-down mask is missing, the full masks serve for both, as in FreeSO. `nil` outside 1 to 255.
+    /// cut-down mask is missing, the full masks serve for both. `nil` outside 1 to 255.
     ///
     /// - Throws: ``ContentError/invalidFile(path:reason:)`` if a mask chunk doesn't parse.
     public func style(id: UInt16) throws(ContentError) -> Style? {
@@ -142,7 +140,7 @@ public struct WallProvider: Sendable {
     }
 
     /// The junction pieces drawn where walls meet, at each zoom (`SPR#` 4096 to 4098), one frame
-    /// per way walls can meet (FreeSO's `Junctions`).
+    /// per way walls can meet.
     ///
     /// - Throws: ``ContentError/invalidFile(path:reason:)`` if a chunk doesn't parse.
     public func junctions() throws(ContentError) -> Pattern {

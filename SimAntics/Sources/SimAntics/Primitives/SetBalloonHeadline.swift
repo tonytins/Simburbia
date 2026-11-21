@@ -1,13 +1,12 @@
 extension Primitives {
     /// Shows or clears a balloon over the caller or the stack object (opcode 41).
     ///
-    /// Ports FreeSO's `VMSetBalloonHeadline`. An index of -1 or a duration of 0 clears it; otherwise
-    /// it shows for the duration (in loops of 15 ticks with that flag), or until replaced if negative.
-    /// An algorithmic headline (group 7) shows an object's picture: the stack object for index 0 or
-    /// 1, else the object whose ID is in the local the operand names. An indexed one adds temp 0 to
-    /// the index. Headless, nothing is drawn, but the headline counts down each tick and keeps its
-    /// entity running every tick. A missing target fails, as FreeSO's null reference does, and so
-    /// does a local past the frame's.
+    /// An index of -1 or a duration of 0 clears it; otherwise it shows for the duration (in loops
+    /// of 15 ticks with that flag), or until replaced if negative. An algorithmic headline (group
+    /// 7) shows an object's picture: the stack object for index 0 or 1, else the object whose ID is
+    /// in the local the operand names. An indexed one adds temp 0 to the index. Headless, nothing
+    /// is drawn, but the headline counts down each tick and keeps its entity running every tick. A
+    /// missing target fails, and so does a local past the frame's.
     public enum SetBalloonHeadline: Primitive {
         public static let name = "set_balloon_headline"
         public static let opcode: UInt8 = 41

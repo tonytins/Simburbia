@@ -2,13 +2,11 @@ import Foundation
 
 /// An object definition: the first chunk the VM reads for an object.
 ///
-/// Ports FreeSO's `OBJD`. The chunk is a list of 16-bit words whose length
-/// depends on the version (78 words for version 136 and unknown versions, 93
-/// for 138, 94 for 139, 95 for 140 and 141, 103 for 142). Every named field is
-/// a fixed word position in that list, so this type keeps the words and reads
-/// the fields from them. A field beyond a version's words reads as zero, as the
-/// FreeSO defaults did. Property names follow FreeSO's field names, which the
-/// VM and editors refer to.
+/// The chunk is a list of 16-bit words whose length depends on the version (78 words for version
+/// 136 and unknown versions, 93 for 138, 94 for 139, 95 for 140 and 141, 103 for 142). Every named
+/// field is a fixed word position in that list, so this type keeps the words and reads the fields
+/// from them. A field beyond a version's words reads as zero. Property names follow the field names
+/// editors know them by.
 public struct OBJD: IFFChunk {
     public static let typeCode = "OBJD"
 
@@ -46,7 +44,7 @@ public struct OBJD: IFFChunk {
         }
     }
 
-    /// The number of words a version stores: FreeSO's field count minus two.
+    /// The number of words a version stores.
     static func wordCount(forVersion version: UInt32) -> Int {
         let fieldCount = switch version {
         case 138: 95
@@ -349,7 +347,7 @@ public struct OBJD: IFFChunk {
 
     /// A field that names a behavior.
     public struct BehaviorField: Sendable, Equatable {
-        /// FreeSO's field name, such as `BHAV_MainID`.
+        /// The field's name, such as `BHAV_MainID`.
         public var name: String
         /// The `BHAV` chunk's ID, or 0 for none.
         public var id: UInt16

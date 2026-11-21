@@ -1,13 +1,13 @@
 extension Primitives {
     /// Waits for a number of ticks, or until an interaction or an interrupt comes (opcode 17).
     ///
-    /// Ports FreeSO's `VMIdleForInput`. Each run counts the ticks since the wait began off the
-    /// argument it names, as Sleep does. An interaction tree, or main with interactions queued, ends
-    /// it, as does an interrupt or the count running out (all true). Otherwise it waits: every tick
-    /// when it allows interactions to be pushed, or else until the count would run out.
+    /// Each run counts the ticks since the wait began off the argument it names, as Sleep does. An
+    /// interaction tree, or main with interactions queued, ends it, as does an interrupt or the
+    /// count running out (all true). Otherwise it waits: every tick when it allows interactions to
+    /// be pushed, or else until the count would run out.
     ///
-    /// Simburbia has no interaction queue yet, so main always finds it empty, as FreeSO does on a
-    /// lot with no Sims; in an interaction tree it reports ``SimAnticsError/unsupported(_:)``.
+    /// Simburbia has no interaction queue yet, so main always finds it empty on a lot with no
+    /// Sims; in an interaction tree it reports ``SimAnticsError/unsupported(_:)``.
     public enum IdleForInput: Primitive {
         public static let name = "idle_for_input"
         public static let opcode: UInt8 = 17

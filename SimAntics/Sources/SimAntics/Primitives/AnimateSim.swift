@@ -4,47 +4,44 @@ import TSOFiles
 extension Primitives {
     /// Plays an animation on the calling Sim (opcode 44).
     ///
-    /// Ports FreeSO's `VMAnimateSim`, checked against plumbob-engine's (a The Sims 1 engine) and
-    /// against how 1.1097.1.0's 13,886 Animate Sim instructions use it. The mode is the flags'
-    /// bits 0 and 4 (`flags & 1 | flags >> 3 & 2`):
+    /// Checked against how 1.1097.1.0's 13,886 Animate Sim instructions use it. The mode is the
+    /// flags' bits 0 and 4 (`flags & 1 | flags >> 3 & 2`):
     ///
     /// - **0, play and wait** (13,174 instructions): the first run starts the animation, replacing
     ///   whatever was playing, and waits a tick. Later runs, while the same animation plays, hand
     ///   the routine its events: each `xevt` the animation fired goes into a local (flag 32) or
     ///   the first parameter, and the primitive goes false; once it has ended and no events are
-    ///   left, it stops the animation and goes true. When it ends having run fewer events than
-    ///   the operand expects, the missing ones are made up, numbered from the count run so far, so
-    ///   the routine still hears them (FreeSO's "required for bath drain").
+    ///   left, it stops the animation and goes true. When it ends having run fewer events than the
+    ///   operand expects, the missing ones are made up, numbered from the count run so far, so the
+    ///   routine still hears them (the bath's drain needs this).
     /// - **3** (161): stops the carry animation, then plays and waits as 0 does.
     /// - **2, carry** (382): sets the carry animation and goes true.
-    /// - **1** (169): goes true, as in FreeSO. plumbob-engine plays it as a background loop the
-    ///   routine doesn't wait on, which only drawing would show; it waits for the client.
+    /// - **1** (169): goes true: it looks like a background loop the routine doesn't wait
+    ///   on, which only drawing would show, so it waits for the client.
     ///
     /// An ID of 0 (752 instructions) stops everything and plays the walk animation for the Sim's
     /// posture (sitting 1, kneeling 2, else standing, the walk table's 3), looping, and sets the
     /// default carry animation if the Sim holds something in its hand, or clears it.
     ///
-    /// The name comes from a string table chosen by the source (FreeSO's `VMMemory.GetAnimation`):
-    /// the code owner's table (its `OBJD`'s animation table, else `STR#` 129); the stack object's,
-    /// likewise; or the global's `STR#` 128 (global), 130 (person stock), or 156 (misc). With the ID
-    /// from a parameter, the object source means the stack object, as FreeSO's fix for a roller
-    /// coaster has it. A name with no animation, or a missing table, goes true without playing.
+    /// The name comes from a string table chosen by the source: the code owner's table (its
+    /// `OBJD`'s animation table, else `STR#` 129); the stack object's, likewise; or the global's
+    /// `STR#` 128 (global), 130 (person stock), or 156 (misc). With the ID from a parameter, the
+    /// object source means the stack object (a roller coaster needs this). A name with no
+    /// animation, or a missing table, goes true without playing.
     ///
     /// Not yet: the hurry flag (8, 143 instructions), which lets an interaction interrupt the
-    /// animation, waits for the interaction queue (phase D); flag 64 (276), which plumbob-engine
-    /// reads as practice scaling, does nothing, as in FreeSO.
+    /// animation, waits for the interaction queue (phase D); flag 64 (276), which looks like
+    /// skill-practice scaling, does nothing.
     public enum AnimateSim: Primitive {
         public static let name = "animate"
         public static let opcode: UInt8 = 44
 
-        /// FreeSO's `VMAnimateSimOperand`; its second padding byte is written back as zero, as
-        /// FreeSO writes it.
+        /// The operand; its second padding byte is written back as zero.
         public struct Operand: PrimitiveOperand, Equatable {
             public var animationID: UInt16
             /// The local the event goes into, with flag 32.
             public var localEventNumber: UInt8
-            /// Where the animation comes from (`VMAnimationScope`): 0 object, 1 global, 2 person
-            /// stock, 3 misc.
+            /// Where the animation comes from: 0 object, 1 global, 2 person stock, 3 misc.
             public var source: UInt8
             public var flags: UInt8
             /// How many events below 100 the animation should run.
@@ -170,7 +167,7 @@ extension Primitives {
             return .gotoTrue
         }
 
-        /// Where an animation's name is looked up (`VMAnimationScope`).
+        /// Where an animation's name is looked up.
         enum Source: Equatable {
             case object, global, personStock, misc, stackObject, unknown
 
@@ -213,7 +210,7 @@ extension Primitives {
         }
 
         /// An object's animation table: the one its `OBJD` names, else `STR#` 129, in its own file
-        /// only (FreeSO's `GameObjectResource.Get`).
+        /// only.
         private static func objectTable(of object: GameObject) throws -> STR? {
             if let table = try object.resource.chunk(STR.self, id: object.definition.animationTableID) { return table }
             return try object.resource.chunk(STR.self, id: 129)

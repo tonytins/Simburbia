@@ -1,27 +1,28 @@
 extension Primitives {
     /// Finds the next object after an ID that fits a search (opcode 31).
     ///
-    /// Ports FreeSO's `VMSetToNext`. The search starts after the object ID in the target
-    /// variable and writes the first match back; it's false when nothing is left. Searches:
+    /// The search starts after the object ID in the target variable and writes the first
+    /// match back; it's false when nothing is left. Searches:
     ///
     /// - every object, non-Sims, objects of a GUID, and objects in the category held in
     ///   parameter 0, in object ID order;
     /// - Sims and family members, which only look at Sims (none are ported yet, so false);
-    /// - "closest house", which is always false in FreeSO;
-    /// - The Sims 1 neighbors and careers, which fail in TSO as FreeSO has no neighborhood;
+    /// - "closest house", which is always false;
+    /// - The Sims 1 neighbors and careers, which fail in TSO, where there's no
+    ///   neighborhood;
     /// - parts of a multi-tile object, by ID, wrapping around to the lowest; false for an object
     ///   that isn't multi-tile;
     /// - objects on the pointer object's tile, wrapping around to the lowest ID;
     /// - objects next to the anchor object in a local: the first object on each neighboring tile,
     ///   north, east, south, then west, continuing after the side the pointer object is on.
     ///
-    /// When the operand's top flag bit is clear, FreeSO ignores the stored target and uses the
-    /// stack object ID; the operand keeps the stored bytes so it encodes back unchanged.
+    /// When the operand's top flag bit is clear, the stored target is ignored and the stack
+    /// object ID used; the operand keeps the stored bytes so it encodes back unchanged.
     public enum SetToNext: Primitive {
         public static let name = "set_to_next"
         public static let opcode: UInt8 = 31
 
-        /// `VMSetToNextSearchType`.
+        /// What the search looks for, by its byte.
         public enum Search: UInt8, Sendable {
             case object = 0, person, nonPerson, partOfMultiTileObject, objectOfType, neighborID
             case objectWithCategoryInParameter0, neighborOfType, objectOnSameTile, objectAdjacentToObjectInLocal
@@ -104,7 +105,7 @@ extension Primitives {
                 guard let category = frame.arguments.first else { throw .indexOutOfRange("parameter 0") }
                 candidates = vm.objects(inCategory: category)
             case .closestHouse:
-                // FreeSO gives up at the first object after the target, and false if there's none.
+                // It gives up at the first object after the target, and false if there's none.
                 return .gotoFalse
             case .object, .nonPerson, nil:
                 candidates = vm.entities
@@ -142,7 +143,7 @@ extension Primitives {
             return .gotoFalse
         }
 
-        /// Which neighbor a position is, as FreeSO judges it: 0 north, 1 east, 2 south, 3 west.
+        /// Which neighbor a position is: 0 north, 1 east, 2 south, 3 west.
         private static func side(of position: LotPosition, from anchor: LotPosition) -> Int {
             let dx = Int(position.tileX) - Int(anchor.tileX), dy = Int(position.tileY) - Int(anchor.tileY)
             if dx == 0 { return dy < 0 ? 0 : 2 }

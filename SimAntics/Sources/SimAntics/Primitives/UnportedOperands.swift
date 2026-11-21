@@ -1,17 +1,17 @@
-// The operands of primitives this port doesn't run yet, decoded as FreeSO decodes them, so tools
-// can show what an instruction asks for. Each ports a FreeSO operand class's `Read` and `Write`;
-// when its primitive is ported, the operand moves into that primitive's own file.
+// The operands of primitives this port doesn't run yet, decoded, so tools can show what an
+// instruction asks for. When its primitive is ported, the operand moves into that
+// primitive's own file.
 
-/// An operand that lists its values under FreeSO's field names, as `fso-oracle operands`
-/// compared them with FreeSO's decoding until 2026-11-20. Booleans are 0 or 1; scopes and enums are their raw values.
+/// An operand that lists its values under the field names tools know them by. Booleans are 0 or 1;
+/// scopes and enums are their raw values.
 public protocol FSOCompatOperand: PrimitiveOperand {
     var fsoCompatFields: [(name: String, value: Int64)] { get }
 }
 
 extension PrimitiveTable {
-    /// Operand types for primitives FreeSO registers in TSO mode that this port doesn't run yet,
-    /// by opcode. Primitives with no operand (syslog, test sim interacting with, find best action)
-    /// decode to ``Primitives/EmptyOperand``.
+    /// Operand types for TSO primitives Simburbia doesn't run yet, by opcode. Primitives with no
+    /// operand (syslog, test sim interacting with, find best action) decode to
+    /// ``Primitives/EmptyOperand``.
     public static let unportedOperands: [UInt8: any FSOCompatOperand.Type] = [
         1: Primitives.GenericTSOCall.Operand.self,
         9: Primitives.Burn.Operand.self,
@@ -45,7 +45,7 @@ extension PrimitiveTable {
 }
 
 extension Primitives {
-    /// The operand of a primitive that reads none, such as FreeSO's `VMGrabOperand`.
+    /// The operand of a primitive that reads none.
     public struct EmptyOperand: FSOCompatOperand, Equatable {
         public init() {}
         public init(bytes: [UInt8]) {}
@@ -53,8 +53,8 @@ extension Primitives {
         public var fsoCompatFields: [(name: String, value: Int64)] { [] }
     }
 
-    /// Dialog (opcodes 36, 38, and 39: private, global, and semi-global strings). FreeSO's
-    /// `VMDialogOperand`. The IDs index the strings of the dialog's string table.
+    /// Dialog (opcodes 36, 38, and 39: private, global, and semi-global strings). The IDs
+    /// index the strings of the dialog's string table.
     public enum Dialog {
         public struct Operand: FSOCompatOperand, Equatable {
             public var cancelStringID: UInt8
@@ -62,7 +62,7 @@ extension Primitives {
             public var messageStringID: UInt8
             public var yesStringID: UInt8
             public var noStringID: UInt8
-            /// The kind of dialog (`VMDialogType`).
+            /// The kind of dialog.
             public var type: UInt8
             public var titleStringID: UInt8
             public var flags: UInt8
@@ -92,11 +92,11 @@ extension Primitives {
         }
     }
 
-    /// Go to Routing Slot (opcode 45). FreeSO's `VMGotoRoutingSlotOperand`.
+    /// Go to Routing Slot (opcode 45).
     public enum GotoRoutingSlot {
         public struct Operand: FSOCompatOperand, Equatable {
             public var data: UInt16
-            /// How ``data`` picks the slot (`VMSlotScope`).
+            /// How ``data`` picks the slot.
             public var type: UInt16
             public var flags: UInt8
 
@@ -121,13 +121,13 @@ extension Primitives {
         }
     }
 
-    /// Push Interaction (opcode 13). FreeSO's `VMPushInteractionOperand`.
+    /// Push Interaction (opcode 13).
     public enum PushInteraction {
         public struct Operand: FSOCompatOperand, Equatable {
             public var interaction: UInt8
             /// The local or parameter that holds the object's ID.
             public var objectLocation: UInt8
-            /// The interaction's priority (`VMPushPriority`).
+            /// The interaction's priority.
             public var priority: UInt8
             public var flags: UInt8
             public var iconLocation: UInt8
@@ -154,8 +154,7 @@ extension Primitives {
         }
     }
 
-    /// Relationship (opcode 26). FreeSO's `VMRelationshipOperand`; its scope and data are a
-    /// ``Variable`` here.
+    /// Relationship (opcode 26). Its scope and data are a ``Variable`` here.
     public enum Relationship {
         public struct Operand: FSOCompatOperand, VariableOperand, Equatable {
             public var relationshipVariable: UInt8
@@ -192,10 +191,10 @@ extension Primitives {
     }
 
     /// Old Relationship (opcode 24): the same primitive as ``Relationship`` with an older
-    /// operand. FreeSO's `VMOldRelationshipOperand`, whose variable is always a parameter.
+    /// operand. Its variable is always a parameter.
     public enum OldRelationship {
         public struct Operand: FSOCompatOperand, VariableOperand, Equatable {
-            /// Whether it gets or sets (FreeSO's private `GetSet`, public as `SetMode`).
+            /// Whether it gets or sets.
             public var setMode: UInt8
             public var relationshipVariable: UInt8
             /// The parameter that holds the value.
@@ -231,14 +230,13 @@ extension Primitives {
         }
     }
 
-    /// Go to Relative Position (opcode 27). FreeSO's `VMGotoRelativePositionOperand`; location
-    /// and direction are signed bytes.
+    /// Go to Relative Position (opcode 27). Location and direction are signed bytes.
     public enum GotoRelativePosition {
         public struct Operand: FSOCompatOperand, Equatable {
             public var oldTrapCount: UInt16
-            /// Where to go relative to the object (`VMGotoRelativeLocation`).
+            /// Where to go relative to the object.
             public var location: Int8
-            /// Which way to face (`VMGotoRelativeDirection`).
+            /// Which way to face.
             public var direction: Int8
             public var routeCount: UInt16
             public var flags: UInt8
@@ -269,7 +267,7 @@ extension Primitives {
         }
     }
 
-    /// Change Action String (opcode 50). FreeSO's `VMChangeActionStringOperand`.
+    /// Change Action String (opcode 50).
     public enum ChangeActionString {
         public struct Operand: FSOCompatOperand, Equatable {
             public var stringTable: UInt16
@@ -297,11 +295,11 @@ extension Primitives {
         }
     }
 
-    /// Snap (opcode 46). FreeSO's `VMSnapOperand`.
+    /// Snap (opcode 46).
     public enum Snap {
         public struct Operand: FSOCompatOperand, Equatable {
             public var index: UInt16
-            /// How ``index`` picks the slot (`VMSnapSlotScope`).
+            /// How ``index`` picks the slot.
             public var mode: UInt16
             public var flags: UInt8
 
@@ -326,11 +324,11 @@ extension Primitives {
         }
     }
 
-    /// One-byte calls: Generic Sims Online Call (opcode 1, `VMGenericTSOCallOperand`), Look
-    /// Towards (22, `VMLookTowardsOperand`), and Online Jobs Call (40, `VMOnlineJobsCallOperand`).
+    /// One-byte calls: Generic Sims Online Call (opcode 1), Look Towards (22), and Online Jobs
+    /// Call (40).
     public enum GenericTSOCall {
         public struct Operand: FSOCompatOperand, Equatable {
-            /// The call (`VMGenericTSOCallMode`).
+            /// The call.
             public var call: UInt8
             public init(bytes: [UInt8]) { call = bytes.first ?? 0 }
             public func encoded() -> [UInt8] { OperandWriter.bytes { $0.uint8(call) } }
@@ -340,7 +338,7 @@ extension Primitives {
 
     public enum LookTowards {
         public struct Operand: FSOCompatOperand, Equatable {
-            /// What to look at (`VMLookTowardsMode`).
+            /// What to look at.
             public var mode: UInt8
             public init(bytes: [UInt8]) { mode = bytes.first ?? 0 }
             public func encoded() -> [UInt8] { OperandWriter.bytes { $0.uint8(mode) } }
@@ -350,7 +348,7 @@ extension Primitives {
 
     public enum OnlineJobsCall {
         public struct Operand: FSOCompatOperand, Equatable {
-            /// The call (`VMOnlineJobsCallMode`).
+            /// The call.
             public var call: UInt8
             public init(bytes: [UInt8]) { call = bytes.first ?? 0 }
             public func encoded() -> [UInt8] { OperandWriter.bytes { $0.uint8(call) } }
@@ -358,7 +356,7 @@ extension Primitives {
         }
     }
 
-    /// Drop Onto (opcode 43). FreeSO's `VMDropOntoOperand`.
+    /// Drop Onto (opcode 43).
     public enum DropOnto {
         public struct Operand: FSOCompatOperand, Equatable {
             public var sourceSlotMode: UInt16
@@ -387,8 +385,8 @@ extension Primitives {
         }
     }
 
-    /// Run Functional Tree (opcode 20, `VMRunFunctionalTreeOperand`) and Find Best Object for
-    /// Function (14, `VMFindBestObjectForFunctionOperand`, which reads only the function).
+    /// Run Functional Tree (opcode 20) and Find Best Object for Function (14, which reads
+    /// only the function).
     public enum RunFunctionalTree {
         public struct Operand: FSOCompatOperand, Equatable {
             public var function: UInt16
@@ -425,10 +423,10 @@ extension Primitives {
         }
     }
 
-    /// Burn (opcode 9). FreeSO's `VMBurnOperand`.
+    /// Burn (opcode 9).
     public enum Burn {
         public struct Operand: FSOCompatOperand, Equatable {
-            /// What burns (`VMBurnType`).
+            /// What burns.
             public var type: UInt8
             public var burnsBusyObjects: Bool
 
@@ -451,7 +449,7 @@ extension Primitives {
         }
     }
 
-    /// Invoke Plugin (opcode 62). FreeSO's `VMInvokePluginOperand`.
+    /// Invoke Plugin (opcode 62).
     public enum InvokePlugin {
         public struct Operand: FSOCompatOperand, Equatable {
             public var personLocal: UInt8
@@ -483,11 +481,11 @@ extension Primitives {
         }
     }
 
-    /// Inventory Operations (opcode 67). FreeSO's `VMInventoryOperationsOperand`.
+    /// Inventory Operations (opcode 67).
     public enum InventoryOperations {
         public struct Operand: FSOCompatOperand, Equatable {
             public var guid: UInt32
-            /// The operation (`VMInventoryOpMode`).
+            /// The operation.
             public var mode: UInt8
 
             public init(bytes: [UInt8]) {

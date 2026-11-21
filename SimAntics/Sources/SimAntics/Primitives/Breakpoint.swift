@@ -1,6 +1,6 @@
 extension Primitives {
-    /// A debugger breakpoint (opcode 15). Ports FreeSO's `VMBreakPoint`, which doesn't stop: it's
-    /// always true. Its operand's bytes are ignored.
+    /// A debugger breakpoint (opcode 15). With no debugger it doesn't stop: it's always true. Its
+    /// operand's bytes are ignored.
     public enum Breakpoint: Primitive {
         public static let name = "breakpoint"
         public static let opcode: UInt8 = 15
@@ -14,8 +14,8 @@ extension Primitives {
         public static func execute(_ operand: Operand, in frame: StackFrame) throws(SimAnticsError) -> ExitCode { .gotoTrue }
     }
 
-    /// A visual effect (opcode 35). Ports FreeSO's `VMSpecialEffect`, which on a TSO lot does
-    /// nothing (it only centers The Sims 1's camera): always true. Its operand's bytes are ignored.
+    /// A visual effect (opcode 35). On a TSO lot it does nothing (it only centers The Sims 1's
+    /// camera): always true. Its operand's bytes are ignored.
     public enum SpecialEffect: Primitive {
         public static let name = "special_effect"
         public static let opcode: UInt8 = 35
@@ -29,9 +29,8 @@ extension Primitives {
         public static func execute(_ operand: Operand, in frame: StackFrame) throws(SimAnticsError) -> ExitCode { .gotoTrue }
     }
 
-    /// Stops the sounds the caller or the stack object is playing (opcode 48). Ports FreeSO's
-    /// `VMStopAllSounds`. Headless, as on FreeSO's server, nothing plays, so there's nothing to stop:
-    /// always true.
+    /// Stops the sounds the caller or the stack object is playing (opcode 48). Headless, as on
+    /// a lot server, nothing plays, so there's nothing to stop: always true.
     public enum StopAllSounds: Primitive {
         public static let name = "stop_all_sounds"
         public static let opcode: UInt8 = 48

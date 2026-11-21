@@ -2,8 +2,8 @@ import Foundation
 
 /// The 64-bit ID of a TSO asset: a file ID and a type ID from a FAR3 entry.
 ///
-/// FreeSO packs it as `(fileID << 32) | typeID`, and content files such as
-/// outfits and appearances refer to each other by that packed value.
+/// It packs as `(fileID << 32) | typeID`, and content files such as outfits and appearances refer
+/// to each other by that packed value.
 public struct AssetID: Hashable, Sendable, CustomStringConvertible {
     public var fileID: UInt32
     public var typeID: UInt32
@@ -26,9 +26,8 @@ public struct AssetID: Hashable, Sendable, CustomStringConvertible {
 
 /// A FAR version 3 archive, the TSO container for avatar, UI, and other assets.
 ///
-/// Matches FreeSO's `FAR3Archive`. The archive is a value over its bytes, so
-/// reads from several threads need no locking; ``init(contentsOf:)`` maps the
-/// file instead of copying it.
+/// The archive is a value over its bytes, so reads from several threads need no locking;
+/// ``init(contentsOf:)`` maps the file instead of copying it.
 public struct FAR3Archive: Sendable {
     /// One file in the archive.
     public struct Entry: Sendable, Equatable {
@@ -47,7 +46,7 @@ public struct FAR3Archive: Sendable {
         /// An unknown byte that may count accesses.
         public var accessCount: UInt8
 
-        /// Whether FreeSO's reader treats this entry as compressed.
+        /// Whether the entry is compressed.
         public var isCompressed: Bool { compressionFlag == 0x01 }
     }
 
@@ -69,9 +68,8 @@ public struct FAR3Archive: Sendable {
         }
         guard let manifest else { throw .notAFAR3Archive }
 
-        // Every index keeps the first entry for its key. FreeSO's reader indexed by file ID
-        // alone and threw on a repeated one; some archives (packingslips.dat) repeat file IDs
-        // across type IDs, so lookups by asset ID use both.
+        // Every index keeps the first entry for its key. Some archives (packingslips.dat)
+        // repeat file IDs across type IDs, so lookups by asset ID use both (DIFF-5).
         var byName: [String: Int] = [:]
         var byFileID: [UInt32: Int] = [:]
         var byAssetID: [AssetID: Int] = [:]
@@ -114,9 +112,9 @@ public struct FAR3Archive: Sendable {
 
     /// The data of an entry, decompressed if needed.
     ///
-    /// For a compressed entry, FreeSO's reader skips 9 bytes, reads the
-    /// compressed length and a compression ID, and decompresses only if the ID is
-    /// RefPack (`0xFB10`). Otherwise it returns the raw bytes from the entry's start.
+    /// A compressed entry skips 9 bytes, reads the compressed length and a
+    /// compression ID, and decompresses only if the ID is RefPack (`0xFB10`).
+    /// Otherwise it returns the raw bytes from the entry's start.
     public func data(for entry: Entry) throws(FAR3Error) -> Data {
         let payload: Payload
         do {

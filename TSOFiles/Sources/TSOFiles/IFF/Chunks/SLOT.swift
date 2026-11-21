@@ -2,13 +2,12 @@ import Foundation
 
 /// Positions on an object where Sims stand or sit and where other objects go.
 ///
-/// Ports FreeSO's `SLOT`. Later versions add fields; missing ones keep the
-/// FreeSO defaults. Like FreeSO, proximities are multiplied by 16 for version 9
-/// and below, and a height of 0 becomes 5.
+/// Later versions add fields; missing ones keep their defaults. Proximities are multiplied by 16
+/// for version 9 and below, and a height of 0 becomes 5.
 public struct SLOT: IFFChunk {
     public static let typeCode = "SLOT"
 
-    /// Slot flags (`SLOTFlags`), kept with their FreeSO values.
+    /// Slot flags, with their raw values.
     public struct Flags: OptionSet, Sendable, Hashable {
         public var rawValue: Int32
         public init(rawValue: Int32) { self.rawValue = rawValue }
@@ -27,7 +26,7 @@ public struct SLOT: IFFChunk {
         public static let ignoreRooms = Self(rawValue: 2048)
         public static let snapToDirection = Self(rawValue: 4096)
         public static let randomScoring = Self(rawValue: 8192)
-        /// 16385 in FreeSO, which also sets `north`; likely meant to be 16384. Kept as is.
+        /// 16385, which also sets `north`; likely meant to be 16384. Kept as is.
         public static let allowFailureTrees = Self(rawValue: 16385)
         public static let allowDifferentAlts = Self(rawValue: 32768)
         public static let useAverageObjectLocation = Self(rawValue: 65536)

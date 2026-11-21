@@ -6,13 +6,11 @@ import FoundationXML
 
 /// `packingslips/objecttable.xml`: the objects in `objiff.far`, by GUID.
 ///
-/// Ports the table read in FreeSO's `WorldObjectProvider.Init`. Each `I` element is
-/// an object with a GUID (`g`, hexadecimal), the IFF it's in (`n`, without
-/// extension), a display name (`o`), a group (`m`), and a sub-index (`i`). Other
-/// attributes are ignored.
+/// Each `I` element is an object with a GUID (`g`, hexadecimal), the IFF it's in
+/// (`n`, without extension), a display name (`o`), a group (`m`), and a sub-index
+/// (`i`). Other attributes are ignored.
 ///
-/// The 2002 beta's table has no `o`, which FreeSO can't read (it fails on the
-/// missing attribute). Here ``Entry/name`` is `nil` instead.
+/// The 2002 beta's table has no `o`; ``Entry/name`` is then `nil` (DIFF-12).
 public struct ObjectTable: Sendable, Equatable {
     public struct Entry: Sendable, Equatable {
         public var guid: UInt32

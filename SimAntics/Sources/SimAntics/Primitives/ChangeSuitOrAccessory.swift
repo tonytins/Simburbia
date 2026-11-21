@@ -4,9 +4,8 @@ import TSOFiles
 extension Primitives {
     /// Changes the calling Sim's outfit, or binds or unbinds an accessory (opcode 6).
     ///
-    /// Ports FreeSO's `VMChangeSuitOrAccessory` and `VMSuitProvider.GetSuit`, as state: what a
-    /// client draws is its own concern. Of 1.1097.1.0's 3,001 instructions, 2,894 use the object's
-    /// suits:
+    /// As state: what a client draws is its own concern. Of 1.1097.1.0's 3,001 instructions, 2,894
+    /// use the object's suits:
     ///
     /// - **Object** (scope 2) and **global** (0) suits are appearance files named in `STR#` 304 of
     ///   the code owner or the global: each binds that `.apr` over the body
@@ -19,18 +18,17 @@ extension Primitives {
     /// - With flag 4 and the object scope, the default daywear becomes the outfit `STR#` 304 of the
     ///   callee's object names at the index in temp 0, and the Sim wears it.
     ///
-    /// It goes true. Where it differs from FreeSO: a missing name skips the change, where FreeSO
-    /// binds an appearance named just `.apr`; and a missing table, or an outfit name that isn't a
-    /// hexadecimal ID, is an error for the routine, where FreeSO fails or reads it as 0. The job
-    /// uniform's grade past 12 is an error too, as in FreeSO, whose table holds three levels.
+    /// It goes true. A missing name skips the change; a missing table, or an outfit name that
+    /// isn't a hexadecimal ID, is an error for the routine; so is a job uniform's grade past 12,
+    /// since the uniforms come in three levels.
     public enum ChangeSuitOrAccessory: Primitive {
         public static let name = "change_suit_or_accessory"
         public static let opcode: UInt8 = 6
 
-        /// FreeSO's `VMChangeSuitOrAccessoryOperand`.
+        /// The operand.
         public struct Operand: PrimitiveOperand, Equatable {
             public var suitData: UInt8
-            /// Where the suit comes from (`VMSuitScope`): 0 global, 1 person, 2 object.
+            /// Where the suit comes from: 0 global, 1 person, 2 object.
             public var suitScope: UInt8
             /// 1 removes an accessory; 4 updates the default daywear.
             public var flags: UInt16
@@ -61,7 +59,7 @@ extension Primitives {
         }
 
         /// The online jobs' uniforms (robot, waiter, cook, DJ, dancer), three levels each, male
-        /// then female (FreeSO's `JobOutfits`).
+        /// then female.
         static let jobOutfits: [[[UInt64]]] = [
             [[0x587_0000_000D, 0x588_0000_000D, 0x589_0000_000D], [0x58B_0000_000D, 0x58D_0000_000D, 0x58E_0000_000D],
              [0x58A_0000_000D, 0x58C_0000_000D, 0x58F_0000_000D], [0x590_0000_000D, 0x592_0000_000D, 0x594_0000_000D],

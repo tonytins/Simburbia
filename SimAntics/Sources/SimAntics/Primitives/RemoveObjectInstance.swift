@@ -1,10 +1,9 @@
 extension Primitives {
     /// Deletes the caller or the stack object (opcode 18).
     ///
-    /// Ports FreeSO's `VMRemoveObjectInstance`. Target 0 is the caller, anything else the stack
-    /// object; with "cleanup all" every part of a multi-tile object goes. Deletion waits for the
-    /// end of the tick while entities run (see ``VM/delete(_:wholeGroup:)``). With no such object
-    /// it does nothing. Either way it's true.
+    /// Target 0 is the caller, anything else the stack object; with "cleanup all" every part of a
+    /// multi-tile object goes. Deletion waits for the end of the tick while entities run (see
+    /// ``VM/delete(_:wholeGroup:)``). With no such object it does nothing. Either way it's true.
     public enum RemoveObjectInstance: Primitive {
         public static let name = "remove_object_instance"
         public static let opcode: UInt8 = 18
@@ -12,7 +11,7 @@ extension Primitives {
         public struct Operand: PrimitiveOperand, Equatable {
             /// 0 for the caller; anything else for the stack object.
             public var target: Int16
-            /// Bit 0: return immediately (unused here, as in FreeSO); bit 1: delete every part.
+            /// Bit 0: return immediately (unused here); bit 1: delete every part.
             public var flags: UInt8
 
             public init(target: Int16, flags: UInt8 = 0) {

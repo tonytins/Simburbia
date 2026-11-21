@@ -1,4 +1,4 @@
-/// The primitives, one type each, named after their FreeSO classes without the `VM` prefix.
+/// The primitives, one type each.
 public enum Primitives {}
 
 /// A SimAntics primitive: an operation with an opcode below 256.
@@ -6,7 +6,7 @@ public enum Primitives {}
 /// Primitives hold no state; everything they change lives in the VM.
 public protocol Primitive: SendableMetatype {
     associatedtype Operand: PrimitiveOperand
-    /// FreeSO's registration name, such as `expression`.
+    /// The primitive's name, such as `expression`.
     static var name: String { get }
     static var opcode: UInt8 { get }
     static func execute(_ operand: Operand, in frame: StackFrame) throws(SimAnticsError) -> ExitCode
@@ -22,8 +22,6 @@ public protocol PrimitiveOperand: Sendable {
 }
 
 /// The primitives a VM runs, by opcode.
-///
-/// Ports the registrations in the `VMContext` constructor.
 public struct PrimitiveTable: Sendable {
     /// A primitive with its operand decoded, ready to run on a frame.
     public struct Prepared: Sendable {
@@ -87,7 +85,7 @@ public struct PrimitiveTable: Sendable {
         }
     }
 
-    /// The primitives FreeSO registers in TSO mode, by opcode, with their registration names.
+    /// TSO's primitives, by opcode, with their names.
     public static let fsoCompat: [UInt8: String] = [
         0: "sleep", 1: "generic_sims_online_call", 2: "expression", 4: "grab", 5: "drop",
         6: "change_suit_or_accessory", 7: "refresh", 8: "random_number", 9: "burn", 11: "get_distance_to",

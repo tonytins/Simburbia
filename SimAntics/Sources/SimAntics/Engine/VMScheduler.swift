@@ -1,11 +1,11 @@
 /// Which entities run on which tick.
 ///
-/// Ports FreeSO's `VMScheduler`. Each tick runs the entities scheduled for it, in object ID
-/// order; an entity that doesn't schedule itself while running is scheduled for the next
-/// tick. After each tick the random seed advances by the number of entities, as FreeSO does
-/// to make clients desync quickly when their entity counts differ.
+/// Each tick runs the entities scheduled for it, in object ID order; an entity that doesn't
+/// schedule itself while running is scheduled for the next tick. After each tick the random
+/// seed advances by the number of entities to make clients desync quickly when their entity
+/// counts differ.
 public final class VMScheduler {
-    /// The current tick (`CurrentTickID`). Settable, as in FreeSO, for tools that set up a lot's state.
+    /// The current tick (`CurrentTickID`). Settable, for tools that set up a lot's state.
     public var currentTick: UInt32 = 0
     /// Whether entities are being run (`RunningNow`); check threads then share their entity's temps.
     public private(set) var isRunning = false
@@ -48,8 +48,8 @@ public final class VMScheduler {
         let tick = entity.thread.scheduledTick
         guard tick != currentTick, tick != 0 else { return }
         descheduleTick(for: entity)
-        // FreeSO checks the list of this tick's entities, which only a running tick can still reach
-        // with a lower object ID than the entity's.
+        // The check is against this tick's entities, which only a running tick can still reach with
+        // a lower object ID than the entity's.
         if entity.objectID > currentObjectID && schedule[currentTick] != nil {
             scheduleTick(for: entity, on: currentTick)
         } else {
@@ -83,7 +83,8 @@ public final class VMScheduler {
         let deletions = pendingDeletion
         pendingDeletion.removeAll()
         for entity in deletions {
-            // FreeSO lets an error here escape the tick; this reports it against the object.
+            // An error here is reported against the object, and the tick carries on
+            // (DIFF-21).
             do { try vm.delete(entity) } catch { vm.report(error, by: entity) }
         }
     }
@@ -93,8 +94,8 @@ public final class VMScheduler {
         pendingDeletion.append(entity)
     }
 
-    /// FreeSO's `VM.AddToObjList`: a binary search for the insertion point by object ID. It keeps
-    /// the list sorted and, like FreeSO, doesn't check whether the entity is already in it.
+    /// A binary search for the insertion point by object ID. It keeps the list sorted, and
+    /// doesn't check whether the entity is already in it.
     static func insertInObjectIDOrder(_ entity: Entity, into list: inout [Entity]) {
         guard !list.isEmpty else {
             list.append(entity)

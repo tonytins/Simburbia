@@ -1,10 +1,10 @@
 import TSOFiles
 
-/// What a Sim carries besides its person data and motives (FreeSO's `VMAvatar` and its
-/// `VMTSOAvatarState`): its kind, appearance, name, walk and swim animations, permissions on the
-/// lot, and online jobs. Simburbia keeps no rendering state; outfits are their IDs.
+/// What a Sim carries besides its person data and motives: its kind, appearance, name, walk and
+/// swim animations, permissions on the lot, and online jobs. Simburbia keeps no rendering state;
+/// outfits are their IDs.
 public struct SimState: Sendable, Equatable {
-    /// What a Sim is (`VMAvatarType`), from its body strings' first entry.
+    /// What a Sim is, from its body strings' first entry.
     public enum Kind: Sendable, Equatable {
         case adult, child, cat, dog
     }
@@ -14,14 +14,14 @@ public struct SimState: Sendable, Equatable {
         case light = 0, medium, dark
     }
 
-    /// What a Sim may do on the lot (`VMTSOAvatarPermissions`).
+    /// What a Sim may do on the lot.
     public enum Permissions: UInt8, Sendable, Equatable, Comparable {
         case visitor = 0, roommate, buildBuyRoommate, owner, admin
 
         public static func < (lhs: Permissions, rhs: Permissions) -> Bool { lhs.rawValue < rhs.rawValue }
     }
 
-    /// One online job's progress (`VMTSOJobInfo`).
+    /// One online job's progress.
     public struct Job: Sendable, Equatable {
         public var level: Int16 = 0
         public var sickDays: Int16 = 0
@@ -38,8 +38,8 @@ public struct SimState: Sendable, Equatable {
 
     public var kind: Kind = .adult
     public var skinTone: SkinTone = .light
-    /// The outfits a Sim changes into (`VMAvatarDefaultSuits`): FreeSO's defaults until the body
-    /// strings or a player's state say otherwise.
+    /// The outfits a Sim changes into: the defaults until the body strings or a player's
+    /// state say otherwise.
     public var daywear: UInt64 = 0x24C_0000_000D
     public var swimwear: UInt64 = 0x547_0000_000D
     public var sleepwear: UInt64 = 0x544_0000_000D
@@ -57,7 +57,7 @@ public struct SimState: Sendable, Equatable {
     /// This Sim's relationships to others by their persist ID (`MeToPersist`), each a list of values.
     public var relationships: [UInt32: [Int16]] = [:]
 
-    /// A motive's change over time (FreeSO's `VMMotiveChange`), which Set Motive Deltas sets.
+    /// A motive's change over time, which Set Motive Deltas sets.
     public struct MotiveChange: Sendable, Equatable {
         /// Points an hour; 0 is no change.
         public var perHourChange: Int16 = 0
@@ -73,8 +73,8 @@ public struct SimState: Sendable, Equatable {
 
     /// The change on each of the 16 motives (`MotiveChanges`).
     public var motiveChanges = [MotiveChange](repeating: MotiveChange(), count: 16)
-    /// Motive decay's thousandths toward the next lost point, for the seven decaying motives
-    /// (`VMAvatarMotiveDecay.MotiveFractions`).
+    /// Motive decay's thousandths toward the next lost point, for the seven decaying
+    /// motives.
     public var motiveFractions = [Int16](repeating: 0, count: 7)
     /// The game minute motive decay last ran in (`LastMinute`).
     public var lastMinute: Int32 = 0
@@ -82,7 +82,7 @@ public struct SimState: Sendable, Equatable {
     /// How many walk and swim animations a Sim has room for.
     public static let animationSlots = 50
 
-    /// The animations playing, first the one the routine waits on (FreeSO's `Animations`); see
+    /// The animations playing, first the one the routine waits on; see
     /// ``Entity/advanceAnimations()``.
     public var animations: [AnimationState] = []
     /// What the Sim's arm plays while carrying something (`CarryAnimationState`).
@@ -90,7 +90,7 @@ public struct SimState: Sendable, Equatable {
     /// Appearances bound over the body, such as an apron, by file name (`BoundAppearances`, a
     /// list that can hold one twice); only drawing reads them.
     public var boundAppearances: [String] = []
-    /// Outfits an object can put a Sim in (`VMAvatarDynamicSuits`), FreeSO's defaults until set.
+    /// Outfits an object can put a Sim in, the defaults until set.
     public var dynamicDaywear: UInt64 = 0x24C_0000_000D
     public var dynamicSwimwear: UInt64 = 0x547_0000_000D
     public var dynamicSleepwear: UInt64 = 0x544_0000_000D
@@ -102,8 +102,8 @@ public struct SimState: Sendable, Equatable {
     public init() {}
 }
 
-/// A player's Sim as it arrives on a lot (FreeSO's `VMNetAvatarPersistState`): what the server
-/// keeps of it between lots, applied when it joins (``VM/joinSim(template:identity:)``).
+/// A player's Sim as it arrives on a lot: what the server keeps of it between lots, applied
+/// when it joins (``VM/joinSim(template:identity:)``).
 public struct SimIdentity: Sendable, Equatable {
     public var name: String
     public var persistID: UInt32
@@ -117,15 +117,14 @@ public struct SimIdentity: Sendable, Equatable {
     public var isWorker = false
     /// All 16 motives.
     public var motives = [Int16](repeating: 0, count: 16)
-    /// The person data that persists, in `VMNetAvatarPersistState`'s order (27 values; see
+    /// The person data that persists, in the order a server keeps it (27 values; see
     /// ``SimIdentity/personDataMap``).
     public var personData = [Int16](repeating: 0, count: 27)
     public var relationships: [UInt32: [Int16]] = [:]
     public var jobs: [Int16: SimState.Job] = [:]
 
-    /// Which person data index each of ``personData``'s first entries goes to
-    /// (`VMNetAvatarPersistState.PersonDataMap`). It has 23 entries for 27 values, so the last
-    /// entry, Badge Level (100), takes value 22, not 26, as in FreeSO.
+    /// Which person data index each of ``personData``'s first entries goes to. It has 23
+    /// entries for 27 values, so the last entry, Badge Level (100), takes value 22, not 26.
     public static let personDataMap: [Int] = [10, 11, 12, 15, 17, 18, 65, 68, 99, 61,
                                               70, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 100]
 

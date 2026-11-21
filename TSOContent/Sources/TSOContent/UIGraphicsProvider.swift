@@ -3,17 +3,15 @@ import TSOFiles
 
 /// The interface's graphics, by asset ID: every entry of the FAR3 archives under `uigraphics`.
 ///
-/// Ports FreeSO's `UIGraphicsProvider` and the `FAR3Provider` it builds on. An ID is the entry's
-/// file ID shifted up 32 bits, then its type ID, as FreeSO's `UIFileIDs` write them (`setup` is
-/// `0x3A300000001`). A few graphics aren't in any archive, and FreeSO names their loose files;
-/// one ID the rack's panel asks for is redirected to the file that holds it. Those are kept.
+/// An ID is the entry's file ID shifted up 32 bits, then its type ID (`setup` is
+/// `0x3A300000001`). A few graphics aren't in any archive, but loose files; one ID the rack's
+/// panel asks for is redirected to the file that holds it. Those are kept.
 ///
-/// Where it differs from FreeSO: an ID that two archives both hold is FreeSO's `Dictionary.Add`
-/// failing, which stops its content from loading; here the first archive in path order keeps it,
-/// and the rest are listed in ``duplicates``. An archive that doesn't read is listed in
-/// ``failures`` and the others still load (DIFF-31 in the scorecard).
+/// An ID that two archives both hold keeps the first archive's, in path order, and the rest are
+/// listed in ``duplicates``. An archive that doesn't read is listed in ``failures`` and the
+/// others still load (DIFF-31 in the scorecard).
 public struct UIGraphicsProvider: Sendable {
-    /// Graphics FreeSO reads from loose files instead of archives, by ID.
+    /// Graphics kept as loose files instead of in archives, by ID.
     static let looseFiles: [UInt64: String] = [
         0x0000_0CB8_0000_0002: "uigraphics/friendshipweb/friendshipwebalpha.tga",
         0x0000_CBFB_0000_0001: "uigraphics/hints/hint_mechanicskill.bmp",
@@ -23,7 +21,7 @@ public struct UIGraphicsProvider: Sendable {
         0x0197_2454_856D_DBAC: "uigraphics/friendshipweb/f_web_inbtn.bmp",
         0x03D3_AEF0_856D_DBAC: "uigraphics/friendshipweb/f_web_outbtn.bmp",
     ]
-    /// IDs FreeSO redirects to another (the rack's panel asks for one the archives hold under another).
+    /// IDs redirected to another (the rack's panel asks for one the archives hold under another).
     static let redirects: [UInt64: UInt64] = [0x0000_0288_0000_0001: 0x0000_0946_0000_0001]
 
     private let archives: [FAR3Archive]
@@ -36,8 +34,8 @@ public struct UIGraphicsProvider: Sendable {
     /// Archives that couldn't be read, each with why.
     public let failures: [BuildContentFailure]
 
-    /// Opens every archive whose path holds `uigraphics/` and then `.dat`, in path order (FreeSO's
-    /// unanchored `uigraphics/.*\.dat`, here in any letter case).
+    /// Opens every archive whose path holds `uigraphics/` and then `.dat`, in path order, in any
+    /// letter case.
     public init(files: GameFileIndex) {
         self.files = files
         var archives: [FAR3Archive] = [], paths: [String] = []
@@ -100,14 +98,12 @@ public struct UIGraphicsProvider: Sendable {
         }
     }
 
-    /// A graphic decoded as FreeSO's `ImageLoader` decodes it: a bitmap (`BM`) as a BMP, with its
-    /// near-magenta pixels (red and blue 248 or more, green 4 or less) made transparent black as
-    /// `ManualTextureMaskSingleThreaded` makes them; a file with a Targa footer as a Targa, as is.
-    /// `nil` if there's no graphic with that ID.
+    /// A graphic decoded: a bitmap (`BM`) as a BMP, with its near-magenta pixels (red and blue 248
+    /// or more, green 4 or less) made transparent black; a file with a Targa footer as a Targa, as
+    /// is. `nil` if there's no graphic with that ID.
     ///
     /// - Throws: ``ContentError/invalidFile(path:reason:)`` if it can't be read or decoded, or is
-    ///   a format Simburbia doesn't read yet (1.1097.1.0 holds one PNG, which FreeSO hands to
-    ///   MonoGame).
+    ///   a format Simburbia doesn't read yet (1.1097.1.0 holds one PNG).
     public func image(id: AssetID) throws(ContentError) -> RasterImage? {
         guard let data = try data(id: id) else { return nil }
         do {
@@ -123,7 +119,7 @@ public struct UIGraphicsProvider: Sendable {
         }
     }
 
-    /// FreeSO's mask: TSO's interface art marks its transparent parts in magenta, near enough.
+    /// TSO's interface art marks its transparent parts in magenta, near enough.
     static func maskMagenta(_ image: inout RasterImage) {
         for at in stride(from: 0, to: image.rgba.count, by: 4)
         where image.rgba[at] >= 248 && image.rgba[at + 2] >= 248 && image.rgba[at + 1] <= 4 {

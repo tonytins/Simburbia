@@ -1,4 +1,4 @@
-/// Which edges and diagonals of a tile have a wall (FreeSO's `WallSegments`).
+/// Which edges and diagonals of a tile have a wall.
 ///
 /// A tile owns the walls on its top-left (−x) and top-right (−y) edges; the bottom edges
 /// belong to the neighbors, though blueprints mark them on both.
@@ -19,7 +19,7 @@ public struct WallSegments: OptionSet, Sendable, Hashable {
     public static let anySide: WallSegments = [.topLeft, .topRight, .bottomLeft, .bottomRight]
 }
 
-/// The walls on one tile (FreeSO's `WallTile`, without the state objects set at run time).
+/// The walls on one tile.
 ///
 /// Style 1 is a normal wall; other styles are fences and the like, which divide rooms only
 /// where a floor or pool does. On a diagonal tile, `topLeftStyle` and `topLeftPattern` hold
@@ -57,15 +57,15 @@ public struct WallTile: Sendable, Hashable {
     public static let empty = WallTile()
 }
 
-/// A lot's walls, floors, and the rooms they make (FreeSO's `VMArchitecture`).
+/// A lot's walls, floors, and the rooms they make.
 ///
-/// Changes mark the architecture dirty; rooms are regenerated on the next tick, as in FreeSO, so
-/// a room lookup between a change and the tick still sees the old rooms. Terrain, roofs,
-/// support for upper floors, and build-mode costs aren't ported yet.
+/// Changes mark the architecture dirty; rooms are regenerated on the next tick, so a room lookup
+/// between a change and the tick still sees the old rooms. Terrain, roofs, support for upper
+/// floors, and build-mode costs aren't ported yet.
 public struct Architecture: Sendable {
     /// Levels, ground floor first.
     public static let stories = 5
-    /// The pattern FreeSO gives pool tiles; anything above 65533 counts as water.
+    /// The pattern pool tiles take; anything above 65533 counts as water.
     public static let poolPattern: UInt16 = 65535
 
     public let width: Int
@@ -77,12 +77,11 @@ public struct Architecture: Sendable {
     /// Each level's room map, from the last regeneration.
     public private(set) var roomMaps: [RoomMap]
     /// Every room on every level, from the last regeneration. Index 0 is an unused placeholder,
-    /// so room IDs start at 1 (FreeSO's `RoomData`).
+    /// so room IDs start at 1.
     public private(set) var rooms: [Room]
-    /// Where players may build, and on how many floors (`BuildableArea`, `BuildableFloors`).
-    /// FreeSO sets these from a lot's size when it restores a saved lot or the size changes; a lot
-    /// loaded from a blueprint keeps an empty area, so everywhere is outside it. Lot sizes come
-    /// with saves.
+    /// Where players may build, and on how many floors . These come from a lot's size when a saved
+    /// lot is restored or the size changes; a lot loaded from a blueprint keeps an empty area, so
+    /// everywhere is outside it. Lot sizes come with saves.
     public var buildableArea = TileRect(x: 0, y: 0, width: 0, height: 0)
     public var buildableFloors = 0
     /// Whether walls or floors changed since rooms were last generated.
@@ -93,11 +92,10 @@ public struct Architecture: Sendable {
 
     /// An empty lot: no walls and no floors, with its rooms generated.
     ///
-    /// FreeSO generates rooms only once a lot loads; this port keeps a fresh architecture
-    /// consistent from the start instead.
+    /// A fresh architecture has its rooms from the start (DIFF-18).
     ///
     /// - Throws: ``SimAnticsError/simantics(_:)`` if the size is outside 1...255 tiles, the
-    ///   most FreeSO's 16-bit tile offsets can number.
+    ///   most 16-bit tile offsets can number.
     public init(width: Int, height: Int) throws(SimAnticsError) {
         guard (1...255).contains(width), (1...255).contains(height) else {
             throw .simantics("lot size \(width)x\(height) is outside 1...255")
@@ -136,13 +134,13 @@ public struct Architecture: Sendable {
         isDirty = true
     }
 
-    /// Whether a position is off the lot or outside its levels (`VMContext.IsOutOfBounds`).
+    /// Whether a position is off the lot or outside its levels.
     public func isOutOfBounds(_ position: LotPosition) -> Bool {
         position.x < 0 || position.y < 0 || position.level < 1 || Int(position.tileX) >= width
             || Int(position.tileY) >= height || Int(position.level) > Self.stories
     }
 
-    /// Whether a position is outside the buildable area (`VMContext.IsUserOutOfBounds`).
+    /// Whether a position is outside the buildable area.
     public func isUserOutOfBounds(_ position: LotPosition) -> Bool {
         let tileX = Int(position.tileX), tileY = Int(position.tileY), area = buildableArea
         return tileX < area.x || tileY < area.y || position.level < 1 || tileX >= area.x + area.width
@@ -217,8 +215,8 @@ public struct Architecture: Sendable {
 }
 
 extension Architecture {
-    /// The ground's height at a tile's corner (`VMArchitecture.GetTerrainHeight`), in FreeSO's units
-    /// (TSO's times 10). Terrain isn't ported: every height is 0, as on every blueprint lot, which
-    /// FreeSO loads flat; only build-mode terrain tools raise it.
+    /// The ground's height at a tile's corner, in TSO's units times 10. Terrain isn't ported:
+    /// every height is 0, as on every blueprint lot, which loads flat; only build-mode terrain
+    /// tools raise it.
     public func terrainHeight(atX x: Int, y: Int) -> Int16 { 0 }
 }

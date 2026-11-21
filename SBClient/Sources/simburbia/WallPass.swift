@@ -34,7 +34,7 @@ final class WallPass {
                 depth.drawWall(texture, mask: mask, depth: depthTexture, back: sprite.back, front: sprite.front,
                                source: source, destination: destination)
             } else {
-                // No mask: the image's own alpha, as FreeSO's `mask ?? sprite`.
+                // No mask: the image's own alpha.
                 depth.draw(texture, depth: depthTexture, back: sprite.back, front: sprite.front,
                            source: source, destination: destination, tint: .white)
             }

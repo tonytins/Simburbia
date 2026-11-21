@@ -3,15 +3,13 @@ import TSOFiles
 
 /// Reads and writes SimAntics variables; ``StackFrame/value(of:)`` and its siblings call it.
 ///
-/// Corresponds to FreeSO's `VMMemory`. A raw scope with no ``VariableScope`` fails as it
-/// does in FreeSO. Each scope either behaves as
-/// in FreeSO, fails as FreeSO does (``SimAnticsError/simantics(_:)`` and the other
-/// FreeSO failures), or throws ``SimAnticsError/unsupported(_:)`` because what it
-/// reads (Sims) isn't ported yet.
+/// A raw scope with no ``VariableScope`` fails. Each scope either behaves, fails
+/// (``SimAnticsError/simantics(_:)`` and the others), or throws
+/// ``SimAnticsError/unsupported(_:)`` because what it reads (Sims) isn't ported yet.
 enum VMMemory {
     // MARK: 16-bit variables
 
-    /// A variable's value, as `VMMemory.GetVariable` reads it.
+    /// A variable's value.
     static func value(of variable: Variable, in frame: StackFrame) throws(SimAnticsError) -> Int16 {
         guard let scope = variable.scope else { throw .simantics("Unknown get variable") }
         let data = variable.data
@@ -127,7 +125,7 @@ enum VMMemory {
         }
     }
 
-    /// Sets a variable, as `VMMemory.SetVariable` does. Returns `false` for scopes that can't be set.
+    /// Sets a variable. Returns `false` for scopes that can't be set.
     @discardableResult
     static func setValue(_ value: Int16, of variable: Variable, in frame: StackFrame) throws(SimAnticsError) -> Bool {
         guard let scope = variable.scope else { throw .simantics("Unknown scope for set variable!") }
@@ -239,7 +237,7 @@ enum VMMemory {
             frame.thread.tempXL[try index(variable.data, in: frame.thread.tempXL, "TempXL")] = value
             return true
         case .moneyOverHead32Bit:
-            // FreeSO casts the caller to a Sim to show the headline; no Sims are ported yet.
+            // Showing the headline needs the caller to be a Sim.
             _ = try caller(of: frame)
             throw .invalidCast("the caller isn't a Sim")
         default:
@@ -275,7 +273,7 @@ enum VMMemory {
 
     // MARK: Tuning
 
-    /// A tuning constant, as `VMMemory.GetTuningVariable` finds it.
+    /// A tuning constant.
     ///
     /// The top 9 bits pick a table, the low 7 a key. Tables 0 to 63 are the code owner's
     /// (ID + 4096), 64 to 127 its semi-global's (ID + 8192, looked up in the owner's file
@@ -295,7 +293,7 @@ enum VMMemory {
             tableID -= 128
             if let value = try constant(in: frame.vm.global, table: tableID + 256, key: keyID, checked: true) { return value }
         default:
-            // The owner's BCONs aren't bounds-checked in FreeSO.
+            // The owner's BCONs aren't bounds-checked.
             if let value = try constant(in: owner, table: tableID &+ 4096, key: keyID, checked: false) { return value }
         }
         return 0
@@ -321,10 +319,10 @@ enum VMMemory {
 
     // MARK: Helpers
 
-    /// A scope only Sims have. FreeSO casts the entity to a Sim first, which fails for an
-    /// object, then calls into the Sim (``Entity/setPersonDatum(_:to:)``, ``Entity/setMotive(_:to:)``).
-    /// Returns whether it was set, which the person data setter can refuse (an online job ID past
-    /// 4), as FreeSO returns `SetPersonData`'s result; a motive is always set.
+    /// A scope only Sims have: it fails for an object, and otherwise calls into the Sim
+    /// (``Entity/setPersonDatum(_:to:)``, ``Entity/setMotive(_:to:)``). Returns whether it was
+    /// set, which the person data setter can refuse (an online job ID past 4); a motive is always
+    /// set.
     @discardableResult
     private static func setSim(_ entity: Entity?, index: Int16, value: Int16, personData: Bool) throws(SimAnticsError) -> Bool {
         guard let entity else {

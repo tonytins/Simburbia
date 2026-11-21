@@ -1,9 +1,9 @@
 extension Primitives {
     /// Compares, assigns, and does arithmetic on two variables (opcode 2).
     ///
-    /// Ports FreeSO's `VMExpression`. Values are read as 32-bit integers (only `TempXL`
-    /// holds more than 16 bits) and written back truncated. Arithmetic wraps, as C#'s
-    /// unchecked `int` does, and shift counts are masked to 5 bits. Quirks kept from FreeSO:
+    /// Values are read as 32-bit integers (only `TempXL` holds more than 16 bits) and
+    /// written back truncated. Arithmetic wraps, as C#'s unchecked `int` does, and shift
+    /// counts are masked to 5 bits. Quirks real content relies on:
     ///
     /// - Dividing by zero sets -1; a remainder by zero leaves the value unchanged.
     /// - `int.MinValue / -1` and `% -1` fail, as .NET throws on them.
@@ -14,7 +14,7 @@ extension Primitives {
         public static let name = "expression"
         public static let opcode: UInt8 = 2
 
-        /// `VMExpressionOperator`.
+        /// The operators, by their byte.
         public enum Operator: UInt8, Sendable, CaseIterable {
             case greaterThan = 0, lessThan, equals, plusEquals, minusEquals, assign, multiplyEquals, divideEquals
             case isFlagSet, setFlag, clearFlag, incrementAndLessThan, moduloEquals, andEquals
@@ -27,7 +27,7 @@ extension Primitives {
             public var rhs: Variable
             /// The raw operator byte; one with no ``Operator`` fails when run.
             public var rawOperator: UInt8
-            /// Stored but ignored, as in FreeSO.
+            /// Stored but ignored.
             public var isSigned: UInt8
 
             public var variables: [Variable] { [lhs, rhs] }
@@ -104,7 +104,7 @@ extension Primitives {
                 return branch(try lhs() > (try rhs()))
             case .greaterThanOrEqualTo:
                 let left = try lhs(), right = try rhs()
-                // FreeSO's stairs check: "room >= 1024" on the caller means "is upstairs of the callee".
+                // The stairs check: "room >= 1024" on the caller means "is upstairs of the callee".
                 if right == 1024, operand.lhs == Variable(.myObject, ObjectVariable.room.rawValue) {
                     guard let caller = frame.caller, let callee = frame.callee else { throw .nullReference("no caller or callee") }
                     let calleeFloor = Int(callee.position.level) - Int(callee.object.definition.levelOffset)

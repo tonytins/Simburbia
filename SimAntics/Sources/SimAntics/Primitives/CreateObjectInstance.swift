@@ -1,29 +1,28 @@
 extension Primitives {
     /// Creates an object (opcode 42).
     ///
-    /// Ports FreeSO's `VMCreateObjectInstance`. The position mode picks where the new object goes:
-    /// a tile next to or under the caller or an object, a slot, or out of the world. The object is
-    /// created as ``VM/createObject(guid:at:facing:mainStackObjectID:mainParameter:)`` does, then
-    /// becomes the stack object; anywhere but out of the world, an object that didn't get placed (in
-    /// the world or in a slot) is deleted again and the primitive is false. The new object's main can get the stack object's ID
-    /// and, as argument 0, temp 0 or the caller's ID.
+    /// The position mode picks where the new object goes: a tile next to or under the caller or an
+    /// object, a slot, or out of the world. The object is created as
+    /// ``VM/createObject(guid:at:facing:mainStackObjectID:mainParameter:)`` does, then becomes the
+    /// stack object; anywhere but out of the world, an object that didn't get placed (in the world
+    /// or in a slot) is deleted again and the primitive is false. The new object's main can get the
+    /// stack object's ID and, as argument 0, temp 0 or the caller's ID.
     ///
     /// Not ported yet: callbacks that run an interaction on the new object, and a neighbor's Sim
-    /// (The Sims 1). Each throws
-    /// ``SimAnticsError/unsupported(_:)``. Persisting the object gives it a database ID in FreeSO,
-    /// which nothing here models.
+    /// (The Sims 1). Each throws ``SimAnticsError/unsupported(_:)``. Persisting the object, which
+    /// gives it a database ID on a server, isn't modeled.
     public enum CreateObjectInstance: Primitive {
         public static let name = "create_object_instance"
         public static let opcode: UInt8 = 42
 
-        /// Where the new object goes (`VMCreateObjectPosition`).
+        /// Where the new object goes.
         public enum Position: UInt8, Sendable, CaseIterable {
             case inFrontOfMe = 0, onTopOfMe, inMyHand, inFrontOfStackObject, inSlot0OfStackObject
             case underneathMe, outOfWorld, belowObjectInStackParameter0, belowObjectInLocal
             case nextToMeInDirectionOfLocal
         }
 
-        /// The operand flags, with FreeSO's bit values.
+        /// The operand flags, by bit.
         public struct Flags: OptionSet, Sendable, Hashable {
             public var rawValue: UInt8
             public init(rawValue: UInt8) { self.rawValue = rawValue }
@@ -130,7 +129,7 @@ extension Primitives {
         }
 
         /// Where a mode puts the new object, before placement: out of the world, or relative to the
-        /// caller or another object, which fails as FreeSO does when that object doesn't exist.
+        /// caller or another object, which fails when that object doesn't exist.
         private static func target(of mode: Position, operand: Operand,
                                    in frame: StackFrame) throws(SimAnticsError) -> (LotPosition, Direction) {
             func object(_ id: Int16) throws(SimAnticsError) -> Entity {

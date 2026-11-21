@@ -2,8 +2,8 @@ import Foundation
 
 /// Labels and ranges for the constants in the ``BCON`` chunk with the same ID.
 ///
-/// Ports FreeSO's `TRCN`. Version 0 has no range fields, and versions 0 and 1
-/// store strings NUL-terminated instead of length-prefixed.
+/// Version 0 has no range fields, and versions 0 and 1 store strings NUL-terminated instead of
+/// length-prefixed.
 public struct TRCN: IFFChunk {
     public static let typeCode = "TRCN"
 

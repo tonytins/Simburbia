@@ -3,8 +3,8 @@ import TSOFiles
 
 /// A wall or floor the build catalog lists: its ID, where it's stored, and its catalog strings.
 ///
-/// Ports FreeSO's `WallReference` and `FloorReference`. A string the file doesn't have is `nil`,
-/// and so is a price that isn't a number; ``BuildContentFailure`` says which.
+/// A string the file doesn't have is `nil`, and so is a price that isn't a number;
+/// ``BuildContentFailure`` says which.
 public struct BuildCatalogEntry: Sendable, Equatable {
     /// The ID blueprints and the architecture use for it.
     public var id: UInt16
@@ -23,32 +23,31 @@ public struct BuildCatalogEntry: Sendable, Equatable {
     }
 }
 
-/// Part of the wall or floor content that couldn't be read. FreeSO stops loading content on any
-/// of these; Simburbia reports it and loads the rest.
+/// Part of the wall or floor content that couldn't be read. Simburbia reports it and loads the
+/// rest.
 public struct BuildContentFailure: Sendable, Equatable {
     /// The archive and entry, such as `housedata/walls/walls.far/brick.wll`, or the global file.
     public var path: String
     public var reason: String
 }
 
-/// The `housedata` archives of walls or floors, read the way FreeSO's providers number them.
+/// The `housedata` archives of walls or floors, in the order their IDs count through them.
 struct BuildArchives: Sendable {
     /// The catalog entries, in ID order.
     var entries: [BuildCatalogEntry] = []
-    /// Each IFF by its entry name. When two archives have the same name the later one wins, as in
-    /// FreeSO's `FAR1Provider`, which the providers read sprites through.
+    /// Each IFF by its entry name. When two archives have the same name the later one wins.
     var filesByName: [String: IFFFile] = [:]
     var failures: [BuildContentFailure] = []
     /// Archives the install doesn't have (the base game and the beta have only the first).
     var missingArchives: [String] = []
 
-    /// The first ID FreeSO's floor pattern conversion keeps for its own tiles (air, water, pools).
+    /// The first ID kept for the engine's own tiles (air, water, pools).
     static let reservedIDs: UInt16 = 65503
 
     /// Reads each archive in turn, numbering its entries from `firstID` in archive order, then
-    /// manifest order, as FreeSO's `Init` does.
+    /// manifest order.
     ///
-    /// An entry takes its ID even when it can't be read, so the entries after it keep FreeSO's
+    /// An entry takes its ID even when it can't be read, so the entries after it keep their
     /// numbers. Each IFF's catalog strings are `STR#` 0: name, price, description.
     ///
     /// - Throws: ``ContentError/invalidFile(path:reason:)`` if an archive exists but isn't a FAR1.
@@ -99,7 +98,7 @@ struct BuildArchives: Sendable {
     }
 
     /// A catalog price, read as .NET's `int.Parse` reads one: surrounding spaces and a sign are
-    /// allowed. Anything else is reported, where FreeSO would stop.
+    /// allowed. Anything else is reported.
     static func price(_ text: String?, path: String, failures: inout [BuildContentFailure]) -> Int? {
         guard let text else { return nil }
         guard let value = Int32(text.trimmingCharacters(in: .whitespaces)) else {
@@ -131,8 +130,7 @@ func buildSprite<Sprite: IFFChunk>(_ type: Sprite.Type, id: UInt16, in file: IFF
 
 /// A string table from a build file.
 ///
-/// - Throws: ``ContentError/invalidFile(path:reason:)`` if it's missing or doesn't parse:
-///   FreeSO stops loading content on either.
+/// - Throws: ``ContentError/invalidFile(path:reason:)`` if it's missing or doesn't parse.
 func buildStrings(id: UInt16, in file: IFFFile, path: String) throws(ContentError) -> StringTable {
     let table: StringTable?
     do {

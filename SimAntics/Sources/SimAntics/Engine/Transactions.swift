@@ -12,7 +12,7 @@ public enum BlockingState: Sendable, Equatable {
     }
 }
 
-/// A transaction's answer (`VMTransferFundsState`).
+/// A transaction's answer.
 public struct TransferFundsState: Sendable, Equatable {
     public var waitTime = 0
     public var responded = false
@@ -36,24 +36,24 @@ public struct TransferFundsState: Sendable, Equatable {
     }
 }
 
-/// The lot's money, as FreeSO's standalone global link (`VMTSOGlobalLinkStub`) keeps it: each
-/// entity's budget, moved between entities by persist ID, with `maxisID` standing for the game.
+/// The lot's money: each entity's budget, moved between entities by persist ID, with
+/// `maxisID` standing for the game.
 ///
-/// This is a stand-in, matching FreeSO's stub so lots keep running. How Simburbia's economy works is
-/// deferred to the lot server.
+/// This is a stand-in, so lots keep running. How Simburbia's economy works is deferred to the lot
+/// server.
 extension VM {
     /// The persist ID that stands for the game itself ("Maxis"), which can always pay and be paid.
     public static let maxisID = UInt32.max
 
     /// The first entity, in object ID order, with a persist ID (`GetObjectByPersist`). Objects on a
-    /// blueprint lot all have 0, so 0 finds the lowest-numbered object, as in FreeSO.
+    /// blueprint lot all have 0, so 0 finds the lowest-numbered object.
     public func entity(persistID: UInt32) -> Entity? {
         entities.first { $0.persistID == persistID }
     }
 
-    /// Moves `amount` from one persist ID to another, or with `testOnly` only checks that it could
-    /// (`VMTSOGlobalLinkStub.PerformTransaction`). It fails when either side isn't Maxis and has no
-    /// entity, or when either budget would go below 0.
+    /// Moves `amount` from one persist ID to another, or with `testOnly` only checks that it could.
+    /// It fails when either side isn't Maxis and has no entity, or when either budget would go
+    /// below 0.
     public func performTransaction(testOnly: Bool, from source: UInt32, to target: UInt32, amount: Int32) -> Bool {
         let payer = entity(persistID: source), payee = entity(persistID: target)
         if (source != Self.maxisID && payer == nil) || (target != Self.maxisID && payee == nil) { return false }
@@ -66,13 +66,13 @@ extension VM {
         return true
     }
 
-    /// `VMBudget.CanTransact`: C# adds the `uint` budget and the `int` change as `long`s.
+    /// The `uint` budget and the `int` change are added as 64-bit values.
     private static func canTransact(_ budget: UInt32, _ change: Int64) -> Bool {
         Int64(budget) + change >= 0
     }
 
     /// Settles a transaction for a waiting thread and answers it on the next tick, as the stub
-    /// does through `VMNetAsyncResponseCmd`, by the next tick every time.
+    /// does, by the next tick every time.
     func requestTransaction(for objectID: Int16, testOnly: Bool, from source: UInt32, to target: UInt32, amount: Int32) {
         let success = performTransaction(testOnly: testOnly, from: source, to: target, amount: amount)
         let answer = TransferFundsState(responded: true, success: success, transferAmount: amount,

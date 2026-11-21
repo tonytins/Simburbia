@@ -5,11 +5,10 @@ import TSOFiles
 
 /// The names behind a routine's numbers, from the files that hold its code.
 ///
-/// Routines are named by their `BHAV` labels, parameters and locals by the routine's `TPRP`,
-/// the owner's attributes by its `STR#` 256 (as FreeSO's `VMEntity` names them), and constants
-/// by the `TRCN` that labels each `BCON`, or by the OTF table the constant comes from. Names are
-/// only for reading: a chunk that's missing or doesn't parse leaves its numbers unnamed rather
-/// than stopping the listing.
+/// Routines are named by their `BHAV` labels, parameters and locals by the routine's `TPRP`, the
+/// owner's attributes by its `STR#` 256, and constants by the `TRCN` that labels each `BCON`, or
+/// by the OTF table the constant comes from. Names are only for reading: a chunk that's missing
+/// or doesn't parse leaves its numbers unnamed rather than stopping the listing.
 public struct RoutineNames: Sendable {
     /// The object (or global file) whose routines are listed, with its semi-global.
     let owner: (any IFFResource)?
@@ -60,8 +59,8 @@ public struct RoutineNames: Sendable {
         return name
     }
 
-    /// A constant's label and value, for a `tuning` variable's data, found as
-    /// `VMMemory.tuningValue` finds the value.
+    /// A constant's label and value, for a `tuning` variable's data, found as the VM
+    /// finds tuning values.
     public func constant(_ data: Int16) -> (label: String?, value: Int16?) {
         let raw = UInt16(bitPattern: data)
         let table = raw >> 7, key = Int(raw & 0x7F)
@@ -97,10 +96,10 @@ public struct RoutineNames: Sendable {
 ///        3: animate (not ported yet) 0a00000100000000                    then 4, else return false
 ///
 /// A primitive shows its decoded operand, whether Simburbia runs it yet or only decodes it
-/// (``PrimitiveTable/unportedOperands``); one whose layout isn't known shows its 8 bytes.
-/// A branch to 253 reads as `unset`: FreeSO's `VMThread` then goes on along the other branch,
-/// and errors only if both are unset, while the SimAntics Wiki describes an unset branch as an
-/// error in the original engine (**Unverified** against TSO itself).
+/// (``PrimitiveTable/unportedOperands``); one whose layout isn't known shows its 8 bytes. A
+/// branch to 253 reads as `unset`: Simburbia then goes on along the other branch, and errors
+/// only if both are unset, while the SimAntics Wiki describes an unset branch as an error in
+/// the original engine (**Unverified** against TSO itself).
 public enum Listing {
     /// Routines as readable text.
     public static func text(of routines: [BHAV], names: RoutineNames = RoutineNames(),

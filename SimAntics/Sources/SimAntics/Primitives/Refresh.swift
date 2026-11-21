@@ -1,12 +1,11 @@
 extension Primitives {
     /// Refreshes an object's graphic, its room's lighting, or its room's score (opcode 7).
     ///
-    /// Ports FreeSO's `VMRefresh`. The target is the caller (0) or the stack object (1); any
-    /// other target is none. A graphic refresh (type 0) only redraws, so headless it does
-    /// nothing. Lighting (1) and room score (2) look up the target's room, which fails with no
-    /// target, as in FreeSO, and work its score out again (``VM/refreshRoomScore(_:)``; lighting
-    /// itself isn't kept headless). An object out of the world is in room 0, which has nothing to
-    /// refresh. Other types do nothing. Always true.
+    /// The target is the caller (0) or the stack object (1); any other target is none. A graphic
+    /// refresh (type 0) only redraws, so headless it does nothing. Lighting (1) and room score
+    /// (2) look up the target's room, which fails with no target, and work its score out again
+    /// (``VM/refreshRoomScore(_:)``; lighting itself isn't kept headless). An object out of the
+    /// world is in room 0, which has nothing to refresh. Other types do nothing. Always true.
     public enum Refresh: Primitive {
         public static let name = "refresh"
         public static let opcode: UInt8 = 7

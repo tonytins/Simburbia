@@ -1,6 +1,6 @@
 /// What a primitive tells the thread to do next.
 ///
-/// Ports FreeSO's `VMPrimitiveExitCode`; the raw values match.
+/// The raw values are the ones tools use.
 public enum ExitCode: UInt8, Sendable {
     case gotoTrue = 0
     case gotoFalse = 1
@@ -17,7 +17,7 @@ public enum ExitCode: UInt8, Sendable {
     /// Takes the entity off the schedule for several ticks (idle primitives).
     case continueFutureTick = 10
 
-    /// FreeSO's name, such as `GOTO_TRUE`.
+    /// The name tools use, such as `GOTO_TRUE`.
     public var fsoCompatName: String {
         switch self {
         case .gotoTrue: "GOTO_TRUE"

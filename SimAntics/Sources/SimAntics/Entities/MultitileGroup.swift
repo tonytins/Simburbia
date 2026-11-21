@@ -1,6 +1,6 @@
 import TSOFiles
 
-/// The entities that make up one object (FreeSO's `VMMultitileGroup`).
+/// The entities that make up one object.
 ///
 /// Most objects are a group of one. A multi-tile object, such as a two-tile bed or a counter run,
 /// is one entity per part, each with its own definition (`OBJD`) and object ID, created together
@@ -47,8 +47,8 @@ public final class MultitileGroup {
     }
 
     /// Adds another group's parts to this one, at their offsets from the lead and facing its way
-    /// (`Combine`, for dynamic multi-tile objects). FreeSO computes a rotation for the offsets and
-    /// then discards it, so they aren't rotated. The other group keeps its list.
+    /// (for dynamic multi-tile objects). The offsets aren't rotated. The other group keeps its
+    /// list.
     func combine(_ other: MultitileGroup) {
         guard let lead = leadObject else { return }
         for part in other.objects {

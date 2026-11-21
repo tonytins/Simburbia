@@ -7,9 +7,9 @@ import TSOFiles
 
 /// What the loading screen says: a caption and the lines that slide in under it.
 ///
-/// With an install, its own: TSO's caption (table 154, entry 5) and its four loading lines
-/// (table 155, entries 6 to 9), read from `gamedata`'s text as FreeSO's `LoadingScreen` reads them.
-/// Without one, or if any are missing, Simburbia's (`Interface/uitext/_1_loading.cst`).
+/// With an install, its own: TSO's caption (table 154, entry 5) and its four loading lines (table
+/// 155, entries 6 to 9), read from `gamedata`'s text. Without one, or if any are missing,
+/// Simburbia's (`Interface/uitext/_1_loading.cst`).
 struct LoadingText {
     var caption: String
     var lines: [String]
@@ -98,8 +98,8 @@ final class BackgroundLoad<Value>: @unchecked Sendable {
 }
 
 /// The screen shown while the client loads, as TSO's: its art, its caption, and the lines sliding
-/// in under it (FreeSO's `LoadingScreen` and `UISetupBackground`). The art is TSO's `setup`
-/// graphic when the install has it, else Simburbia's logo, on TSO's dark blue.
+/// in under it. The art is TSO's `setup` graphic when the install has it, else Simburbia's logo,
+/// on TSO's dark blue.
 final class LoadingScreen {
     /// TSO's loading and login background (`UIFileIDs.setup`).
     static let setupID = AssetID(packed: 0x3A3_0000_0001)
@@ -155,9 +155,9 @@ final class LoadingScreen {
         lines = SlidingLines(lines: text.lines)
     }
 
-    /// Draws a frame. FreeSO lays the screen out at 800 by 600, the caption at 508 and the lines
-    /// at 550; here the same places are scaled to the window's height. Without `showsLines`, it's
-    /// only the art, as the login screen shows it, and `overlay` draws over it.
+    /// Draws a frame. The screen is laid out at 800 by 600, the caption at 508 and the lines at
+    /// 550, scaled to the window's height. Without `showsLines`, it's only the art, as the login
+    /// screen shows it, and `overlay` draws over it.
     func draw(showsLines: Bool = true, overlay: () -> Void = {}) {
         let width = Float(GetScreenWidth()), height = Float(GetScreenHeight())
         let scale = height / 600

@@ -2,23 +2,21 @@ import Foundation
 
 /// A Sim's animation: a `.anim` file from the FAR3 archives under `avatardata/animations`.
 ///
-/// Ports the TSO path of FreeSO's `FSO.Vitaboy.Animation.Read` (The Sims 1's BCF animations,
-/// the other path, aren't read here). An animation is a set of motions, one per bone it moves,
-/// each a run of frames at 30 a second that index into shared tables of translations and
-/// rotations. A motion can carry timed properties: events, such as a sound or `xevt`, that
-/// fire when playback passes their time.
+/// The Sims 1's BCF animations aren't read here. An animation is a set of motions, one per
+/// bone it moves, each a run of frames at 30 a second that index into shared tables of
+/// translations and rotations. A motion can carry timed properties: events, such as a sound or
+/// `xevt`, that fire when playback passes their time.
 ///
-/// The file is big-endian, except that every float is little-endian, as FreeSO's
-/// `IoBuffer.ReadFloat` reads them whatever the stream's byte order. Translations and rotations
-/// are kept as the file stores them; FreeSO flips some of their signs as it reads, for its own
-/// coordinates, which is a concern for whatever draws them. Bytes after the last motion are
-/// ignored, as in FreeSO.
+/// The file is big-endian, except that every float is little-endian whatever the stream's byte
+/// order. Translations and rotations are kept as the file stores them; turning them into a
+/// renderer's coordinates is up to whatever draws them. Bytes after the last motion are
+/// ignored.
 ///
-/// Where it differs from FreeSO: a few of TSO's animations (`a2o-test-animation2` to `6`, which
-/// the DJ booth, jukebox, and stereos name) write each property list as a single set with no
-/// set count, the layout of FreeSO's BCF reader. FreeSO fails on them. Here, a file that doesn't
-/// read in the usual layout is read again in that one, and kept only if it then ends exactly at
-/// the end of the data; ``propertyLayout`` says which it took (DIFF-35 in the scorecard).
+/// A few of TSO's animations (`a2o-test-animation2` to `6`, which the DJ booth, jukebox, and
+/// stereos name) write each property list as a single set with no set count, the layout of The
+/// Sims 1's BCF files. A file that doesn't read in the usual layout is read again in that one,
+/// and kept only if it then ends exactly at the end of the data; ``propertyLayout`` says which
+/// it took (DIFF-35 in the scorecard).
 public struct Animation: Sendable, Equatable {
     /// How the file lays out its property lists.
     public enum PropertyLayout: Sendable, Equatable {
@@ -39,7 +37,7 @@ public struct Animation: Sendable, Equatable {
         }
     }
 
-    /// A list of property sets (FreeSO's `PropertyList` of `PropertyListItem`s).
+    /// A list of property sets.
     public struct PropertyList: Sendable, Equatable {
         public var items: [[Property]]
 
@@ -47,7 +45,7 @@ public struct Animation: Sendable, Equatable {
             self.items = items
         }
 
-        /// The first value for `key`, searching each set in order, as FreeSO's indexer does.
+        /// The first value for `key`, searching each set in order.
         public subscript(key: String) -> String? {
             for item in items {
                 if let property = item.first(where: { $0.key == key }) { return property.value }
@@ -56,10 +54,10 @@ public struct Animation: Sendable, Equatable {
         }
     }
 
-    /// Properties that take effect at a time in the animation (FreeSO's `TimePropertyListItem`).
+    /// Properties that take effect at a time in the animation.
     public struct TimedProperties: Sendable, Equatable {
-        /// When they take effect, in milliseconds from the start (FreeSO's `ID`). Signed: 363 of
-        /// 1.1097.1.0's animations hold negative times, which FreeSO reads as unsigned.
+        /// When they take effect, in milliseconds from the start. Signed: 363 of 1.1097.1.0's
+        /// animations hold negative times.
         public var time: Int32
         public var properties: PropertyList
 
@@ -101,7 +99,7 @@ public struct Animation: Sendable, Equatable {
         }
     }
 
-    /// The file's version. FreeSO reads it and ignores it; TSO's files hold 2.
+    /// The file's version, read and ignored; TSO's files hold 2.
     public var version: UInt32
     public var name: String
     /// In milliseconds.
@@ -116,7 +114,7 @@ public struct Animation: Sendable, Equatable {
     public var motions: [Motion]
     public var propertyLayout: PropertyLayout
 
-    /// The animation's length in frames: its longest motion's (FreeSO's `NumFrames`).
+    /// The animation's length in frames: its longest motion's.
     public var frameCount: UInt32 {
         motions.map(\.frameCount).max() ?? 0
     }
@@ -277,7 +275,7 @@ public struct Animation: Sendable, Equatable {
 /// An error reading a `.anim` file.
 public enum AnimationError: Error, Equatable, Sendable {
     case truncated(EndOfDataError)
-    /// A string's length is negative, where FreeSO throws.
+    /// A string's length is negative.
     case negativeLength(String)
     /// A count of something can't fit in the bytes that remain.
     case countTooLarge(String, count: Int, remaining: Int)

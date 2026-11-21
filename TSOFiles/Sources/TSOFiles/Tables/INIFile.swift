@@ -2,10 +2,9 @@ import Foundation
 
 /// A simple INI file: `[section]` headers and `key = value` lines.
 ///
-/// Ports FreeSO's `IniFile`, which the content system uses for `sys/*.ini`.
-/// Lines starting with `;` are comments. Key and value lines before the first
-/// section, or with an empty key or value, are ignored, and a repeated key
-/// keeps its last value, as in FreeSO.
+/// The format of `sys/*.ini`. Lines starting with `;` are comments. Key and value lines before the
+/// first section, or with an empty key or value, are ignored, and a repeated key keeps its last
+/// value.
 public struct INIFile: Sendable, Equatable {
     /// One section.
     public struct Section: Sendable, Equatable {
@@ -94,7 +93,7 @@ public struct INIFile: Sendable, Equatable {
 
 /// An error from reading an INI file.
 public enum INIError: Error, Equatable, Sendable {
-    /// A `[` line has no closing `]`; FreeSO throws here too.
+    /// A `[` line has no closing `]`.
     case unclosedSection(line: Int)
     case repeatedSection(String)
 }

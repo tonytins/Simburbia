@@ -2,9 +2,8 @@ import Foundation
 
 /// A patch to another IFF file: chunk edits, deletions, and ID changes.
 ///
-/// Ports FreeSO's `PIFF` chunk. A `.piff` file is an IFF holding one `PIFF`
-/// chunk, which names the IFF it patches, plus any whole chunks to add to it.
-/// ``IFFFile/applying(_:)`` applies one.
+/// FreeSO's patch format. A `.piff` file is an IFF holding one `PIFF` chunk, which names the IFF it
+/// patches, plus any whole chunks to add to it. ``IFFFile/applying(_:)`` applies one.
 public struct PIFF: IFFChunk {
     public static let typeCode = "PIFF"
 
@@ -42,9 +41,8 @@ public struct PIFF: IFFChunk {
 
         /// Applies the edits to a chunk's original data.
         ///
-        /// Matches `PIFFEntry.Apply`: it copies original bytes up to each patch,
-        /// then inserts or skips, then copies the rest. Where FreeSO's copy would
-        /// run out of bounds, this throws instead.
+        /// It copies original bytes up to each patch, then inserts or skips, then
+        /// copies the rest. A copy that would run past the end throws.
         public func apply(to original: Data) throws(PIFFError) -> Data {
             let source = [UInt8](original)
             let addedBytes = patches.reduce(0) { $0 + ($1.mode == .add ? Int($1.size) : 0) }
@@ -72,8 +70,8 @@ public struct PIFF: IFFChunk {
             }
             let remainder = Int(newDataSize) - result.count
             guard remainder >= 0 else { throw .patchOutOfBounds(typeCode: typeCode, chunkID: chunkID) }
-            // FreeSO copies the remainder only when there is one, so a final removal may
-            // skip past the end of the original. Shipped FreeSO patches rely on that.
+            // The remainder is copied only when there is one, so a final removal may
+            // skip past the end of the original, which FreeSO's shipped patches rely on.
             guard remainder > 0 else { return Data(result) }
             guard sourceIndex + remainder <= source.count else {
                 throw .patchOutOfBounds(typeCode: typeCode, chunkID: chunkID)
@@ -159,6 +157,6 @@ public enum PIFFError: Error, Equatable, Sendable {
     case invalidSize(typeCode: String, chunkID: UInt16)
     /// A patch reaches outside the original data.
     case patchOutOfBounds(typeCode: String, chunkID: UInt16)
-    /// Moving a chunk would give two chunks the same type and ID (FreeSO's `AddChunk` throws).
+    /// Moving a chunk would give two chunks the same type and ID.
     case duplicateChunk(typeCode: String, id: UInt16)
 }

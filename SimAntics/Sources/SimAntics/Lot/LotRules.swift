@@ -1,16 +1,15 @@
 /// Rules a running lot's state should always keep, checked on Simburbia alone.
 ///
-/// The oracles compare Simburbia with FreeSO, which can't catch a mistake both make. These rules
-/// need no second VM: each says something about the lot that should hold after any tick, whatever
-/// the objects on it do. A broken rule is reported, never thrown, so a check never stops the lot.
-/// The randomized study checks them as it runs (`sb-oracle study`), and so does
-/// `simburbia --headless --check`.
+/// Each rule says something about the lot that should hold after any tick, whatever the objects
+/// on it do. A broken rule is reported, never thrown, so a check never stops the lot. The
+/// randomized study checks them as it runs (`sb-oracle study`), and so does `simburbia --headless
+/// --check`.
 ///
 /// Quirks Simburbia keeps on purpose aren't broken rules. A Sim left out of the world, as when
 /// tile 3,3 is taken at join, is allowed, as is any object out of the world.
 public enum LotRule: String, Sendable, Equatable, CaseIterable {
     /// A Sim's motives stay within −100 to 200. TSO let a motive go past 100 (the owner recalls up
-    /// to 200); FreeSO, and Simburbia for now, keep them within −100 to 100.
+    /// to 200); Simburbia keeps them within −100 to 100 for now.
     case motiveRange = "motive range"
     /// A Sim's online job ID stays at 4 or below, the most its setter takes.
     case onlineJobID = "online job ID"

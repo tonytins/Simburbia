@@ -3,12 +3,12 @@ import SimAntics
 import TSOContent
 import TSOFiles
 
-/// Which of TSO's three sprite sizes to draw: FreeSO's `WorldZoom`.
+/// Which of TSO's three sprite sizes to draw.
 public enum SpriteZoom: UInt32, Sendable, CaseIterable {
     case far = 1, medium = 2, near = 3
 
-    /// Screen pixels per world unit (a tile's side) at this zoom: FreeSO's `OneUnitDistance`,
-    /// √(tile width² / 2), for tiles 32, 64, and 128 pixels wide.
+    /// Screen pixels per world unit (a tile's side) at this zoom: √(tile width² / 2), for
+    /// tiles 32, 64, and 128 pixels wide.
     public var pixelsPerUnit: Float {
         switch self {
         case .far: Float(32 * 32 / 2.0).squareRoot()
@@ -21,10 +21,9 @@ public enum SpriteZoom: UInt32, Sendable, CaseIterable {
     /// on them aren't cut off: TSO's depth art puts the bottom of some sprites, such as a stand
     /// drawn over the next tile, a little behind the floor it's drawn on.
     ///
-    /// Ports update-46's `TerrainComponent.Draw`, which draws its 3D floors and terrain a quarter
-    /// world unit farther from the viewer (`View * CreateTranslation(0, 0, -0.25)`), and lower by
-    /// 3, 5, or 7 × 20/522 world units at near, medium, and far, more at a smaller `scale`.
-    /// FreeSO's walls are sprites and aren't moved, so Simburbia's walls aren't either.
+    /// Floors and terrain are drawn a quarter world unit farther from the viewer, and lower by 3,
+    /// 5, or 7 × 20/522 world units at near, medium, and far, more at a smaller `scale`. Walls
+    /// are sprites and aren't moved.
     ///
     /// - Parameter towardViewer: The unit direction from the view's target to the camera.
     public func floorBias(scale: Float, towardViewer: SIMD3<Float>) -> SIMD3<Float> {
@@ -37,11 +36,11 @@ public enum SpriteZoom: UInt32, Sendable, CaseIterable {
         return (-0.25 * towardViewer - SIMD3(0, lower, 0)) / Self.worldUnitsPerTile
     }
 
-    /// FreeSO's `WorldSpace.WorldUnitsPerTile`.
+    /// World units in a tile.
     static let worldUnitsPerTile: Float = 3
 }
 
-/// One sprite to draw for an object, placed as FreeSO's `DGRPRenderer` places it.
+/// One sprite to draw for an object, placed by its draw group's offsets.
 ///
 /// TSO's view is an orthographic projection looking down at 30°, so a sprite is drawn in
 /// screen space: its top left is ``anchor`` projected to the screen, plus ``pixelOffset`` at
@@ -55,8 +54,8 @@ public struct ObjectSprite: Sendable {
     /// The floor, 1 for the ground.
     public var level: Int
     /// Where in the world the sprite hangs, in tiles (x along the lot's x, y up, z along its
-    /// y): the object's position and half a tile (FreeSO's screen offset), plus the sprite's
-    /// object offset turned with the object.
+    /// y): the object's position and half a tile, plus the sprite's object offset turned
+    /// with the object.
     public var anchor: SIMD3<Float>
     /// The sprite's top left relative to the anchor, in the zoom's pixels: the drawing group's
     /// sprite offset, less the frame's height.
@@ -67,9 +66,9 @@ public struct ObjectSprite: Sendable {
     public var flip: Bool
     /// Where the sprite's depth starts and ends in the world (roadmap decision 7). The frame's
     /// stored depth places each pixel on the line from ``back`` toward ``front``: a pixel of
-    /// depth `d` sits `(1 − d) / 0.4` of the way along it, as FreeSO's `2DWorldBatch` effect
-    /// (`vsZSprite`, `depthCalc2`) places it, so overlapping sprites, and walls and floors drawn
-    /// in 3D, cover each other pixel by pixel. See ``LotScene/depthLine(corner:worldRotation:)``.
+    /// depth `d` sits `(1 − d) / 0.4` of the way along it, so overlapping sprites, and walls and
+    /// floors drawn in 3D, cover each other pixel by pixel. See
+    /// ``LotScene/depthLine(corner:worldRotation:)``.
     public var back: SIMD3<Float>
     public var front: SIMD3<Float>
 }
@@ -112,14 +111,13 @@ public final class SpriteLibrary {
 
 extension LotScene {
     /// The sprites each object on the lot draws for its graphic state and facing, seen from a
-    /// world rotation (FreeSO's `WorldRotation`, 0 to 3) at a zoom.
+    /// world rotation (0 to 3) at a zoom.
     ///
-    /// As FreeSO's `VMGameObject.RefreshGraphic`, the drawing group is the object's base graphic
-    /// plus its graphic (object data 0); as `DGRPRenderer`, its image is the one for the facing,
-    /// zoom, and rotation, and a dynamic sprite shows only while its flag is set. Sprites
-    /// without depth are left out, as FreeSO's renderer leaves them out. Objects are in VM
-    /// order, their sprites in drawing group order. They replace what `sprites` held, keeping
-    /// its storage, so a frame doesn't allocate a new list.
+    /// The drawing group is the object's base graphic plus its graphic (object data 0); its
+    /// image is the one for the facing, zoom, and rotation, and a dynamic sprite shows only
+    /// while its flag is set. Sprites without depth are left out. Objects are in VM order, their
+    /// sprites in drawing group order. They replace what `sprites` held, keeping its storage, so
+    /// a frame doesn't allocate a new list.
     public static func objectSprites(of vm: VM, zoom: SpriteZoom, worldRotation: UInt32, library: SpriteLibrary,
                                      hiddenByBlueprint: [Int16: UInt32] = [:], into sprites: inout [ObjectSprite]) {
         sprites.removeAll(keepingCapacity: true)
@@ -159,7 +157,7 @@ extension LotScene {
                 let offset = sprite.objectOffset * SIMD3(1.0 / 16, 1.0 / 16, 1.0 / 5)
                 let turned = SIMD2(offset.x * cos(turn) - offset.y * sin(turn), offset.x * sin(turn) + offset.y * cos(turn))
                 let anchor = base + SIMD3(turned.x, offset.z, turned.y)
-                // FreeSO's world position is the tile's corner, not the centre the anchor adds.
+                // The world position is the tile's corner, not the centre the anchor adds.
                 let (back, front) = Self.depthLine(corner: anchor - SIMD3(0.5, 0, 0.5), worldRotation: worldRotation)
                 sprites.append(ObjectSprite(
                     key: key, objectID: entity.objectID, objectAnchor: base, level: level, anchor: anchor,
@@ -171,20 +169,19 @@ extension LotScene {
     }
 
     /// Whether an object is hidden, so it isn't drawn or picked: its code has hidden it (object
-    /// data 34), as portals and other controllers do and as FreeSO's `VMEntity.SetValue` reads it;
-    /// or the lot's blueprint marks it `hidden="1"`, as TSO's job lots mark their portals
-    /// (``LotSession/hiddenByBlueprint``, an object ID with its GUID).
+    /// data 34), as portals and other controllers do; or the lot's blueprint marks it
+    /// `hidden="1"`, as TSO's job lots mark their portals (``LotSession/hiddenByBlueprint``, an
+    /// object ID with its GUID).
     public static func isHidden(_ entity: Entity, hiddenByBlueprint: [Int16: UInt32] = [:]) -> Bool {
         entity.objectData[Int(ObjectVariable.hidden.rawValue)] != 0
             || hiddenByBlueprint[entity.objectID] == entity.object.guid
     }
 
-    /// The line a sprite's depth runs along, for a sprite whose world position (FreeSO's
-    /// `AbsoluteWorldPosition`: the object's tile corner plus its object offset) is `corner`.
+    /// The line a sprite's depth runs along, for a sprite whose world position (the object's
+    /// tile corner plus its object offset) is `corner`.
     ///
-    /// Ports `_2DWorldBatch.BackOffForRot` and `FrontDirForRot`, in tiles rather than FreeSO's 3
-    /// world units to a tile: the back is the tile's corner farthest from the viewer, and the
-    /// front a tile diagonally toward the viewer from there.
+    /// In tiles: the back is the tile's corner farthest from the viewer, and the front a tile
+    /// diagonally toward the viewer from there.
     public static func depthLine(corner: SIMD3<Float>, worldRotation: UInt32) -> (back: SIMD3<Float>, front: SIMD3<Float>) {
         let (toBack, toFront): (SIMD3<Float>, SIMD3<Float>) = switch worldRotation % 4 {
         case 1: (SIMD3(0, 0, 1), SIMD3(1, 0, -1))      // TopRight
@@ -196,7 +193,7 @@ extension LotScene {
         return (back, back + toFront)
     }
 
-    /// FreeSO's `DGRPRenderer.RadianDirection`: the four main facings; the diagonals don't turn.
+    /// The four main facings turn the sprite; the diagonals don't turn.
     static func radians(of direction: Direction) -> Float {
         switch direction {
         case .east: .pi / 2

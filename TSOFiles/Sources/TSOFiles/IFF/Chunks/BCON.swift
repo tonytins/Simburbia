@@ -2,8 +2,7 @@ import Foundation
 
 /// Behavior constants that SimAntics code reads by index.
 ///
-/// Ports FreeSO's `BCON`. Labels for the constants live in a ``TRCN`` chunk
-/// with the same ID.
+/// Labels for the constants live in a ``TRCN`` chunk with the same ID.
 public struct BCON: IFFChunk {
     public static let typeCode = "BCON"
 

@@ -8,7 +8,8 @@ public struct ClientOptions: Sendable, Equatable {
     public var gameDirectory: URL
     /// The blueprint XML of the lot to load.
     public var lot: URL
-    /// FreeSO's content folder, for its patches and standalone objects; `nil` for none.
+    /// A FreeSO-style content folder, for its patches and standalone objects; `nil` for
+    /// none.
     public var freeSOContent: URL?
     /// Simburbia's mods folder, with a player's objects and patches; `nil` for none.
     public var modsDirectory: URL?

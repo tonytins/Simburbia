@@ -6,11 +6,11 @@ extension IFFFile {
         self.init(resourceMapOffset: 0, chunks: chunks)
     }
 
-    /// The file's bytes, as FreeSO's `IffFile.Write` lays them out: the version 2.5 header, a
-    /// zero resource map offset, then each chunk's header and data, big-endian.
+    /// The file's bytes: the version 2.5 header, a zero resource map offset, then each
+    /// chunk's header and data, big-endian.
     ///
     /// Reading the result gives back the same chunks. The resource map offset is always written
-    /// as zero, as FreeSO writes it, whatever the file was read with.
+    /// as zero, whatever the file was read with.
     ///
     /// - Throws: ``IFFWriteError`` for a chunk the format can't hold: a type that isn't four
     ///   ASCII characters, a label that isn't ASCII or is longer than 64 bytes, or data too
@@ -42,7 +42,7 @@ extension IFFFile {
         return bytes
     }
 
-    /// The header FreeSO writes, before its NUL padding to 60 bytes.
+    /// The header, before its NUL padding to 60 bytes.
     static let headerText = "IFF FILE 2.5:TYPE FOLLOWED BY SIZE\0 JAMIE DOORNBOS & MAXIS 1"
 
     private static func append<Value: FixedWidthInteger>(_ value: Value, to bytes: inout Data) {

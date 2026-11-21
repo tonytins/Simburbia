@@ -1,9 +1,9 @@
-/// A balloon over an entity (`VMRuntimeHeadline`): which picture, from which group, for how long.
+/// A balloon over an entity: which picture, from which group, for how long.
 ///
 /// Simburbia doesn't draw it; it keeps what a renderer would need, and the countdown, which
 /// affects scheduling.
 public struct Headline: Sendable, Equatable {
-    /// The picture group (`VMSetBalloonHeadlineOperandGroup`), such as 1 for balloons or 7 for algorithmic.
+    /// The picture group, such as 1 for balloons or 7 for algorithmic.
     public var group: UInt8
     /// The picture in the group, after Set Balloon Headline adds temp 0 for an indexed one.
     public var index: Int8

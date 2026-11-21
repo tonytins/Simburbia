@@ -4,13 +4,12 @@ import Raylib
 /// Gives each sprite pixel a depth, so sprites cover each other, and the walls and floors drawn
 /// in 3D, pixel by pixel (roadmap decision 7, Hyde Park E2).
 ///
-/// Sprites are still drawn flat on the screen, pixel for pixel, as FreeSO's `_2DWorldBatch`
-/// draws them; only their depth is worked out in the world. Each sprite's ``ObjectSprite/back``
-/// and ``ObjectSprite/front`` are projected with the same matrices the 3D pass uses, and the
-/// fragment shader writes, for each pixel, the depth `(1 − d) / 0.4` of the way from back to
-/// front, where `d` is the frame's stored depth (FreeSO's `psZSprite` and `depthCalc2`).
-/// The projection is orthographic, so depth is linear between the two, and interpolating it
-/// in window depth is exact.
+/// Sprites are still drawn flat on the screen, pixel for pixel; only their depth is worked out
+/// in the world. Each sprite's ``ObjectSprite/back`` and ``ObjectSprite/front`` are projected
+/// with the same matrices the 3D pass uses, and the fragment shader writes, for each pixel, the
+/// depth `(1 − d) / 0.4` of the way from back to front, where `d` is the frame's stored depth.
+/// The projection is orthographic, so depth is linear between the two, and interpolating it in
+/// window depth is exact.
 final class SpriteDepth {
     private let shader: Shader
     private let depthTextureLocation: Int32
@@ -90,8 +89,7 @@ final class SpriteDepth {
         EndShaderMode()
     }
 
-    /// Draws one wall sprite: the pattern's colour where the style's mask is, with its depth, as
-    /// FreeSO's `psZWall` does.
+    /// Draws one wall sprite: the pattern's colour where the style's mask is, with its depth.
     func drawWall(_ texture: Texture2D, mask: Texture2D, depth: Texture2D, back: SIMD3<Float>, front: SIMD3<Float>,
                   source: Rectangle, destination: Rectangle) {
         var line = SIMD2<Float>(windowDepth(of: back), windowDepth(of: front))
@@ -119,7 +117,7 @@ final class SpriteDepth {
         }
         """
 
-    // The colour as raylib's default shader draws it; the depth as FreeSO's psZSprite works it out.
+    // The colour as raylib's default shader draws it; the depth from the sprite's depth frame.
     private static let fragmentShader = """
         #version 330
         in vec2 fragTexCoord;
@@ -139,7 +137,7 @@ final class SpriteDepth {
         }
         """
 
-    // A wall: the pattern's colour, the mask's alpha (FreeSO's psZWall), and the sprite's depth.
+    // A wall: the pattern's colour, the mask's alpha, and the sprite's depth.
     private static let wallFragmentShader = """
         #version 330
         in vec2 fragTexCoord;

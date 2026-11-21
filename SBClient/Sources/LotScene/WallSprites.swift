@@ -2,8 +2,8 @@ import SimAntics
 import TSOContent
 import TSOFiles
 
-/// How a wall is cut in a view (FreeSO's `WallCut`): standing, cut down, or one of the two
-/// slanted cutaway styles a wall takes where the cut begins or ends.
+/// How a wall is cut in a view: standing, cut down, or one of the two slanted cutaway
+/// styles a wall takes where the cut begins or ends.
 public enum WallCut: UInt8, Sendable {
     case up = 0
     case downLeftUpRight = 1
@@ -20,7 +20,7 @@ public enum WallCut: UInt8, Sendable {
     }
 }
 
-/// A tile's two cuts (FreeSO's `WallCuts`). The top-right one also serves the diagonals.
+/// A tile's two cuts. The top-right one also serves the diagonals.
 public struct WallCuts: Sendable, Equatable {
     public var topLeft: WallCut = .up
     public var topRight: WallCut = .up
@@ -51,7 +51,7 @@ public struct WallSprite: Sendable {
     public var level: Int
     public var image: WallImage
     /// The style's mask, whose alpha says which of the pattern's pixels show; `nil` when the
-    /// image is drawn with its own alpha (FreeSO's `mask ?? sprite`).
+    /// image is drawn with its own alpha.
     public var mask: WallImage?
     /// The point the sprite hangs from: the tile's top corner on screen, at its level's floor.
     public var anchor: SIMD3<Float>
@@ -66,7 +66,7 @@ public struct WallSprite: Sendable {
     public var front: SIMD3<Float>
 }
 
-/// Which sides of a tile's cut boundary aren't cut (FreeSO's `CutawayEdges`).
+/// Which sides of a tile's cut boundary aren't cut.
 struct CutawayEdges: OptionSet {
     let rawValue: UInt8
     static let positiveY = CutawayEdges(rawValue: 1)
@@ -80,9 +80,9 @@ struct CutawayEdges: OptionSet {
 }
 
 extension WallTile {
-    /// A full-height wall on the top-left edge (FreeSO's `TopLeftThick`): style 1 or 255.
+    /// A full-height wall on the top-left edge: style 1 or 255.
     var topLeftThick: Bool { segments.contains(.topLeft) && (topLeftStyle == 1 || topLeftStyle == 255) }
-    /// A full-height wall on the top-right edge (FreeSO's `TopRightThick`).
+    /// A full-height wall on the top-right edge.
     var topRightThick: Bool { segments.contains(.topRight) && (topRightStyle == 1 || topRightStyle == 255) }
 }
 
@@ -266,7 +266,7 @@ extension LotScene {
             output.topRight = input.topLeft
             if y + 1 < height { output.topLeft = cuts[(y + 1) * width + x].topRight.flipped }
         case 2:
-            // FreeSO sets the top right from the top left, then overwrites it when there's a next row.
+            // The top right is set from the top left, then overwritten when there's a next row.
             output.topRight = input.topLeft
             if y + 1 < height { output.topRight = cuts[(y + 1) * width + x].topRight }
             if x + 1 < width { output.topLeft = cuts[y * width + x + 1].topLeft }
@@ -283,11 +283,10 @@ extension LotScene {
 
     // MARK: Cuts
 
-    /// Each tile's cuts on a level whose walls can be cut (`WallComponent.GenerateWallData`), from
-    /// which tiles have their walls down. A tile with its walls down cuts its full-height walls
-    /// down, or slants them where the cut ends beside it; a wall on the cut's very edge stays up.
-    /// FreeSO reads past a row's end into the next row; past the lot's end it would crash, and
-    /// here that counts as down.
+    /// Each tile's cuts on a level whose walls can be cut, from which tiles have their walls down.
+    /// A tile with its walls down cuts its full-height walls down, or slants them where the cut
+    /// ends beside it; a wall on the cut's very edge stays up. Reading past a row's end goes into
+    /// the next row; past the lot's end it counts as down.
     static func wallCuts(_ walls: [WallTile], width: Int, height: Int, wallsDownAt down: [Bool]) -> [WallCuts] {
         func isDown(_ x: Int, _ y: Int) -> Bool {
             let index = y * width + x
@@ -310,7 +309,7 @@ extension LotScene {
                 result.topLeft = Self.sideCut(edges, edge: .negativeX, toward: [.positiveY, .specialPositiveY],
                                               away: [.negativeY, .specialNegativeY], towardCut: .downRightUpLeft, awayCut: .downLeftUpRight)
             }
-            // FreeSO's note: the top-right style also covers the diagonals.
+            // The top-right style also covers the diagonals.
             if wall.topRightStyle == 1 {
                 if wall.segments == .horizontalDiagonal || wall.segments == .verticalDiagonal {
                     let horizontal = wall.segments == .horizontalDiagonal
@@ -339,7 +338,7 @@ extension LotScene {
 
     // MARK: Junctions
 
-    /// The ways walls can meet at a tile's corner (FreeSO's `JunctionFlags`).
+    /// The ways walls can meet at a tile's corner.
     enum Junction {
         static let topLeft: UInt8 = 1, topRight: UInt8 = 2, bottomRight: UInt8 = 4, bottomLeft: UInt8 = 8
         static let diagonalLeft: UInt8 = 16, diagonalTop: UInt8 = 32, diagonalRight: UInt8 = 64, diagonalBottom: UInt8 = 128
@@ -362,8 +361,8 @@ extension LotScene {
         return UInt8(truncatingIfNeeded: (lower & 15) | (lower >> 4) | ((higher | higher >> 4) & 240))
     }
 
-    /// Where walls meet on a level, standing and cut down (`WallComponent.GenerateWallData`): each
-    /// full-height wall marks its two ends, on its own tile and the next, as standing or cut by its cut.
+    /// Where walls meet on a level, standing and cut down: each full-height wall marks its two
+    /// ends, on its own tile and the next, as standing or cut by its cut.
     static func junctions(_ walls: [WallTile], cuts: [WallCuts], width: Int, height: Int) -> (up: [UInt8], down: [UInt8]) {
         var up = [UInt8](repeating: 0, count: walls.count), down = up
         func mark(_ index: Int, _ flag: UInt8, cut: Bool) {
@@ -404,7 +403,7 @@ extension LotScene {
 
     // MARK: Cutaway
 
-    /// The direction the cutaway reaches from a tile, toward the viewer (`VMArchitectureTools.CutCheckDir`).
+    /// The direction the cutaway reaches from a tile, toward the viewer.
     static func cutDirection(worldRotation: UInt32) -> SIMD2<Int> {
         switch worldRotation % 4 {
         case 1: SIMD2(-1, 1)
@@ -414,10 +413,9 @@ extension LotScene {
         }
     }
 
-    /// Whether a tile and the four beside it are bare of walls, which the cutaway skips
-    /// (`VMArchitectureTools`'s test). Kept as FreeSO has it: a neighbor off the lot's end makes a
-    /// tile count as walled, so the last row and the end of the last column are always cut, and
-    /// the tiles behind are checked with `> 0` rather than `>= 0`.
+    /// Whether a tile and the four beside it are bare of walls, which the cutaway skips. A
+    /// neighbor off the lot's end makes a tile count as walled, so the last row and the end of the
+    /// last column are always cut, and the tiles behind are checked with `> 0` rather than `>= 0`.
     private static func isBare(_ walls: [WallTile], _ index: Int, width: Int) -> Bool {
         walls[index].segments.isEmpty
             && index + width < walls.count && walls[index + width].segments.isEmpty
@@ -426,9 +424,9 @@ extension LotScene {
             && index - 1 > 0 && walls[index - 1].segments.isEmpty
     }
 
-    /// The tiles whose walls are down in TSO's cutaway mode for some rooms
-    /// (`VMArchitectureTools.GenerateRoomCut`): a tile with walls near it is cut when a cut room is
-    /// within four tiles of it toward the viewer, straight or along either axis.
+    /// The tiles whose walls are down in TSO's cutaway mode for some rooms: a tile with walls near
+    /// it is cut when a cut room is within four tiles of it toward the viewer, straight or along
+    /// either axis.
     public static func roomCut(of architecture: Architecture, level: Int, worldRotation: UInt32, rooms: Set<UInt16>) -> [Bool] {
         let width = architecture.width, height = architecture.height
         var result = [Bool](repeating: false, count: width * height)
@@ -458,8 +456,8 @@ extension LotScene {
         return result
     }
 
-    /// Cuts the tiles with walls near them in a rectangle (`VMArchitectureTools.ApplyCutRectangle`),
-    /// as TSO's cutaway does around the pointer. Returns whether a tile was newly cut.
+    /// Cuts the tiles with walls near them in a rectangle, as TSO's cutaway does around the
+    /// pointer. Returns whether a tile was newly cut.
     @discardableResult
     public static func applyCut(_ cuts: inout [Bool], of architecture: Architecture, level: Int,
                                 x left: Int, y top: Int, width rectWidth: Int, height rectHeight: Int) -> Bool {
@@ -498,10 +496,10 @@ extension LotScene {
     }
 
     /// The VM's architecture as the client draws it, with each door's and window's own wall style
-    /// in place, as FreeSO's `VMGameObject.PositionChange` makes it: an object whose definition's
-    /// style is 22 to 255 keeps that style in its own sprites (from `WallStyleSpriteID`), so each
-    /// kind of object gets a style from 256 up, numbered in VM order, put on the walls it styles.
-    /// The VM itself keeps the definition's number (the scorecard's DIFF-20).
+    /// in place: an object whose definition's style is 22 to 255 keeps that style in its own
+    /// sprites (from `WallStyleSpriteID`), so each kind of object gets a style from 256 up,
+    /// numbered in VM order, put on the walls it styles. The VM itself keeps the definition's
+    /// number (the scorecard's DIFF-20).
     public static func drawnArchitecture(of vm: VM) -> (architecture: Architecture, objectStyles: [UInt16: ObjectWallStyle]) {
         var architecture = vm.architecture
         var styles: [UInt16: ObjectWallStyle] = [:]
@@ -551,8 +549,8 @@ extension LotScene {
     /// `nil`, they stand. `objectStyles` are the doors' and windows' own styles
     /// (``drawnArchitecture(of:)``).
     ///
-    /// Unlike FreeSO, a wall's caps and a diagonal tile's floors are laid out whether or not the
-    /// wall's pattern has a sprite; the drawing leaves out what it can't find.
+    /// A wall's caps and a diagonal tile's floors are laid out whether or not the wall's pattern
+    /// has a sprite; the drawing leaves out what it can't find.
     public static func wallSprites(of architecture: Architecture, level viewLevel: Int, zoom: SpriteZoom,
                                    worldRotation: UInt32, wallsDown: [Bool]?,
                                    objectStyles: [UInt16: ObjectWallStyle] = [:]) -> [WallSprite] {
@@ -749,8 +747,8 @@ public final class WallImages {
 
     /// An image, or `nil` if the install has none.
     ///
-    /// A mask falls back to `nil` too, and then the pattern is drawn with its own alpha, as
-    /// FreeSO's `GetWallSprite` does when a style or its sprite is missing.
+    /// A mask falls back to `nil` too, and then the pattern is drawn with its own alpha
+    /// when a style or its sprite is missing.
     public func image(for image: WallImage) -> SpriteImage? {
         if let found = images[image] { return found }
         guard !missing.contains(image) else { return nil }
@@ -790,7 +788,7 @@ public final class WallImages {
             let junctions = try walls.junctions()
             return try frame(pick((junctions.far, junctions.medium, junctions.near), zoom), index, in: walls.globals)
         case .objectMask(let guid, let base, let down, let zoom, let index):
-            // FreeSO's dynamic style: standing far, medium, near, then cut down, from `base` up.
+            // A dynamic style: standing far, medium, near, then cut down, from `base` up.
             guard let resource = try objects?.object(guid: guid)?.resource else { return nil }
             let offset: UInt16 = (down ? 3 : 0) + (zoom == .far ? 0 : zoom == .medium ? 1 : 2)
             let id = base &+ offset

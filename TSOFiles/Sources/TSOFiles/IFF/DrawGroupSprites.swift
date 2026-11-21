@@ -1,10 +1,9 @@
 import Foundation
 
 extension IFFFile {
-    /// Decodes a drawing group sprite's frame from this file, the one the drawing group is in,
-    /// as FreeSO's `DGRPSprite.GetWorldTexture` finds it: the `SPR2` with the sprite's ID, else
-    /// the `SPR#`, each decoded with the palette it names from this file. `nil` when neither
-    /// chunk exists.
+    /// Decodes a drawing group sprite's frame from this file, the one the drawing group is in:
+    /// the `SPR2` with the sprite's ID, else the `SPR#`, each decoded with the palette it names
+    /// from this file. `nil` when neither chunk exists.
     public func decodedFrame(for sprite: DGRP.Sprite) throws(SpriteError) -> SpriteImage? {
         guard let id = UInt16(exactly: sprite.spriteID), let frame = Int(exactly: sprite.frameIndex) else { return nil }
         do {

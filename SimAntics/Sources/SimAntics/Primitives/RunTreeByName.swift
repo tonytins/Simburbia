@@ -3,13 +3,13 @@ import TSOFiles
 extension Primitives {
     /// Runs one of the stack object's routines, found by a name from a string table (opcode 28).
     ///
-    /// Ports FreeSO's `VMRunTreeByName`. The name is a string from a table in the global (scope 1)
-    /// or else the code owner's semi-global (in a semi-global routine) or file. The routine with that
-    /// name in the stack object's file or semi-global then runs with the stack object as its code
-    /// owner and the caller's first four temps as its arguments: pushed as a subroutine (destination
-    /// 2), or run to completion on the caller's thread (0) or the stack object's (anything else),
-    /// which is true if it returned true. No stack object, table, or routine of that name is false;
-    /// a string index out of range fails, as FreeSO's lookup throws.
+    /// The name is a string from a table in the global (scope 1) or else the code owner's
+    /// semi-global (in a semi-global routine) or file. The routine with that name in the stack
+    /// object's file or semi-global then runs with the stack object as its code owner and the
+    /// caller's first four temps as its arguments: pushed as a subroutine (destination 2), or run
+    /// to completion on the caller's thread (0) or the stack object's (anything else), which is
+    /// true if it returned true. No stack object, table, or routine of that name is false; a string
+    /// index out of range fails.
     public enum RunTreeByName: Primitive {
         public static let name = "run_tree_by_name"
         public static let opcode: UInt8 = 28
@@ -55,7 +55,7 @@ extension Primitives {
         public static func execute(_ operand: Operand, in frame: StackFrame) throws(SimAnticsError) -> ExitCode {
             guard let stackObject = frame.stackObject else { return .gotoFalse }
             guard let table = try stringTable(operand, in: frame) else { return .gotoFalse }
-            // FreeSO's GetString(StringID - 1): an index of -1 throws, and one past the end gives null,
+            // The string at StringID - 1: an index of -1 throws, and one past the end gives null,
             // which the name lookup then throws on.
             let index = Int(operand.stringID) - 1
             guard index >= 0 else { throw .indexOutOfRange("string \(index) of STR# \(operand.stringTable)") }

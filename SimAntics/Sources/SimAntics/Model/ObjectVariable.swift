@@ -1,7 +1,7 @@
 /// An entity's object data: 80 values each object and Sim carries, by index.
 ///
-/// Ports FreeSO's `VMStackObjectVariable`; the raw values are the indexes. Most are
-/// plain storage; a few read or write other state (see ``Entity/value(of:)``).
+/// The raw values are the indexes. Most are plain storage; a few read or write
+/// other state (see ``Entity/value(of:)``).
 public enum ObjectVariable: Int16, Sendable, CaseIterable {
     case graphic = 0, direction, containerID, slotNumber, allowedHeightFlags, wallAdjacencyFlags, routeID
     case roomImpact, flags, routePreference, routePenalty, objectID, targetID, wallPlacementFlags

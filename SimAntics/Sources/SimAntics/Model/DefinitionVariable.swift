@@ -2,8 +2,7 @@ import TSOFiles
 
 /// A field of an object definition (`OBJD`) that SimAntics can read, by index.
 ///
-/// Ports FreeSO's `VMOBJDVariable` and `VMMemory.GetEntityDefinitionVar`; the raw
-/// values are the indexes (see `docs/simantics/scopes.md`, scope 21).
+/// The raw values are the indexes (see `docs/simantics/scopes.md`, scope 21).
 public enum DefinitionVariable: Int16, Sendable, CaseIterable {
     case version1 = 0, version2, initialStackSize, baseGraphic, numGraphics, mainTreeID, gardeningTreeID
     case treeTableID, interactionGroup, type, masterID, subIndex, washHandsTreeID, animTableID, guid1, guid2
@@ -22,7 +21,7 @@ public enum DefinitionVariable: Int16, Sendable, CaseIterable {
     case typeAttributeGUID1, typeAttributeGUID2, interactionResultStrings, clientHouseJoinTreeID
     case prepareForSaleTreeID
 
-    /// A definition field as FreeSO reads it, quirks included.
+    /// A definition field, quirks included.
     ///
     /// Version 1 and GUID 1 are the value modulo 0xFFFF, not its low 16 bits.
     /// Serving Surface Tree and Rating Comfort both read the catalog popup ID, and

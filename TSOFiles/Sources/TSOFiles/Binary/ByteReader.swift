@@ -104,7 +104,7 @@ public struct ByteReader: Sendable {
 
     /// Reads up to `byteCount` bytes, returning fewer if the data ends first.
     ///
-    /// This matches .NET's `BinaryReader.ReadBytes`, which some FreeSO readers rely on.
+    /// This matches .NET's `BinaryReader.ReadBytes`, which some formats rely on.
     public mutating func readBytes(upTo byteCount: Int) -> Data {
         let length = max(0, min(byteCount, remaining))
         defer { offset += length }

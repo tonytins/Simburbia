@@ -19,12 +19,13 @@ public final class Registers {
 
 /// An entity's interpreter: a stack of routines and the registers they share.
 ///
-/// Ports FreeSO's `VMThread` without the interaction queue and routing frames: instructions,
-/// subroutine calls, exit codes and branches, running `main` when the stack empties, check
-/// threads (``evaluateCheck(entity:frame:)``), and error handling. An error resets the
-/// frame's caller and callee, and is reported at most once every 600 ticks (20 seconds).
+/// An entity's interpreter, without the interaction queue and routing frames yet:
+/// instructions, subroutine calls, exit codes and branches, running `main` when the stack
+/// empties, check threads (``evaluateCheck(entity:frame:)``), and error handling. An error
+/// resets the frame's caller and callee, and is reported at most once every 600 ticks (20
+/// seconds).
 public final class VMThread {
-    /// FreeSO's guard against routines that never yield; the count restarts each entity tick.
+    /// The guard against routines that never yield; the count restarts each entity tick.
     public static let maximumInstructionsPerTick = 500_000
     /// Ticks between error reports (`DialogCooldown`).
     static let errorCooldownTicks = 30 * 20
@@ -41,7 +42,7 @@ public final class VMThread {
     /// The error that ended the last tick, if one did.
     public private(set) var lastError: SimAnticsError?
     /// The tick the current wait started on, or 0 (`ScheduleIdleStart`). Sleep counts from it.
-    /// Settable, as in FreeSO, for tools that set up a thread's state.
+    /// Settable, for tools that set up a thread's state.
     public var idleStartTick: UInt32 = 0
     /// Set when something wakes the thread early (`Interrupt`); Sleep then ends at once.
     public var isInterrupted = false
@@ -74,7 +75,7 @@ public final class VMThread {
         set { registers.tempXL = newValue }
     }
 
-    /// Runs a routine to completion on a temporary check thread, as `VMThread.EvaluateCheck` does.
+    /// Runs a routine to completion on a temporary check thread.
     ///
     /// The check shares the entity's temps while the scheduler is running entities and works
     /// on a copy otherwise. It returns how the routine exited, or `returnFalse` if it failed.
@@ -90,23 +91,24 @@ public final class VMThread {
         return check.errorCooldown > 0 ? .returnFalse : check.lastExitCode
     }
 
-    /// Runs a routine to completion on this thread, as `VMThread.RunInMyStack` does for Run Tree
-    /// By Name, and returns whether it returned true.
+    /// Runs a routine to completion on this thread for Run Tree By Name, and returns whether it
+    /// returned true.
     ///
     /// The thread's stack is set aside for one holding only its top frame, the routine is called
-    /// from that frame (with its caller, callee, and stack object, and arguments from the first four
-    /// of `temps`), and the top frame is taken out, so the routine runs alone; its stack object is
-    /// then `stackObject`. It runs as a check thread would, without yielding, and the stack is put
-    /// back. Errors inside it are swallowed, as FreeSO swallows them, except what isn't ported.
+    /// from that frame (with its caller, callee, and stack object, and arguments from the first
+    /// four of `temps`), and the top frame is taken out, so the routine runs alone; its stack
+    /// object is then `stackObject`. It runs as a check thread would, without yielding, and the
+    /// stack is put back. Errors inside it are swallowed, except what isn't supported yet.
     ///
-    /// FreeSO's quirks are kept: when the thread had nothing running, taking the top frame out takes
-    /// the routine out instead, so nothing runs and the result is false; and on that path the thread
-    /// stays a check thread, so an entity's own thread no longer runs `main` until it's reset.
+    /// Quirks real content relies on: when the thread had nothing running, taking the top frame out
+    /// takes the routine out instead, so nothing runs and the result is false; and on that path the
+    /// thread stays a check thread, so an entity's own thread no longer runs `main` until it's
+    /// reset.
     ///
     /// - Throws: ``SimAnticsError/unsupported(_:)`` if the routine reaches something not ported;
-    ///   ``SimAnticsError/infiniteLoop`` after ``maximumInstructionsPerTick`` instructions, where
-    ///   FreeSO would loop forever; and ``SimAnticsError/indexOutOfRange(_:)`` if the thread had
-    ///   nothing running and the routine is empty, as FreeSO fails there.
+    ///   ``SimAnticsError/infiniteLoop`` after ``maximumInstructionsPerTick`` instructions; and
+    ///   ``SimAnticsError/indexOutOfRange(_:)`` if the thread had nothing running and the routine
+    ///   is empty.
     func runInMyStack(_ routine: Routine, codeOwner: GameObject, arguments temps: [Int16],
                       stackObject: Entity?) throws(SimAnticsError) -> Bool {
         let oldStack = stack, oldCheck = isCheck
@@ -174,8 +176,8 @@ public final class VMThread {
         }
     }
 
-    /// FreeSO's handler: report the error unless one was reported recently, then reset the frame's
-    /// caller and callee (or clear a check thread's stack).
+    /// Report the error unless one was reported recently, then reset the frame's caller and callee
+    /// (or clear a check thread's stack).
     private func handle(_ error: SimAnticsError) {
         lastError = error
         guard let frame = stack.last else { return }
@@ -188,7 +190,7 @@ public final class VMThread {
             stack.removeAll()
             return
         }
-        // When the caller is the callee, FreeSO resets it twice; its reset guard only stops nesting.
+        // When the caller is the callee, it's reset twice; the reset guard only stops nesting.
         frame.callee?.reset()
         frame.caller?.reset()
         if recentlyFailed {
@@ -197,7 +199,7 @@ public final class VMThread {
         }
     }
 
-    /// Adds a routine to the top of the stack with fresh locals. Empty routines aren't pushed, as in FreeSO.
+    /// Adds a routine to the top of the stack with fresh locals. Empty routines aren't pushed.
     public func push(_ frame: StackFrame) {
         guard !frame.routine.instructions.isEmpty else { return }
         stack.append(frame)
@@ -293,7 +295,7 @@ public final class VMThread {
         default:
             frame.instructionPointer = UInt16(pointer)
         }
-        // As in FreeSO, this overrides whatever a pop above decided.
+        // This overrides whatever a pop above decided.
         continuesExecution = continuing
     }
 

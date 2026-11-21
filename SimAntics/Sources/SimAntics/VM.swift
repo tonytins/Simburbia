@@ -3,17 +3,17 @@ import TSOFiles
 
 /// One running lot.
 ///
-/// Ports the core of FreeSO's `VM` and `VMContext`: entities, the global state, the
-/// random generator, the primitive table, routine assembly, and the lot's architecture and
-/// rooms. Networking comes in a later pass.
+/// The core of a running lot: entities, the global state, the random generator, the
+/// primitive table, routine assembly, and the lot's architecture and rooms. Networking
+/// comes in a later pass.
 public final class VM {
     /// Global state values, the `Global` scope.
     public var globalState: [Int16]
     public var random: VMRandom
     public var clock = VMClock()
-    /// The lot's category (`VMTSOLotState.PropertyCategory`), which some objects require.
+    /// The lot's category, which some objects require.
     public var propertyCategory: UInt8 = 0
-    /// The persist ID of the lot's owner (`VMTSOLotState.OwnerID`); 0 on a blueprint lot.
+    /// The persist ID of the lot's owner; 0 on a blueprint lot.
     public var lotOwnerID: UInt32 = 0
     public let content: GameContent
     /// The global every object can call.
@@ -23,7 +23,8 @@ public final class VM {
     /// Entities in the order they were added.
     public private(set) var entities: [Entity] = []
 
-    /// Errors FreeSO would show in a "SimAntics Exception" dialog, oldest first.
+    /// Errors a routine hit, as a "SimAntics Exception" dialog would show them,
+    /// oldest first.
     public private(set) var reportedErrors: [ReportedError] = []
 
     /// An error a thread hit, and which entity and tick it was on.
@@ -45,17 +46,15 @@ public final class VM {
     public var architecture: Architecture
     /// The lot's size in tiles; the tile index numbers tiles by it.
     public var lotSize: (width: Int, height: Int) { (architecture.width, architecture.height) }
-    /// Objects by tile, in object ID order (`VMObjectQueries.TileToObjects`), keyed as FreeSO does.
+    /// Objects by tile, in object ID order.
     private var tileIndex: [Int: [Entity]] = [:]
-    /// Objects by category, in object ID order (`VMObjectQueries.ObjectsByCategory`). A created
-    /// object is listed under its category at once (usually 0) and moves when object data sets it;
-    /// one added with ``addObject(guid:id:)`` is listed only once its category is set.
+    /// Objects by category, in object ID order. A created object is listed under its category at
+    /// once (usually 0) and moves when object data sets it; one added with ``addObject(guid:id:)``
+    /// is listed only once its category is set.
     private var categoryIndex: [Int16: [Entity]] = [:]
-    /// Each room's entities, in object ID order (`VMRoomInfo.Entities`), for the rooms of
-    /// `roomListsGeneration`.
+    /// Each room's entities, in object ID order, for the rooms of `roomListsGeneration`.
     private var roomEntitiesStorage: [[Entity]] = []
-    /// Each room's score (`RoomLighting.RoomScore` of `VMRoomInfo.Light`), by room ID, kept with
-    /// the room lists (see ``roomScore(_:)``).
+    /// Each room's score, by room ID, kept with the room lists (see ``roomScore(_:)``).
     private var roomScoresStorage: [Int16] = []
     private var roomListsGeneration: Architecture.Generation?
     private var roomEntities: [[Entity]] {
@@ -69,8 +68,8 @@ public final class VM {
         }
     }
     private var nextTickID: UInt32 = 1
-    /// Answers for waiting threads, as FreeSO's queued `VMNetAsyncResponseCmd`s: each is delivered
-    /// at the start of the first tick that begins after `queuedIn`, the number of ticks started then.
+    /// Answers for waiting threads: each is delivered at the start of the first tick that begins
+    /// after `queuedIn`, the number of ticks started then.
     private var answers: [(objectID: Int16, state: BlockingState, queuedIn: Int)] = []
     private var ticksStarted = 0
     /// Entities deleted since the last tick began, whose stacks are dropped when the next one starts.
@@ -115,22 +114,20 @@ public final class VM {
         public var reason: String
     }
 
-    /// Loads a lot as the lot server does (`VMBlueprintRestoreCmd`, then
-    /// `VMWorldActivator.LoadFromXML`).
+    /// Loads a lot as the lot server does.
     ///
     /// The job level (global 11) is set to -1, then come the walls and floors, with rooms, and
-    /// every entity already on the lot goes in its room. Each of the blueprint's objects follows, in
-    /// order: created out of the world, which runs its init; placed on its tile if its level isn't
-    /// 0, accepting slots (a placement that fails leaves it out of the world, since FreeSO ignores
-    /// the result); given the blueprint's group ID, if any, on every part; and every part runs its
-    /// user placement entry point at once. Last, rooms are regenerated if the objects changed them.
+    /// every entity already on the lot goes in its room. Each of the blueprint's objects follows,
+    /// in order: created out of the world, which runs its init; placed on its tile if its level
+    /// isn't 0, accepting slots (a placement that fails leaves it out of the world); given the
+    /// blueprint's group ID, if any, on every part; and every part runs its user placement entry
+    /// point at once. Last, rooms are regenerated if the objects changed them.
     ///
     /// The lot server loads in the tick the command arrives in, so that tick runs next: call
-    /// ``tick()`` once to be where FreeSO is after loading.
+    /// ``tick()`` once after loading.
     ///
-    /// Differences from FreeSO, to keep loading: FreeSO starts the lot over with no entities, where
-    /// this keeps the ones already added. And an object the content doesn't have, or can't load, is
-    /// left out and returned, where FreeSO fails.
+    /// To keep loading going, entities already on the VM are kept, and an object the content
+    /// doesn't have, or can't load, is left out and returned.
     ///
     /// - Throws: ``SimAnticsError/simantics(_:)`` if the blueprint is off the lot, and any error
     ///   an object's init or entry point throws.
@@ -214,9 +211,9 @@ public final class VM {
 
     /// Adds an object with a given ID.
     ///
-    /// A first step toward FreeSO's object creation: the entity is built as the `VMEntity`
-    /// constructor builds it, out of the world, and runs nothing until ``Entity/initialize()``.
-    /// Placement, multi-tile groups, and catalog prices come later.
+    /// A first step toward creating an object: the entity is built out of the world, and runs
+    /// nothing until ``Entity/initialize()``. Placement, multi-tile groups, and catalog prices
+    /// come later.
     ///
     /// - Throws: ``SimAnticsError/nullReference(_:)`` if the content has no object with
     ///   the GUID, ``SimAnticsError/simantics(_:)`` if the ID is taken or 0.
@@ -231,8 +228,8 @@ public final class VM {
         return entity
     }
 
-    /// Creates an object, as `VMContext.CreateObjectInstance` does, and returns its group, or `nil`
-    /// if the content has no object with the GUID.
+    /// Creates an object, and returns its group, or `nil` if the content has no object with the
+    /// GUID.
     ///
     /// A multi-tile master definition creates one entity per part (each definition in the
     /// master's file with the same master ID and a sub-index), in file order; anything else creates
@@ -240,8 +237,8 @@ public final class VM {
     /// (``Entity/initialize()``, with the main parameter and stack object given), then the group
     /// is placed (``place(_:at:facing:flags:)``). If it doesn't fit, it stays out of the world.
     ///
-    /// A Sim (an object of type person) is created like any object, then set up as FreeSO's
-    /// `VMAvatar` sets one up (``Entity/setUpSim()``) when it initializes.
+    /// A Sim (an object of type person) is created like any object, then set up
+    /// (``Entity/setUpSim()``) when it initializes.
     ///
     /// - Throws: Any error an entry point throws.
     @discardableResult
@@ -280,12 +277,12 @@ public final class VM {
             entity.isAvatar = isAvatar
         }
         for entity in group.objects { try entity.initialize() }
-        // FreeSO ignores whether this worked; an object that didn't fit stays out of the world.
+        // Whether this worked doesn't matter: an object that didn't fit stays out of the world.
         try place(group, at: position, facing: direction)
         return group
     }
 
-    /// Deletes an entity, or with `wholeGroup`, every part of its object (`VMEntity.Delete`).
+    /// Deletes an entity, or with `wholeGroup`, every part of its object.
     ///
     /// While entities are running, deletion waits until the tick ends, after the random seed
     /// advances. A deleted entity leaves the entity list, the queries, the schedule, and its group,
@@ -314,21 +311,20 @@ public final class VM {
         }
         entity.group.remove(entity)
         // What it held goes out of the world, then, if the deleted object was on the lot, to the
-        // nearest spot that fits (FreeSO moves the deleted object to each one's position first).
+        // nearest spot that fits.
         for index in 0..<entity.totalSlots {
             guard let held = entity.slot(index) else { continue }
             entity.position = held.position
             try place(held.group, at: .outOfWorld, facing: held.direction)
             if !entity.position.isOutOfWorld { _ = try findLocation(for: held, near: entity, flags: []) }
         }
-        // A deleted entity never runs again. Its stack stays as FreeSO leaves it until the next tick
-        // starts, when nothing can still be running it; dropping it then breaks the frames' references.
+        // A deleted entity never runs again. Its stack stays until the next tick starts, when
+        // nothing can still be running it; dropping it then breaks the frames' references.
         deleted.append(entity)
     }
 
-    /// `VMFindLocationFor.FindLocationFor`: places an object at the reference's position in each
-    /// compass facing, then on rings of tiles around it, out to nine tiles, and returns whether
-    /// one fit.
+    /// Places an object at the reference's position in each compass facing, then on rings of
+    /// tiles around it, out to nine tiles, and returns whether one fit.
     ///
     /// - Throws: any error an entry point throws.
     func findLocation(for object: Entity, near reference: Entity, flags: PlaceRequestFlags) throws(SimAnticsError) -> Bool {
@@ -362,7 +358,7 @@ public final class VM {
     }
 
     /// Puts entities already on the lot into one new group, in the order given, as a saved lot
-    /// or a test's rebuilt lot needs (`VMMultitileGroup.Load`). Each leaves its old group.
+    /// or a test's rebuilt lot needs. Each leaves its old group.
     func regroup(_ parts: [Entity], isMultiTile: Bool, masterDefinition: OBJD?) {
         let group = MultitileGroup(isMultiTile: isMultiTile)
         for entity in parts {
@@ -422,13 +418,13 @@ public final class VM {
         scheduler.runTick(self)
     }
 
-    /// Queues an answer for an entity's waiting thread (`VMNetAsyncResponseCmd`).
+    /// Queues an answer for an entity's waiting thread.
     func queueAnswer(_ state: BlockingState, for objectID: Int16) {
         answers.append((objectID, state, isLoading ? ticksStarted + 1 : ticksStarted))
     }
 
     /// Hands each due answer to its thread, if the thread is still waiting on the same kind of
-    /// thing; otherwise it's dropped, as `VMNetAsyncResponseCmd` drops it.
+    /// thing; otherwise it's dropped.
     private func deliverAnswers() {
         guard !answers.isEmpty else { return }
         var later: [(objectID: Int16, state: BlockingState, queuedIn: Int)] = []
@@ -471,9 +467,9 @@ public final class VM {
     }
 
     /// Moves an entity without checking whether it fits, as loading a saved lot does: it leaves its
-    /// old place (footprint, room, tile, walls), then takes the new one, as FreeSO's position change
-    /// does, but without running the placement entry point. To place an object as the game does,
-    /// use ``place(_:at:facing:flags:)``.
+    /// old place (footprint, room, tile, walls), then takes the new one, but without running the
+    /// placement entry point. To place an object as the game does, use
+    /// ``place(_:at:facing:flags:)``.
     ///
     /// - Throws: any error a dynamic multi-tile entry point throws.
     public func move(_ entity: Entity, to position: LotPosition) throws(SimAnticsError) {
@@ -482,7 +478,7 @@ public final class VM {
         try takePosition(entity, runsPlacementEntryPoint: false)
     }
 
-    /// Places every part of a group, as `VMMultitileGroup.ChangePosition` does.
+    /// Places every part of a group.
     ///
     /// Each part's offset is turned to the facing (a quarter turn per compass point; the diagonals
     /// count as north) around the lead part, and each must pass ``Entity/placement(at:facing:flags:)``.
@@ -537,8 +533,7 @@ public final class VM {
         return PlacementResult()
     }
 
-    /// An offset turned clockwise by quarter turns, as FreeSO's rotation matrix turns it (exactly,
-    /// where FreeSO rounds a float rotation).
+    /// An offset turned clockwise by quarter turns, exactly.
     private static func turn(x: Int, y: Int, quarterTurns: Int) -> (Int, Int) {
         switch quarterTurns {
         case 1: (-y, x)
@@ -548,15 +543,14 @@ public final class VM {
         }
     }
 
-    /// The entities in a room, in object ID order (`VMRoomInfo.Entities`), or none for an unknown room.
+    /// The entities in a room, in object ID order, or none for an unknown room.
     func entities(inRoom room: UInt16) -> [Entity] {
         Int(room) < roomEntities.count ? roomEntities[Int(room)] : []
     }
 
-    /// `VMGameObject.PrePositionChange`: the entity leaves its place. Its footprint goes, it leaves
-    /// its room and tile, and its container's slot if it's in one; otherwise, in the world, a door
-    /// or window takes its style off the walls and the object stops using them. A Sim does the
-    /// first part only (`VMAvatar.PrePositionChange`).
+    /// The entity leaves its place. Its footprint goes, it leaves its room and tile, and its
+    /// container's slot if it's in one; otherwise, in the world, a door or window takes its style
+    /// off the walls and the object stops using them. A Sim does the first part only.
     func leavePosition(_ entity: Entity) {
         entity.footprint = nil
         unregisterPosition(entity)
@@ -564,18 +558,17 @@ public final class VM {
             container.clearSlot(Int(entity.containerSlot))
             return
         }
-        // A Sim has no walls to give back (`VMAvatar.PrePositionChange`).
+        // A Sim has no walls to give back.
         guard !entity.isAvatar else { return }
         guard !entity.position.isOutOfWorld, !architecture.isOutOfBounds(entity.position) else { return }
         try? entity.setArchitecturalWallStyles(to: 0)          // in range, so these can't fail
         try? entity.setWallUse(occupied: false, exclusive: entity.objectData[Int(ObjectVariable.exclusivePlacementFlags.rawValue)] & 2 != 0)
     }
 
-    /// `VMGameObject.PositionChange`: the entity takes its place. What it holds moves with it, and
-    /// it joins the room and tile; unless it's in a container, in the world a door or window puts
-    /// its style on the walls, the object marks the walls it uses,
-    /// a dynamic multi-tile object joins its neighbors, and it gets a footprint and (unless loading)
-    /// runs the placement entry point.
+    /// The entity takes its place. What it holds moves with it, and it joins the room and tile;
+    /// unless it's in a container, in the world a door or window puts its style on the walls, the
+    /// object marks the walls it uses, a dynamic multi-tile object joins its neighbors, and it gets
+    /// a footprint and (unless loading) runs the placement entry point.
     func takePosition(_ entity: Entity, runsPlacementEntryPoint: Bool) throws(SimAnticsError) {
         entity.setRoom(architecture.room(at: entity.position))
         // What it holds comes along.
@@ -587,7 +580,7 @@ public final class VM {
         registerPosition(entity)
         guard entity.container == nil else { return }
         // A Sim uses no walls and joins no neighbors, and only out of the world goes without a
-        // footprint (`VMAvatar.PositionChange`).
+        // footprint.
         if entity.isAvatar {
             guard !entity.position.isOutOfWorld else { return }
             entity.footprint = entity.obstacle(at: entity.position, facing: entity.direction)
@@ -638,7 +631,7 @@ public final class VM {
     ///
     /// As `RegeneratePortalInfo` and its `RefreshLighting` loop: every room's score starts at 0,
     /// then each room's light base room is worked out once (``computeRoomScore(base:)``). A room
-    /// that shares another's lighting keeps its own 0, as FreeSO's keeps its own lighting record.
+    /// that shares another's lighting keeps its own 0.
     private func rebuildRoomLists() {
         var lists = [[Entity]](repeating: [], count: architecture.rooms.count)
         for entity in entities {
@@ -658,8 +651,8 @@ public final class VM {
 
     // MARK: Room score
 
-    /// A room's score, −100 to 100, which a Sim's Room motive takes (`VMContext.GetRoomScore`); 0
-    /// for room 0, an unknown room, or a room whose lighting another room's stands for.
+    /// A room's score, −100 to 100, which a Sim's Room motive takes; 0 for room 0, an unknown
+    /// room, or a room whose lighting another room's stands for.
     ///
     /// It's low priority, and not to be read much into yet: it moves with how clean a room is,
     /// which comes from object decay, not ported. Ported only as far as the digest needs it.
@@ -678,10 +671,10 @@ public final class VM {
         computeRoomScore(base: base)
     }
 
-    /// FreeSO's score: the room impact (object data) of every entity in the base room's support
-    /// rooms, over their area in twelfths of a tile (at least 1), or over 30 outdoors, as a 32-bit
-    /// float truncated toward zero; less 10, or 15 outdoors; within −100 to 100. Kept from FreeSO:
-    /// "outdoors" is the last support room's, not the base room's.
+    /// The score: the room impact (object data) of every entity in the base room's support rooms,
+    /// over their area in twelfths of a tile (at least 1), or over 30 outdoors, as a 32-bit float
+    /// truncated toward zero; less 10, or 15 outdoors; within −100 to 100. "Outdoors" is the last
+    /// support room's, not the base room's.
     private func computeRoomScore(base: UInt16) {
         let rooms = architecture.rooms
         var area = 0, impact = 0
@@ -702,7 +695,7 @@ public final class VM {
         roomScoresStorage[Int(base)] = Int16(max(-100, min(100, score)))
     }
 
-    /// FreeSO refreshes a room when an object joins or leaves it, but only for an object that
+    /// A room is refreshed when an object joins or leaves it, but only for an object that
     /// lights it or adds to its score: one whose room impact is negative changes nothing until
     /// the next full refresh.
     private func refreshRoomScore(after entity: Entity, in room: UInt16) {
@@ -719,16 +712,15 @@ public final class VM {
         tileIndex[key] = list.isEmpty ? nil : list
     }
 
-    /// FreeSO's tile offset: out of the world is -1; otherwise tiles are numbered across, down, then
-    /// up, so a position past the lot's edge shares a key with another tile, as in FreeSO.
+    /// The tile offset: out of the world is -1; otherwise tiles are numbered across, down, then
+    /// up, so a position past the lot's edge shares a key with another tile.
     private func tileKey(_ position: LotPosition) -> Int {
         guard !position.isOutOfWorld else { return -1 }
         return Int(position.tileX) + Int(position.tileY) * lotSize.width
             + (Int(position.level) - 1) * lotSize.width * lotSize.height
     }
 
-    /// Lists a new object under its category, as `VM.AddEntity` does through
-    /// `VMObjectQueries.NewObject`: before its init runs, so usually under 0.
+    /// Lists a new object under its category: before its init runs, so usually under 0.
     private func listUnderCategory(_ entity: Entity) {
         changeCategory(of: entity, from: nil, to: entity.objectData[Int(ObjectVariable.category.rawValue)])
     }

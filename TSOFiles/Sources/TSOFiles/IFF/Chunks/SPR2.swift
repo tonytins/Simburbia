@@ -2,13 +2,13 @@ import Foundation
 
 /// A sprite with color, depth, and alpha: the object graphics of TSO.
 ///
-/// Ports FreeSO's `SPR2`. Reading the chunk reads each frame's header and keeps its
-/// run-length data; ``decode(frameAt:palette:)`` turns a frame into pixels with the palette
-/// its header names, which lives elsewhere in the IFF (a `PALT`), the way FreeSO decodes a
-/// frame only when it's first drawn.
+/// Reading the chunk reads each frame's header and keeps its run-length data;
+/// ``decode(frameAt:palette:)`` turns a frame into pixels with the palette its header
+/// names, which lives elsewhere in the IFF (a `PALT`), so a frame is decoded only when
+/// it's first drawn.
 ///
 /// Version 1000 locates frames with an offset table and sizes each by the next offset; version
-/// 1001 gives each frame its own size. Other versions have no frames, as in FreeSO.
+/// 1001 gives each frame its own size. Other versions have no frames.
 public struct SPR2: IFFChunk {
     public static let typeCode = "SPR2"
 
@@ -19,13 +19,13 @@ public struct SPR2: IFFChunk {
     public let defaultPaletteID: UInt32
     public let frames: [Frame]
 
-    /// One frame's header and run-length data (FreeSO's `SPR2Frame`).
+    /// One frame's header and run-length data.
     public struct Frame: Sendable, Hashable {
         public var width: Int
         public var height: Int
         public var flags: Flags
         /// The `PALT` to decode with: the chunk's default for version 1000, and for a frame
-        /// whose own ID is 0 or 0xA3A3, as FreeSO does.
+        /// whose own ID is 0 or 0xA3A3.
         public var paletteID: UInt16
         /// The palette index that stands for "nothing here".
         public var transparentColorIndex: UInt16
@@ -35,7 +35,7 @@ public struct SPR2: IFFChunk {
         public var encoded: Data
     }
 
-    /// What a frame holds (FreeSO tests these bits of `Flags`).
+    /// What a frame holds.
     public struct Flags: OptionSet, Sendable, Hashable {
         public var rawValue: UInt32
         public init(rawValue: UInt32) { self.rawValue = rawValue }
@@ -63,7 +63,7 @@ public struct SPR2: IFFChunk {
                 let total = UInt32(clamping: reader.remaining + reader.offset)
                 for (index, offset) in offsets.enumerated() {
                     try reader.seek(to: Int(offset))
-                    // FreeSO sizes a frame by the next offset (or the chunk's end) in unsigned
+                    // A frame is sized by the next offset (or the chunk's end) in unsigned
                     // arithmetic, then reads what's there: a size that wraps reads to the end.
                     let next = index + 1 < offsets.count ? offsets[index + 1] : total
                     let data = reader.readBytes(upTo: Int(next &- offset))
@@ -111,20 +111,19 @@ public struct SPR2: IFFChunk {
     }
 
     /// Decodes a frame with its palette, which the caller finds by ``Frame/paletteID``; pass
-    /// `nil` when the IFF has none, and every color is transparent black, as in FreeSO.
+    /// `nil` when the IFF has none, and every color is transparent black.
     ///
-    /// Floors and water ask for two more steps, FreeSO's `SPR2.ZAsAlpha` and `SPR2.FloorCopy`,
-    /// applied in FreeSO's order:
+    /// Floors and water ask for two more steps, applied in this order:
     ///
     /// - `floorCopy`: the frame decodes one pixel wider, as a floor tile becomes a texture that
     ///   repeats (127 by 64 becomes 128 by 64). The extra column is transparent, except where a run
-    ///   of empty rows (`0x04`) fills it with the transparent color at depth 255, as FreeSO's does.
-    ///   Then each pixel that isn't opaque takes the pixel half the frame away, across and down,
-    ///   if that one is (alpha 254 or more), so a tile's corners hold its neighbors' halves. A frame
-    ///   still odd in width is widened once more first, as FreeSO's is. The result is a texture: it
-    ///   keeps its color only, and has no depth or palette indices.
+    ///   of empty rows (`0x04`) fills it with the transparent color at depth 255. Then each pixel
+    ///   that isn't opaque takes the pixel half the frame away, across and down, if that one is
+    ///   (alpha 254 or more), so a tile's corners hold its neighbors' halves. A frame still odd in
+    ///   width is widened once more first. The result is a texture: it keeps its color only, and
+    ///   has no depth or palette indices.
     /// - `depthAsAlpha`: each pixel's depth becomes its alpha (0 below 32), with its color scaled
-    ///   by it, as water's are. The frame must have color and depth, where FreeSO would crash.
+    ///   by it, as water's are. The frame must have color and depth.
     ///
     /// - Throws: ``SpriteError/missingLayer(_:)`` when `depthAsAlpha` meets a frame without
     ///   color or depth; any error of the plain decode.
@@ -145,7 +144,7 @@ public struct SpriteImage: Sendable, Hashable {
     /// Where the frame's top left sits relative to the object, in pixels.
     public var position: SIMD2<Int16>
     /// Red, green, blue, and alpha for each pixel, row by row; `nil` when the frame has no
-    /// color. A transparent pixel keeps its palette color with alpha 0, as FreeSO's do.
+    /// color. A transparent pixel keeps its palette color with alpha 0.
     public var rgba: [UInt8]?
     /// Each pixel's depth, 0 nearest and 255 farthest; `nil` when the frame has none.
     public var depth: [UInt8]?
@@ -153,7 +152,7 @@ public struct SpriteImage: Sendable, Hashable {
     public var paletteIndices: [UInt8]?
 }
 
-/// Why a sprite frame couldn't be decoded. FreeSO crashes on each of these.
+/// Why a sprite frame couldn't be decoded.
 public enum SpriteError: Error, Equatable, Sendable {
     /// The chunk has no frame at that index.
     case noSuchFrame(Int)
@@ -170,17 +169,17 @@ public enum SpriteError: Error, Equatable, Sendable {
 }
 
 enum SpriteDecoder {
-    /// Decodes an `SPR2` frame as FreeSO's `SPR2Frame.Decode` does.
+    /// Decodes an `SPR2` frame.
     ///
-    /// Kept from FreeSO: rows the data never reaches stay transparent black with depth 0; the
-    /// unwritten end of a written row gets depth 255 and keeps its color; a run of transparent
-    /// pixels takes the transparent color with alpha 0 and depth 255; 5-bit alpha is scaled by
-    /// 8.2258… and truncated to a byte, wrapping past 31 as FreeSO's cast does (TSO's skill
-    /// objects store 200, which FreeSO draws at alpha 109); unknown commands do nothing.
+    /// Quirks real content relies on: rows the data never reaches stay transparent black with
+    /// depth 0; the unwritten end of a written row gets depth 255 and keeps its color; a run
+    /// of transparent pixels takes the transparent color with alpha 0 and depth 255; 5-bit
+    /// alpha is scaled by 8.2258… and truncated to a byte, wrapping past 31 (TSO's skill
+    /// objects store 200, which comes out as alpha 109); unknown commands do nothing.
     ///
-    /// `widened` decodes the frame one pixel wider, as FreeSO does when its sprite has `FloorCopy`
-    /// set: rows are laid out on the wider stride, the unwritten end of a row is filled only to
-    /// the frame's own width, and a run of empty rows fills the whole wider row.
+    /// `widened` decodes the frame one pixel wider when its sprite has `FloorCopy` set: rows are
+    /// laid out on the wider stride, the unwritten end of a row is filled only to the frame's own
+    /// width, and a run of empty rows fills the whole wider row.
     static func decodeSPR2(_ frame: SPR2.Frame, palette: PALT?, widened: Bool = false) throws(SpriteError) -> SpriteImage {
         let ownWidth = frame.width
         let width = widened ? frame.width + 1 : frame.width
@@ -205,7 +204,7 @@ enum SpriteDecoder {
         let transparent = try color(transparentIndex)
 
         func offset(_ x: Int, _ y: Int) throws(SpriteError) -> Int {
-            // FreeSO indexes y * width + x with no check on x, so a long row runs into the next.
+            // Pixels index y * width + x with no check on x, so a long row runs into the next.
             let offset = y * width + x
             guard offset >= 0, offset < pixelCount else { throw .pixelOutOfBounds(row: y, column: x) }
             return offset
@@ -252,9 +251,9 @@ enum SpriteDecoder {
                             var c = try color(Int(index))
                             if withAlpha {
                                 let alpha = try byte()
-                                // A C# double-to-byte cast: truncated toward zero, then wrapped. Kept
-                                // because the skill objects' sprites store 200, and FreeSO's result is
-                                // the best evidence of how they looked.
+                                // A C# double-to-byte cast: truncated toward zero, then wrapped.
+                                // Kept because the skill objects' sprites store 200, and the
+                                // wrapped result is the best evidence of how they looked.
                                 c.3 = UInt8(truncatingIfNeeded: Int(Double(alpha) * 8.2258064516129032258064516129032))
                                 bytes -= 1
                             }
@@ -292,7 +291,7 @@ enum SpriteDecoder {
                         break
                     }
                 }
-                // The rest of the row is transparent: FreeSO sets its depth and leaves its color.
+                // The rest of the row is transparent: its depth is set and its color left.
                 if hasDepth {
                     while x < ownWidth {
                         depth?[try offset(x, y)] = 255
@@ -325,8 +324,8 @@ enum SpriteDecoder {
                            rgba: rgba, depth: depth, paletteIndices: indices)
     }
 
-    /// FreeSO's `SPR2Frame.CopyZToAlpha`: each pixel's alpha becomes its depth, or 0 where the
-    /// depth is under 32, and its color is scaled by that alpha, rounding down.
+    /// Each pixel's alpha becomes its depth, or 0 where the depth is under 32, and its color
+    /// is scaled by that alpha, rounding down.
     static func copyDepthToAlpha(_ image: inout SpriteImage) throws(SpriteError) {
         guard var rgba = image.rgba else { throw .missingLayer("color") }
         guard let depth = image.depth, depth.count * 4 == rgba.count else { throw .missingLayer("depth") }
@@ -340,10 +339,10 @@ enum SpriteDecoder {
         image.rgba = rgba
     }
 
-    /// FreeSO's `SPR2Frame.FloorCopy`, on a frame decoded widened: an odd width gains a transparent
-    /// column, then every pixel under alpha 254 takes the pixel half the frame away across and
-    /// down (wrapping) when that one is at least 254. Depth and palette indices are dropped, as
-    /// FreeSO's no longer line up with the pixels. A frame without color only loses those.
+    /// On a frame decoded widened, an odd width gains a transparent column, then every pixel under
+    /// alpha 254 takes the pixel half the frame away across and down (wrapping) when that one is at
+    /// least 254. Depth and palette indices are dropped, as they no longer line up with the pixels.
+    /// A frame without color only loses those.
     static func floorCopy(_ image: inout SpriteImage) {
         image.depth = nil
         image.paletteIndices = nil

@@ -2,9 +2,7 @@ import Foundation
 
 /// A typed IFF chunk, parsed from an ``IFFChunkRecord``.
 ///
-/// Each conforming type ports one of FreeSO's `IffChunk` subclasses and keeps
-/// its parsing behavior. Chunks are values: parse one with
-/// ``IFFFile/chunk(_:id:)`` or ``IFFFile/chunks(_:)``.
+/// Chunks are values: parse one with ``IFFFile/chunk(_:id:)`` or ``IFFFile/chunks(_:)``.
 public protocol IFFChunk: Sendable {
     /// The four-character type code this type parses, such as `BHAV`.
     static var typeCode: String { get }
@@ -23,7 +21,7 @@ public protocol IFFChunk: Sendable {
 public enum IFFChunkError: Error, Equatable, Sendable {
     /// The chunk data ends early.
     case truncated(typeCode: String, id: UInt16, EndOfDataError)
-    /// The chunk data is malformed in a way FreeSO's reader would also reject.
+    /// The chunk data is malformed.
     case invalid(typeCode: String, id: UInt16, reason: String)
 }
 

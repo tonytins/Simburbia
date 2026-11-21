@@ -2,8 +2,8 @@ import Foundation
 
 /// A FAR version 1 archive, used for object, floor, wall, and semi-global files.
 ///
-/// Matches FreeSO's `FAR1Archive`. The archive keeps its bytes in memory;
-/// ``init(contentsOf:variant:)`` maps the file instead of copying it.
+/// The archive keeps its bytes in memory; ``init(contentsOf:variant:)`` maps the file instead of
+/// copying it.
 public struct FAR1Archive: Sendable {
     /// The two layouts of version 1, which differ only in the file name length field.
     public enum Variant: Sendable {

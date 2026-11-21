@@ -1,7 +1,7 @@
 extension Primitives {
     /// Wakes the stack object (opcode 49).
     ///
-    /// Ports FreeSO's `VMNotifyOutOfIdle`. The stack object's next run is brought forward, as
+    /// The stack object's next run is brought forward, as
     /// ``VMScheduler/rescheduleInterrupt(_:)`` does, and its thread is marked interrupted, which
     /// ends a Sleep at once. With no stack object it does nothing. Either way it's true.
     public enum NotifyStackObjectOutOfIdle: Primitive {

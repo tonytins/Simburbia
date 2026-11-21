@@ -3,7 +3,6 @@ import TSOFiles
 /// Behavior and data that SimAntics code reads through its code owner: an object's
 /// files, or a global or semi-global file.
 ///
-/// Ports FreeSO's `GameIffResource`.
 public protocol IFFResource: Sendable {
     /// The IFF that holds the code.
     var mainFile: IFFFile { get }
@@ -27,7 +26,6 @@ public struct PatchReport: Sendable, Equatable {
 
 /// A global or semi-global: an IFF from `objectdata/globals` and its tuning.
 ///
-/// Ports FreeSO's `GameGlobalResource`.
 public struct GlobalResource: IFFResource {
     /// The file name without extension, in lower case.
     public let name: String
@@ -59,7 +57,7 @@ public struct GlobalResource: IFFResource {
 
 /// An object's files: its IFF, its sprite IFF, its tuning, and its semi-global.
 ///
-/// Ports FreeSO's `GameObjectResource`. One resource is shared by every object in the same IFF.
+/// One resource is shared by every object in the same IFF.
 public struct ObjectResource: IFFResource {
     /// Chunk types that live in the sprite IFF when one is loaded.
     public static let spriteChunkTypes: Set<String> = ["SPR2", "SPR#", "DGRP"]
@@ -71,7 +69,7 @@ public struct ObjectResource: IFFResource {
     public let tuning: OTFFile?
     public let semiGlobal: GlobalResource?
     public let patches: PatchReport
-    /// Why the tuning couldn't be loaded, if it exists but failed. FreeSO ignores these silently.
+    /// Why the tuning couldn't be loaded, if it exists but failed.
     public let tuningFailure: String?
     /// Routines by name for Run Tree by Name: the object's BHAVs, then its semi-global's.
     /// A name is the chunk label up to its first NUL, and the first routine with a name wins.
@@ -126,8 +124,7 @@ public struct ObjectResource: IFFResource {
     }
 
     /// The drawing group with an ID and the file it's in, which its sprites and palettes come
-    /// from (FreeSO's `Get<DGRP>`, then the chunk's `ChunkParent`): the object's IFF, else its
-    /// sprite IFF. `nil` when neither has it.
+    /// from: the object's IFF, else its sprite IFF. `nil` when neither has it.
     public func drawGroup(id: UInt16) throws(IFFChunkError) -> (group: DGRP, file: IFFFile)? {
         if let group = try mainFile.chunk(DGRP.self, id: id) { return (group, mainFile) }
         if let sprites, let group = try sprites.chunk(DGRP.self, id: id) { return (group, sprites) }

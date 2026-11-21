@@ -248,10 +248,10 @@ struct Simburbia: ParsableCommand {
         }
     }
 
-    /// Shows the login window over the loading screen's art, with Simburbia's version at the
-    /// bottom right (as TSO's login screen shows its own at the bottom left, and FreeSO's after it),
-    /// until a lot is picked to play. Returns `nil` if the window was closed or a login screenshot
-    /// was taken, having closed the window.
+    /// Shows the login window over the loading screen's art, with Simburbia's version at the bottom
+    /// right (TSO's login screen showed its own at the bottom left), until a lot is picked to play.
+    /// Returns `nil` if the window was closed or a login screenshot was taken, having closed the
+    /// window.
     private func showLogin(_ loading: LoadingScreen, _ login: LoginWindow) throws -> LotChoice? {
         let version = "Version \(GitVersion.version)"
         while true {

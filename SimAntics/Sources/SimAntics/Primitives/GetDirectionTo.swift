@@ -3,11 +3,10 @@ import Foundation
 extension Primitives {
     /// The direction from one object to the stack object, in eighths of a turn (opcode 12).
     ///
-    /// Ports FreeSO's `VMGetDirectionTo`. The object is read from a variable; FreeSO's operand
-    /// reader makes it the caller's ID (`MyObject` 11) when flag 1 is clear, so the caller is never
-    /// used directly. The angle is FreeSO's: `atan2(dx, -dy)` between the two positions, normalized
-    /// and taken modulo a full turn, then rounded half to even into 0 to 8 (8 is a hair under a
-    /// full turn). A missing stack object or object fails, as FreeSO's null reference does.
+    /// The object is read from a variable; it's the caller's ID (`MyObject` 11) when flag 1 is
+    /// clear, so the caller is never used directly. The angle is `atan2(dx, -dy)` between the two
+    /// positions, normalized and taken modulo a full turn, then rounded half to even into 0 to 8 (8
+    /// is a hair under a full turn). A missing stack object or object fails.
     public enum GetDirectionTo: Primitive {
         public static let name = "get_direction_to"
         public static let opcode: UInt8 = 12
@@ -47,7 +46,7 @@ extension Primitives {
                 }
             }
 
-            /// The object as FreeSO's reader leaves it: the caller's ID when flag 1 is clear.
+            /// The object: the caller's ID when flag 1 is clear.
             var effectiveObject: Variable {
                 flags & 1 == 0 ? Variable(.myObject, Int16(ObjectVariable.objectID.rawValue)) : object
             }

@@ -2,9 +2,8 @@ import Foundation
 
 /// ASCII text decoding that matches .NET's `Encoding.ASCII`.
 ///
-/// FreeSO's readers decode names and labels with `Encoding.ASCII`, which turns
-/// every byte above 0x7F into `?`. Decoding the same way keeps names, and
-/// therefore lookups by name, identical.
+/// Names and labels decode as .NET's `Encoding.ASCII` decodes them, every byte above 0x7F becoming
+/// `?`, so names, and lookups by name, come out the same whatever their bytes.
 public enum ASCII {
     /// Decodes bytes as ASCII, keeping NUL characters.
     public static func decode(_ bytes: some Sequence<UInt8>) -> String {
