@@ -10,8 +10,8 @@ final class LoginWindow {
     private static let titles = ["Start Game", "Join Game"]
 
     private let frame: WindowFrame
-    private let start: UIScriptView
-    private let join: UIScriptView
+    private let start: UIView
+    private let join: UIView
     private let size: Vector2
     private let lots: [LotChoice]
     private var tab = 0
@@ -22,8 +22,8 @@ final class LoginWindow {
         frame.showsCloseButton = false
         frame.toolbarItems = ["Start", "Join"]
         frame.selectedToolbarIndex = 0
-        start = UIScriptView(script: startScript, theme: .simburbia)
-        join = UIScriptView(script: joinScript, theme: .simburbia)
+        start = UIView(script: startScript, theme: .simburbia)
+        join = UIView(script: joinScript, theme: .simburbia)
         size = Vector2(x: startScript.window.size.width, y: startScript.window.size.height + Float(WindowFrame.titleHeight))
         // Deleting and making lots wait for their own step; joining waits for networking.
         for name in ["delete", "new", "play"] { start.setDisabled(true, named: name) }
@@ -49,7 +49,7 @@ final class LoginWindow {
         return Vector2(x: content.x, y: content.y)
     }
 
-    private var view: UIScriptView { tab == 0 ? start : join }
+    private var view: UIView { tab == 0 ? start : join }
 
     /// The lot picked in the list, if any.
     private var picked: LotChoice? {

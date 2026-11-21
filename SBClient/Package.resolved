@@ -1,5 +1,5 @@
 {
-  "originHash" : "9a275bb2f6002d35b323a13e78e1e1a13848bdc14e56b8408f587bdeed205855",
+  "originHash" : "4399f3709ec7cd03798848651d5b817cf703ef67e61de25f915202910fec86b7",
   "pins" : [
     {
       "identity" : "gitversion",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/tonytins/Hudini",
       "state" : {
         "branch" : "main",
-        "revision" : "653d9bdb76966a9ff98203ef72a9b5fe1f2f3e72"
+        "revision" : "ebb4684ed4f277bf944e2e5597b00eb441334a3b"
       }
     },
     {
@@ -62,6 +62,15 @@
       "state" : {
         "revision" : "5aa8bdb1ddd11de51cb30b0ba575f4b05a9a169d",
         "version" : "1.4.0"
+      }
+    },
+    {
+      "identity" : "swift-cst",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tonytins/swift-cst.git",
+      "state" : {
+        "revision" : "8b3a06b2a31fd5b6d605cae496548f2393f6dfd4",
+        "version" : "0.4.0"
       }
     },
     {

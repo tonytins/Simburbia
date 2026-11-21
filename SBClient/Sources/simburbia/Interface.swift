@@ -49,7 +49,7 @@ struct Interface {
 /// view, placed where the window starts until it's dragged.
 final class DocumentWindow {
     let frame: WindowFrame
-    let view: UIScriptView
+    let view: UIView
     private let size: Vector2
     private let start: () -> Vector2
 
@@ -58,7 +58,7 @@ final class DocumentWindow {
     /// - Parameter start: where the window's top left starts, worked out when it's first placed.
     init(title: String, script: UIScript, start: @escaping () -> Vector2) {
         frame = WindowFrame(title: title, theme: .simburbia)
-        view = UIScriptView(script: script, theme: .simburbia)
+        view = UIView(script: script, theme: .simburbia)
         // The document is the content; the frame adds its title bar above.
         size = Vector2(x: script.window.size.width, y: script.window.size.height + Float(WindowFrame.titleHeight))
         self.start = start

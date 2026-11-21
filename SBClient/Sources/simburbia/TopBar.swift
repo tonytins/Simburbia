@@ -11,11 +11,11 @@ import Raylib
 /// the background, the speed arrows, and the help button.
 final class TopBar {
     private let script: UIScript
-    private let view: UIScriptView
+    private let view: UIView
 
     init(script: UIScript) {
         self.script = script
-        view = UIScriptView(script: script, theme: .simburbia)
+        view = UIView(script: script, theme: .simburbia)
     }
 
     /// The bar's height, from its document.
