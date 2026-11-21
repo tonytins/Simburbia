@@ -199,6 +199,13 @@ interaction-cancelled flag; its routine sees it through Idle For Input and the h
 decides when to stop. An interrupt exit ends the running action with the whole stack, and an
 action whose object is deleted resets the Sim. A reset empties the queue.
 
+**By hand.** A client asks through `VM`: `availableInteractions(on:for:)` lists what a Sim may
+choose on an object now, as a pie menu would; `queueInteraction(_:on:for:)` queues one by number
+as a player choosing it (user-driven, checked first) and returns its ID; and
+`cancelInteraction(id:for:)` cancels it. A request turned down throws an
+`InteractionRequestError`: not a Sim, no such interaction, no action tree, or not allowed now.
+Call them between ticks.
+
 An object's `UseCount` (object data) counts the Sims with any part of it as the callee of a
 routine on their stack or an action in their queue.
 
