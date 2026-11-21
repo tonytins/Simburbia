@@ -3,8 +3,8 @@ import Testing
 import TSOContent
 @testable import SimAntics
 
-/// Sims on the lot as FreeSO's `VMAvatar` places them, on `mock-lot-sim.xml` with the mock Sim
-/// joined on 3,3: a small obstacle, its own placement rules, and a hand.
+/// Sims on the lot, on `mock-lot-sim.xml` with the mock Sim joined on 3,3: a small obstacle,
+/// its own placement rules, and a hand.
 @Suite struct SimPlacementTests {
     private func withJoinedSim(_ body: (VM, Entity, Entity) throws -> Void) throws {
         let vm = try VM(content: try GameContent(.init(gameDirectory: mockInstall)), seed: 1)
@@ -19,7 +19,7 @@ import TSOContent
 
     @Test func aSimTakesASmallSquareAndHasOneHand() throws {
         try withJoinedSim { _, sim, _ throws in
-            // 3,3's center is (56, 56); FreeSO's obstacle is 3 each way, whatever the facing.
+            // 3,3's center is (56, 56); the obstacle is 3 each way, whatever the facing.
             #expect(sim.footprint == Obstacle(53, 53, 59, 59))
             #expect(sim.obstacle(at: .center(ofTileX: 1, y: 1, level: 1), facing: .east) == Obstacle(21, 21, 27, 27))
             #expect(sim.totalSlots == 1 && sim.slotHeight(0) == 5 && sim.slotHeight(9) == 5)

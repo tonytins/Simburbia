@@ -86,7 +86,7 @@ func drawGroupsReadEveryVersion(version: UInt16) throws {
 }
 
 @Test func laterDrawGroupVersionsReadAs20003() throws {
-    // FreeSO reads any version from 20003 up with 20003's layout.
+    // Any version from 20003 up reads with 20003's layout.
     var bytes = drawGroup(version: 20003)
     bytes.data.replaceSubrange(0..<2, with: [0x26, 0x4E]) // 20006
     let group = try DGRP(record: bytes)
@@ -95,7 +95,7 @@ func drawGroupsReadEveryVersion(version: UInt16) throws {
 }
 
 @Test(arguments: [
-    // Direction, world rotation, the direction FreeSO looks for.
+    // Direction, world rotation, the direction looked for.
     (UInt32(0x10), UInt32(0), UInt32(0x10)),
     (0x10, 1, 0x40),
     (0x10, 2, 0x01),
@@ -239,7 +239,7 @@ private func pixel(_ image: SpriteImage, _ x: Int, _ y: Int) -> [UInt8] {
     #expect(pixel(alphaOnly, 0, 0) == [3, 6, 9, 200])
     #expect(pixel(alphaOnly, 0, 1) == [1, 2, 3, 255])
     // Widened, the first row's extra column keeps depth 0 (alpha 0), while the empty-row run fills
-    // the whole wider row, as FreeSO's does; the copy then spreads that opaque row.
+    // the whole wider row; the copy then spreads that opaque row.
     let water = try chunk.decode(frameAt: 0, palette: try rampPalette(), floorCopy: true, depthAsAlpha: true)
     #expect(water.width == 2)
     #expect([pixel(water, 0, 0), pixel(water, 1, 0), pixel(water, 0, 1), pixel(water, 1, 1)] == Array(repeating: [1, 2, 3, 255], count: 4))
@@ -266,7 +266,7 @@ private func pixel(_ image: SpriteImage, _ x: Int, _ y: Int) -> [UInt8] {
 }
 
 @Test func alphaPastFiveBitsWrapsAsFreeSOs() throws {
-    // 40 × 8.2258… is 329, which FreeSO's byte cast wraps to 73. TSO's skill objects store 200
+    // 40 × 8.2258… is 329, which a byte cast wraps to 73. TSO's skill objects store 200
     // (1,645, wrapped to 109), so Simburbia keeps the wrap.
     var rows = SpriteRows()
     rows.row([(2, 1, [7, 2, 40, 0xEE])])
@@ -334,7 +334,7 @@ typealias SpriteRun = (UInt16, Int, [UInt8])
 @Test(arguments: [
     // A run past the frame's end.
     (UInt32(0x3), [(UInt16(1), 3, [UInt8](repeating: 1, count: 6))], SpriteError.pixelOutOfBounds(row: 0, column: 2)),
-    // Depth runs in a frame without depth, which FreeSO crashes on.
+    // Depth runs in a frame without depth.
     (0x1, [(1, 1, [1, 1])], .missingLayer("depth")),
     // A run cut short.
     (0x3, [(1, 2, [1, 1, 1])], .truncated),

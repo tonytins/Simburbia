@@ -3,7 +3,7 @@ import Testing
 import TSOContent
 @testable import SimAntics
 
-/// Hand-built lots, checked against what FreeSO's fill does.
+/// Hand-built lots, checked room by room.
 struct RoomTests {
     /// Walls around a rectangle of tiles, as blueprints store them.
     private func box(_ architecture: inout Architecture, x: Range<Int>, y: Range<Int>, style: UInt16 = 1,

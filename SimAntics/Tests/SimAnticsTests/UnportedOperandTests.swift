@@ -1,11 +1,10 @@
 import Testing
 @testable import SimAntics
 
-/// The operands of primitives this port decodes without running, checked against FreeSO's
-/// layouts. Until 2026-11-20 `fso-oracle operands` compared them with FreeSO on a real install.
+/// The operands of primitives this port decodes without running, checked against their layouts.
 @Suite struct UnportedOperandTests {
     @Test func everyOperandEncodesBackToTheBytesFreeSOWrites() {
-        // Bytes FreeSO's Write would produce: unread and padding bytes are zero.
+        // The bytes an operand writes: unread and padding bytes are zero.
         let samples: [UInt8: [UInt8]] = [
             1: [7, 0, 0, 0, 0, 0, 0, 0], 9: [2, 1, 0, 0, 0, 0, 0, 0],
             13: [5, 1, 2, 3, 4, 0, 0, 0], 14: [0x34, 0x12, 0, 0, 0, 0, 0, 0], 20: [0x34, 0x12, 9, 0, 0, 0, 0, 0],

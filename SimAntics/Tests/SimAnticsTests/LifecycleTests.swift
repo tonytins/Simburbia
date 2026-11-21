@@ -69,7 +69,7 @@ func addToAttribute(_ index: Int16, _ amount: Int16, true truePointer: UInt8 = 2
             try chair.initialize()
             vm.tick()
             #expect(vm.reportedErrors == [.init(objectID: 1, tick: 1, error: .simantics("Unknown expression type"))])
-            // Cleanup ran twice: FreeSO resets the callee and then the caller, here the same entity.
+            // Cleanup ran twice: the callee is reset and then the caller, here the same entity.
             #expect(chair.attribute(at: 2) == 2)
             #expect(chair.thread.stack.map(\.routine.id) == [4096])  // and main was pushed again
             let seed = vm.random.seed

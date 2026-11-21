@@ -1,4 +1,4 @@
-// The loading screen, as FreeSO's LoadingScreen paces it.
+// The loading screen's pacing.
 
 import Foundation
 import Hudini

@@ -98,7 +98,7 @@ private func sampleAnimation(singleSet: Bool = false) -> Data {
         #expect(arm.properties?.first?["flag"] == "c" && arm.properties?.first?["note"] == "a")
     }
 
-    /// Floats are little-endian although the rest is big-endian, as FreeSO's `ReadFloat` reads them.
+    /// Floats are little-endian although the rest is big-endian.
     @Test func readsFloatsLittleEndian() throws {
         var bytes = sampleAnimation()
         let durationOffset = 4 + 2 + 5
@@ -107,7 +107,7 @@ private func sampleAnimation(singleSet: Bool = false) -> Data {
         #expect(try Animation(bytes: bytes).duration == 4_000)
     }
 
-    /// Times are signed: TSO's files hold negative ones, which FreeSO reads as unsigned.
+    /// Times are signed: TSO's files hold negative ones.
     @Test func readsNegativeTimes() throws {
         var bytes = sampleAnimation()
         let first = try #require(bytes.firstRange(of: Data([0, 0, 0x01, 0xF4])))  // 500, the first event's time
@@ -187,7 +187,7 @@ private func sampleAnimation(singleSet: Bool = false) -> Data {
         }
     }
 
-    /// Bytes past the last motion are ignored, as in FreeSO.
+    /// Bytes past the last motion are ignored.
     @Test func ignoresTrailingBytes() throws {
         #expect(try Animation(bytes: sampleAnimation() + Data([1, 2, 3])) == Animation(bytes: sampleAnimation()))
     }

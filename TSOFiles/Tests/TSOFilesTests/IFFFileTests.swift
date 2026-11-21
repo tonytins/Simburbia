@@ -107,7 +107,7 @@ func makeIFF(_ chunks: [ChunkFixture]) -> Data {
         let reread = try IFFFile(bytes: bytes)
         #expect(reread.chunks == chunks)
         #expect(reread.resourceMapOffset == 0)
-        // The header and the first chunk's size, as FreeSO writes them.
+        // The header and the first chunk's size.
         #expect(bytes.prefix(13) == Data("IFF FILE 2.5:".utf8))
         #expect(Array(bytes[68..<72]) == [0, 0, 0, 79])
     }

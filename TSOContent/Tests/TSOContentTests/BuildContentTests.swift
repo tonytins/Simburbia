@@ -89,7 +89,7 @@ func buildInstall(floorArchives: [String: [(name: String, contents: Data)]] = [:
     @Test func anEntryThatDoesntReadKeepsItsIDAndIsReported() throws {
         let install = try buildInstall()
         let floors = try FloorProvider(files: GameFileIndex(root: install.root))
-        // broken.flr took 257, so the entries after it keep FreeSO's numbers.
+        // broken.flr took 257, so the entries after it keep their numbers.
         #expect(floors.entry(id: 257) == nil)
         #expect(floors.entry(id: 259)?.name == "Marble")
         #expect(floors.failures.map(\.path) == ["housedata/floors/floors.far/broken.flr", "housedata/floors3/floors3.far/marble.flr"])
@@ -109,7 +109,7 @@ func buildInstall(floorArchives: [String: [(name: String, contents: Data)]] = [:
         #expect(global.far?.id == 1 && global.medium?.id == 257 && global.near?.id == 513)
         let missingSprites = try #require(try floors.floor(id: 2))
         #expect(missingSprites.far == nil && missingSprites.near == nil)
-        // tile.flr is in floors3.far too, without sprites; FreeSO's FAR1Provider reads that one.
+        // tile.flr is in floors3.far too, without sprites; the later archive's is the one read.
         let tile = try #require(try floors.floor(id: 256))
         #expect(tile.far == nil)
         #expect(try floors.floor(id: 258)?.near?.id == 513)
@@ -159,7 +159,8 @@ func buildInstall(floorArchives: [String: [(name: String, contents: Data)]] = [:
         let empty = try #require(try walls.pattern(id: 200))
         #expect(empty.far == nil && empty.medium == nil && empty.near == nil)
         #expect(try walls.pattern(id: 257)?.medium?.id == 1793)
-        // FreeSO's tolerance: an ID no archive has is drawn as the first archive pattern.
+        // A tolerance lots rely on: an ID no archive has is drawn as the first archive
+        // pattern.
         #expect(try walls.pattern(id: 4000)?.near?.id == 2049)
     }
 

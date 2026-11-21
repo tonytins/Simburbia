@@ -21,8 +21,7 @@ import TSOFiles
         #expect(document.tuning.entries.map(\.name) == ["SimMotives", "LotMotives"])
     }
 
-    /// Exactly the keys FreeSO's `VMAvatarMotiveDecay` and `VMMotiveChange.ScaleRate` read, and
-    /// every value a number.
+    /// Exactly the keys motive decay and Set Motive Deltas read, and every value a number.
     @Test func hasEveryMotiveKeyFreeSOReads() throws {
         let tuning = try GameContent.defaultTuning()
         let sim = try #require(tuning.entry(named: "SimMotives"))

@@ -45,7 +45,7 @@ private func lot(_ floors: [(x: Int, y: Int, level: Int, pattern: UInt16)]) thro
 }
 
 @Test func poolShapesTurnWithTheView() {
-    // FreeSO rotates the four bits by (4 − rotation) mod 4.
+    // The four bits rotate by (4 − rotation) mod 4.
     #expect(LotScene.shape(0b0001, worldRotation: 0) == 0b0001)
     #expect(LotScene.shape(0b0001, worldRotation: 1) == 0b1000)
     #expect(LotScene.shape(0b0001, worldRotation: 2) == 0b0100)

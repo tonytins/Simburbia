@@ -217,7 +217,7 @@ private func runToTheEnd(_ opcode: UInt8, _ operand: [UInt8], on sim: Entity, st
 }
 
 @Suite struct HandOperandTests {
-    /// The operands read and write as FreeSO's `VMReachOperand` and `VMChangeSuitOrAccessoryOperand`.
+    /// The Reach and Change Suit operands read and write back their bytes.
     @Test func operandsRoundTrip() {
         let reach = Primitives.Reach.Operand(bytes: [1, 0, 2, 0, 3, 0, 0, 0])
         #expect(reach.mode == 1 && reach.grabOrDrop == 2 && reach.slotParameter == 3)

@@ -3,9 +3,9 @@ import Testing
 import TSOFiles
 @testable import SimAntics
 
-/// Room score as FreeSO's `RefreshLighting` and `RefreshRoomScore` work it out, on an 8 by 8 lot
-/// with a walled room from (2, 3) to (4, 4): 6 tiles, indoors. Low priority (it moves with object
-/// decay, which isn't ported), so these pin down the formula and its quirks only.
+/// Room score, on an 8 by 8 lot with a walled room from (2, 3) to (4, 4): 6 tiles, indoors. Low
+/// priority (it moves with object decay, which isn't ported), so these pin down the formula and
+/// its quirks only.
 @Suite struct RoomScoreTests {
     private let roomImpact = Int(ObjectVariable.roomImpact.rawValue)
 
@@ -52,8 +52,8 @@ import TSOFiles
         }
     }
 
-    /// FreeSO refreshes a room when an object comes or goes only if it adds to the score or lights
-    /// the room; an object that takes away changes nothing until the next full refresh.
+    /// A room is refreshed when an object comes or goes only if it adds to the score or lights the
+    /// room; an object that takes away changes nothing until the next full refresh.
     @Test func aNegativeImpactWaitsForTheNextFullRefresh() throws {
         try withRoom { vm, lamp, inside throws in
             lamp.objects[0].objectData[roomImpact] = -30
@@ -65,7 +65,7 @@ import TSOFiles
     }
 
     /// A room that shares another's lighting (a fence lets light through) keeps its own record at
-    /// 0, as FreeSO's keeps its own lighting record, never refreshed.
+    /// 0, never refreshed.
     @Test func aRoomLitByAnotherScoresZero() throws {
         try withRoom(style: 2) { vm, lamp, inside throws in
             #expect(vm.architecture.rooms[Int(inside)].lightBaseRoom == 1)

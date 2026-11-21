@@ -62,7 +62,7 @@ private func playToTheEnd(_ operand: Primitives.AnimateSim.Operand, on sim: Enti
     }
 
     /// An animation that ends having run fewer events than expected makes up the rest, numbered
-    /// from the count run so far (FreeSO's bath drain case).
+    /// from the count run so far (the bath's drain needs this).
     @Test func makesUpExpectedEventsAtTheEnd() throws {
         let (vm, sim) = try mockSim()
         let runs = try playToTheEnd(.init(animationID: 2, expectedEventCount: 4), on: sim, in: vm)
@@ -153,7 +153,7 @@ private func playToTheEnd(_ operand: Primitives.AnimateSim.Operand, on sim: Enti
         let operand = Primitives.AnimateSim.Operand(bytes: [0x10, 0, 2, 9, 1, 0x20, 3, 0])
         #expect(operand.animationID == 16 && operand.localEventNumber == 2 && operand.source == 1)
         #expect(operand.flags == 0x20 && operand.expectedEventCount == 3 && operand.storesEventInLocal && operand.mode == 0)
-        // FreeSO reads the byte after the event number as padding and writes it back as zero.
+        // The byte after the event number is padding, written back as zero.
         #expect(operand.encoded() == [0x10, 0, 2, 0, 1, 0x20, 3, 0])
         #expect(Primitives.AnimateSim.Operand(bytes: [0, 0, 0, 0, 0, 0x11, 0, 0]).mode == 3)
     }

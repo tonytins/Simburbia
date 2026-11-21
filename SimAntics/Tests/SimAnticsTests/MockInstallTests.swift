@@ -25,8 +25,8 @@ let mockRegisterGUID: UInt32 = 0x4D4F_4306, mockSimGUID: UInt32 = 0x4D4F_4307
         #expect(entity.objectData[42] == 3 && entity.objectData[4] == 1)
     }
 
-    /// Creating the mock Sim sets it up from its body strings, as FreeSO's `VMAvatar` does, with
-    /// nothing to report; other objects aren't Sims.
+    /// Creating the mock Sim sets it up from its body strings, with nothing to report; other
+    /// objects aren't Sims.
     @Test func creatingTheMockSimSetsItUp() throws {
         let vm = try vm()
         let chair = try #require(try vm.createObject(guid: mockChairGUID)?.objects.first)
@@ -64,7 +64,8 @@ let mockRegisterGUID: UInt32 = 0x4D4F_4306, mockSimGUID: UInt32 = 0x4D4F_4307
         let chair = try #require(try vm.createObject(guid: mockChairGUID)?.objects.first)
         let routine = try #require(vm.routine(named: "mock tree", in: lamp.object))
         chair.thread.stack.removeAll()
-        // FreeSO's RunInMyStack takes out the routine it just pushed when nothing else was running.
+        // Running a tree in its own stack takes out the routine it just pushed when nothing else
+        // was running.
         #expect(try chair.thread.runInMyStack(routine, codeOwner: lamp.object, arguments: [0, 0, 0, 0], stackObject: lamp) == false)
         #expect(chair.thread.isCheck && chair.thread.stack.isEmpty)
         vm.tick()
@@ -205,8 +206,8 @@ let mockRegisterGUID: UInt32 = 0x4D4F_4306, mockSimGUID: UInt32 = 0x4D4F_4307
         #expect(vm.reportedErrors.isEmpty)
     }
 
-    /// FreeSO's join tries nowhere else when the fallback tile is taken: on `mock-lot.xml` the
-    /// chair stands on 3,3, and the Sim stays out of the world.
+    /// Joining tries nowhere else when the fallback tile is taken: on `mock-lot.xml` the chair
+    /// stands on 3,3, and the Sim stays out of the world.
     @Test func aSimWithNowhereToArriveStaysOutOfTheWorld() throws {
         let vm = try VM(content: try GameContent(.init(gameDirectory: mockInstall)), seed: 1)
         try vm.load(try Blueprint(xml: try Data(contentsOf: lotFile)))

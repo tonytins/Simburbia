@@ -173,7 +173,7 @@ private func withMockSim(_ body: (VM, Entity) throws -> Void) throws {
             sim.motiveData[Motive.fun] = 50
             for _ in 0..<4 { sim.tickMotiveChange(Motive.fun) }
             #expect(sim.motiveData[Motive.fun] == 52)
-            // It stays set at the limit, as FreeSO's does.
+            // It stays set at the limit.
             #expect(sim.sim.motiveChanges[Motive.fun].perHourChange == 9000)
         }
     }
@@ -256,7 +256,7 @@ private func withMockSim(_ body: (VM, Entity) throws -> Void) throws {
 
     @Test func failsWhereFreeSOWould() throws {
         try withMockSim { vm, sim throws in
-            // Mood doesn't decay, so it has no lot weight (FreeSO indexes the names with -1).
+            // Mood doesn't decay, so it has no lot weight.
             #expect(throws: SimAnticsError.indexOutOfRange("motive 3 has no lot weight")) {
                 try run(Operand(delta: Variable(.literal, 1), max: Variable(.literal, 1), motive: UInt8(Motive.mood), flags: 2), on: vm, caller: sim)
             }

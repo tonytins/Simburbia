@@ -198,7 +198,7 @@ func aTilesTopCornerTurnsWithTheView(rotation: UInt32, corner: SIMD2<Float>) {
     var cuts = [Bool](repeating: false, count: 100)
     #expect(LotScene.applyCut(&cuts, of: architecture, level: 1, x: rect.x, y: rect.y, width: rect.width, height: rect.height))
     #expect(cuts[3 * 10 + 3] && !cuts[7 * 10 + 7])
-    // FreeSO's test for a bare tile needs the tile below it, so the last row always counts as walled.
+    // The test for a bare tile needs the tile below it, so the last row always counts as walled.
     var edge = [Bool](repeating: false, count: 100)
     LotScene.applyCut(&edge, of: architecture, level: 1, x: 7, y: 9, width: 1, height: 1)
     #expect(edge[9 * 10 + 7])

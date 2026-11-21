@@ -92,8 +92,8 @@ struct FileFormatRealInstallTests {
         #expect(tables > 0)
     }
 
-    /// The INI files FreeSO's client reads. Others may be malformed: `sys/nametohostmap.ini`
-    /// repeats a section, which FreeSO's reader rejects too, but no code loads that file.
+    /// The INI files the client reads. Others may be malformed: `sys/nametohostmap.ini`
+    /// repeats a section, but nothing loads that file.
     @Test(arguments: ["sys/gameentry.ini", "sys/cityselector.ini"])
     func readsTheINIFilesTheClientUses(path: String) throws {
         let directory = try #require(gameDirectory)

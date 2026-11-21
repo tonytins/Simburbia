@@ -171,7 +171,7 @@ func gameDurationsLeaveOutWhatsZero(minutes: Double, text: String) {
                   (2, SIMD3(6, 0, 8), SIMD3(5, 0, 7)),                           // BottomRight: (3,0,3), (-3,0,-3)
                   (3, SIMD3(6, 0, 7), SIMD3(5, 0, 8))])                          // BottomLeft: (3,0,0), (-3,0,3)
 func spriteDepthRunsFromTheFarCornerTowardTheViewer(worldRotation: UInt32, back: SIMD3<Float>, front: SIMD3<Float>) {
-    // FreeSO's BackOffForRot and FrontDirForRot, in its 3 world units to a tile.
+    // The back and front of a sprite's depth line, for each rotation.
     let line = LotScene.depthLine(corner: SIMD3(5, 0, 7), worldRotation: worldRotation)
     #expect(line.back == back && line.front == front)
 }
@@ -208,7 +208,7 @@ func spriteDepthRunsFromTheFarCornerTowardTheViewer(worldRotation: UInt32, back:
     let floors = scene.architecture.filter { if case .floor = $0.kind { true } else { false } }
     #expect(!floors.isEmpty)
     for floor in floors where floor.level == 1 {
-        // Objects stand on the floor line, y = 0, as do FreeSO's floors.
+        // Objects stand on the floor line, y = 0, as floors do.
         #expect(abs(floor.center.y + floor.size.y / 2) < 1e-6)
     }
     #expect(ground.center.y + ground.size.y / 2 < 0)
@@ -219,7 +219,7 @@ private func simdLength(_ vector: SIMD3<Float>) -> Float {
 }
 
 @Test func zoomsHaveTSOsPixelsPerUnit() {
-    // √(tile width² / 2): FreeSO's OneUnitDistance for 32-, 64-, and 128-pixel tiles.
+    // √(tile width² / 2) for 32-, 64-, and 128-pixel tiles.
     #expect(abs(SpriteZoom.near.pixelsPerUnit - 90.50967) < 0.001)
     #expect(abs(SpriteZoom.medium.pixelsPerUnit - 45.254834) < 0.001)
     #expect(abs(SpriteZoom.far.pixelsPerUnit - 22.627417) < 0.001)
@@ -277,7 +277,7 @@ private func simdLength(_ vector: SIMD3<Float>) -> Float {
 }
 
 @Test func hiddenObjectsAreNeitherDrawnNorPicked() throws {
-    // Portals and other controllers hide themselves with object data 34, as FreeSO's VMEntity reads it.
+    // Portals and other controllers hide themselves with object data 34.
     let session = try mockSession()
     var sprites: [ObjectSprite] = []
     LotScene.objectSprites(of: session.vm, zoom: .near, worldRotation: 0, library: SpriteLibrary(), into: &sprites)

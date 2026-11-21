@@ -46,8 +46,8 @@ import TSOFiles
         }
     }
 
-    /// The upper part of stairs or an elevator lays the floor it stands on upstairs, or clears
-    /// it, as FreeSO's user placement does; a lot's elevator once disagreed by a room for want of it.
+    /// The upper part of stairs or an elevator lays the floor it stands on upstairs, or clears it;
+    /// a lot's elevator once disagreed by a room for want of it.
     @Test func userPlacementLaysOrClearsTheFloorUnderAnUpperPart() throws {
         let levelOffset = 54
         try withLot(lampWords: [levelOffset: 1]) { vm, lamp throws in

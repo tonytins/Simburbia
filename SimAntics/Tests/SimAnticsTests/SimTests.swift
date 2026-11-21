@@ -53,7 +53,7 @@ private func withSim(_ strings: [String]?, ownWalks: [String]? = nil,
         }
     }
 
-    /// FreeSO's draws: an outfit list draws `NextRandom(count − 1)`, a name list `NextRandom(count)`.
+    /// The draws: an outfit list draws `NextRandom(count − 1)`, a name list `NextRandom(count)`.
     @Test func picksOutfitsAndNamesWithFreeSOsDraws() throws {
         let strings = bodyStrings(randomHeads: "0x1;0x2", randomBodies: "0xA;0xB;0xC", names: "Ann;Bo;Cy")
         try withSim(strings) { vm, sim, before throws in
@@ -82,7 +82,8 @@ private func withSim(_ strings: [String]?, ownWalks: [String]? = nil,
         }
     }
 
-    /// Where FreeSO crashes (DIFF-32), Simburbia reports against the Sim and carries on.
+    /// Where the strings are off (DIFF-32), Simburbia reports against the Sim and
+    /// carries on.
     @Test func reportsWhatFreeSOWouldCrashOn() throws {
         try withSim(nil) { vm, sim, _ throws in
             #expect(sim.sim.kind == .adult && sim.motiveData[Motive.hunger] == 100)
@@ -132,8 +133,8 @@ private func withSim(_ strings: [String]?, ownWalks: [String]? = nil,
         }
     }
 
-    /// A refused person data write reports false through the variable scopes, as FreeSO's
-    /// `SetVariable` returns `SetPersonData`'s result, so Expression's assignment goes false.
+    /// A refused person data write reports false through the variable scopes, so Expression's
+    /// assignment goes false.
     @Test func aRefusedPersonDataWriteIsFalseThroughEveryScope() throws {
         try withSim(bodyStrings()) { vm, sim, _ throws in
             let (_, frame) = try vm.makePrimitiveFrame(opcode: 7, operand: [0, 0, 0, 0], caller: sim)
@@ -166,7 +167,7 @@ private func withSim(_ strings: [String]?, ownWalks: [String]? = nil,
             #expect(sim.personData[PersonData.tickCounter] == 2)
             // This install has no tuning.dat, so there's no motive decay: the first tick says so, once.
             #expect(vm.reportedErrors.map(\.error) == [.content(.missingFile("tuning.dat"))])
-            // Stored as 1, but read through the (absent) job as 0, as FreeSO's digest reads it.
+            // Stored as 1, but read through the (absent) job as 0, as the digest reads it.
             #expect(try sim.personData[PersonData.onlineJobStatusFlags] == 1 && sim.personDatum(PersonData.onlineJobStatusFlags) == 0)
         }
     }

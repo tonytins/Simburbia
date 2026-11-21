@@ -31,7 +31,7 @@ func makeFAR3(_ files: [(name: String, id: AssetID, contents: Data)]) -> Data {
     return writer.bytes
 }
 
-/// A 2 by 1, 24-bit BMP: magenta, then near-magenta that FreeSO also masks.
+/// A 2 by 1, 24-bit BMP: magenta, then near-magenta that's masked too.
 private func magentaBMP(_ second: [UInt8] = [0xFE, 0x02, 0xFE]) -> Data {
     var writer = ByteWriter()
     writer.ascii("BM")
@@ -62,7 +62,7 @@ private func magentaBMP(_ second: [UInt8] = [0xFE, 0x02, 0xFE]) -> Data {
         #expect(graphics.duplicates == [setup])
         #expect(graphics.failures.map(\.path) == ["uigraphics/broken.dat"])
         #expect(graphics.ids == [AssetID(fileID: 7, typeID: 1), setup])
-        // One of FreeSO's loose files, and an ID with no graphic.
+        // One of the loose files, and an ID with no graphic.
         #expect(try graphics.data(id: AssetID(packed: 0x0000_CBFB_0000_0001)) == Data("loose".utf8))
         #expect(try graphics.data(id: AssetID(fileID: 99, typeID: 1)) == nil)
     }
@@ -82,7 +82,7 @@ private func magentaBMP(_ second: [UInt8] = [0xFE, 0x02, 0xFE]) -> Data {
         let graphics = UIGraphicsProvider(files: try GameFileIndex(root: install.root))
         let image = try #require(try graphics.image(id: bitmap))
         #expect(image.rgba == [0, 0, 0, 0, 0, 0, 0, 0])
-        // Red 240 is past FreeSO's range, so the second pixel stays.
+        // Red 240 is past the mask's range, so the second pixel stays.
         #expect(try graphics.image(id: almost)?.rgba.suffix(4) == [0xF0, 0x02, 0xFE, 255])
         #expect(throws: ContentError.self) { try graphics.image(id: png) }
     }
