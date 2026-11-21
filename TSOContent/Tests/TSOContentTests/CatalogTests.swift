@@ -5,10 +5,10 @@ import Testing
 @Suite struct ObjectCatalogTests {
     @Test func readsTheMockCatalog() throws {
         let catalog = try GameContent(.init(gameDirectory: mockInstall)).catalog()
-        #expect(catalog.entries.map(\.guid) == [0x4D4F_4301, 0x4D4F_4302, 0x4D4F_4305, 0x4D4F_4306, 0x4D4F_4307])
-        #expect(catalog.entries.map(\.category) == [1, 2, 3, 4, 5])
-        #expect(catalog.entries.map(\.price) == [50, 80, 20, 60, 40])
-        #expect(catalog.entries.map(\.name) == ["Mock Chair", "Mock Table", "Mock Lamp", "Mock Register", "Mock Sim"])
+        #expect(catalog.entries.map(\.guid) == [0x4D4F_4301, 0x4D4F_4302, 0x4D4F_4305, 0x4D4F_4306, 0x4D4F_4307, 0x4D4F_4308])
+        #expect(catalog.entries.map(\.category) == [1, 2, 3, 4, 5, 6])
+        #expect(catalog.entries.map(\.price) == [50, 80, 20, 60, 40, 10])
+        #expect(catalog.entries.map(\.name) == ["Mock Chair", "Mock Table", "Mock Lamp", "Mock Register", "Mock Sim", "Mock Ball"])
     }
 
     @Test func leavesOutEntriesWithANegativeCategory() throws {

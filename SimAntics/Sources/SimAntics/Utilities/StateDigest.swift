@@ -14,7 +14,7 @@
 /// current frame and speed as 32-bit float bits, and whether it plays backwards, loops, and has
 /// ended (8 each), and how many events it has run (8). An action is its routine ID (16), callee's
 /// object ID (16, 0 for none), interaction number (32), priority (16), mode (8), ID (16), and
-/// whether it's cancelled (8). Simburbia has no action queue yet, so its Sims write an empty one.
+/// whether it's cancelled (8).
 public enum StateDigest {
     public static let version = 1
 
@@ -27,7 +27,8 @@ public enum StateDigest {
     }
 
     /// The digested fields, readable, one line per entity in object ID order: `  id guid x y level direction data=... stack=routine:ip,...`,
-    /// and for a Sim, ` person=... motives=... animations= carry=- queue=`.
+    /// and for a Sim, ` person=... motives=... animations= carry=- queue=`. A queued action is
+    /// `routine:callee:number:priority:mode:id`, with `c` when it's cancelled.
     public static func lines(of vm: VM) -> [String] {
         vm.entities.map { entity in
             "  \(entity.objectID) \(String(format: "%08x", entity.object.guid)) \(entity.position.x) \(entity.position.y) "
@@ -37,7 +38,8 @@ public enum StateDigest {
                     ? " person=\(readPersonData(of: entity).map(String.init).joined(separator: ",")) "
                         + "motives=\(entity.motiveData.map(String.init).joined(separator: ",")) "
                         + "animations=\(entity.sim.animations.map(describe).joined(separator: ",")) "
-                        + "carry=\(entity.sim.carryAnimation.map(describe) ?? "-") queue="
+                        + "carry=\(entity.sim.carryAnimation.map(describe) ?? "-") "
+                        + "queue=\(entity.thread.queue.map(describe).joined(separator: ","))"
                     : "")
         }
     }
@@ -47,6 +49,11 @@ public enum StateDigest {
     private static func describe(_ animation: AnimationState) -> String {
         "\(animation.clip.name)@\(animation.frame)x\(animation.speed)"
             + (animation.playsBackwards ? "b" : "") + (animation.loops ? "l" : "") + (animation.endReached ? "e" : "")
+    }
+
+    private static func describe(_ action: QueuedAction) -> String {
+        "\(action.actionTree.id):\(action.callee?.objectID ?? 0):\(action.interactionNumber):\(action.priority):"
+            + "\(action.mode.rawValue):\(action.id)" + (action.isCancelled ? "c" : "")
     }
 
     /// A Sim's person data through ``Entity/personDatum(_:)``, so worked-out values (such as
@@ -102,7 +109,16 @@ public enum StateDigest {
                 } else {
                     append(UInt8(0))
                 }
-                append(Int32(0))  // the action queue
+                append(Int32(entity.thread.queue.count))
+                for action in entity.thread.queue {
+                    append(action.actionTree.id)
+                    append(action.callee?.objectID ?? 0)
+                    append(action.interactionNumber)
+                    append(action.priority)
+                    append(action.mode.rawValue)
+                    append(action.id)
+                    append(action.isCancelled)
+                }
             }
         }
         return bytes

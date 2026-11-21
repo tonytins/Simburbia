@@ -19,8 +19,8 @@ public final class Registers {
 
 /// An entity's interpreter: a stack of routines and the registers they share.
 ///
-/// An entity's interpreter, without the interaction queue and routing frames yet:
-/// instructions, subroutine calls, exit codes and branches, running `main` when the stack
+/// An entity's interpreter, without routing frames yet, and holding an action queue it doesn't run
+/// yet: instructions, subroutine calls, exit codes and branches, running `main` when the stack
 /// empties, check threads (``evaluateCheck(entity:frame:)``), and error handling. An error
 /// resets the frame's caller and callee, and is reported at most once every 600 ticks (20
 /// seconds).
@@ -54,6 +54,9 @@ public final class VMThread {
     public var blockingState: BlockingState?
     /// Instructions run since the entity's tick began (`TicksThisFrame`).
     var instructionsThisTick = 0
+    /// The interactions waiting for the entity, the running one first (`Queue`). Nothing runs
+    /// them yet.
+    public internal(set) var queue: [QueuedAction] = []
 
     private var continuesExecution = false
 

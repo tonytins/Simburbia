@@ -160,6 +160,32 @@ than 500,000 instructions in one tick fails as an infinite loop.
 set the object aside. A primitive Simburbia doesn't run yet throws it when it runs; it never
 silently takes a branch. Opcodes no TSO primitive uses take the true branch.
 
+## Interactions and the action queue
+
+An object's pie menu is its interaction table: the `TTAB` its definition names, in its own file
+or, when that has none, in its semi-global, with the menu text in the `TTAs` beside it.
+`Interaction.interactions(of:)` reads it into `Interaction`s, in table order. Each has a number
+(its index in the strings, which content uses to name it), a name, an action tree and a check
+tree, its flags (`Interaction.Flags`: visitors allowed, run immediately, available while
+carrying, and so on), who may use it (`Interaction.Permissions`, from the TSO flags), and the
+motives it advertises. TSO's Sims don't choose their own actions, so the advertisements and the
+autonomy threshold are kept as read and not scored.
+
+A Sim's interactions wait in its thread's `queue`, the running one first. `QueuedAction(_:of:)`
+makes one from an interaction: user-driven priority (50), normal mode, the object as callee and
+stack object, and four zero arguments. A missing action tree gives no action, and a missing
+check tree leaves the action always offered. Priorities run from idle (0) to maximum (100);
+the modes are normal, parent idle, parent exit, and idle.
+
+Nothing runs the queue yet: that's phase D2. An action tree on the stack still reports
+`unsupported`.
+
+```swift
+let ball = try #require(try vm.createObject(guid: 0x4D4F_4308)?.objects.first)
+let pickUp = try Interaction.interactions(of: ball.object)[1]    // "Pick Up"
+let action = try QueuedAction(pickUp, of: ball)                  // nil without an action tree
+```
+
 ## Variables
 
 Primitives read and write values through a `Variable`: a scope and a data value, usually an index
@@ -201,7 +227,7 @@ ones; the names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 | 12 | `GetDirectionTo` | The direction from another object to the stack object, in eighths of a turn |
 | 15 | `Breakpoint` | A debugger breakpoint; with no debugger it doesn't stop, so it's always true |
 | 16 | `FindLocationFor` | Places the stack object near a reference, out of the world, or along a facing |
-| 17 | `IdleForInput` | Waits a number of ticks, or until an interaction or an interrupt (no interaction queue yet) |
+| 17 | `IdleForInput` | Waits a number of ticks, or until an interaction or an interrupt (the queue doesn't run yet) |
 | 18 | `RemoveObjectInstance` | Deletes the caller or the stack object, or every part of it |
 | 23 | `PlaySound` | Plays a sound event (headless, as on a lot server: changes nothing) |
 | 25 | `TransferFunds` | Moves money between the caller, the stack object, owners, and the game; waits a tick for the answer, or only tests in a check tree |
@@ -323,6 +349,7 @@ Change Suit Or Accessory (6) keeps what drawing will need: the appearances bound
 
 ## Comparing runs
 
-`StateDigest.hex(of:)` hashes the VM state (seed, entities, positions, object data, stacks). Equal
-digests after the same ticks mean two runs agree. The study runs each lot twice and compares
+`StateDigest.hex(of:)` hashes the VM state (seed, entities, positions, object data, stacks, and
+for Sims their person data, motives, animations, and action queue). Equal digests after the same
+ticks mean two runs agree. The study runs each lot twice and compares
 digests this way; when runs differ, the first tick whose digest differs points at the problem.

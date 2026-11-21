@@ -19,9 +19,9 @@ It follows the layout of a real install, with only what the content system needs
 
 | File | Holds |
 | --- | --- |
-| `packingslips/objecttable.xml` | The four objects below, by GUID |
+| `packingslips/objecttable.xml` | The objects below, by GUID |
 | `packingslips/catalog.xml` | Their catalog entries (made-up prices; the parts aren't for sale) |
-| `objectdata/objects/objiff.far` | `mockchair.iff`, `mocktable.iff`, `mocklamp.iff`, `mockregister.iff`, and `mocksim.iff` |
+| `objectdata/objects/objiff.far` | `mockchair.iff`, `mocktable.iff`, `mocklamp.iff`, `mockregister.iff`, `mocksim.iff`, and `mockball.iff` |
 | `objectdata/objects/objspf.far` | `mockchair.spf`: made-up sprites (a palette, `SPR2` versions 1000 and 1001 using every run command, `SPR#` in both byte orders, and `DGRP` versions 20000, 20001, and 20004). DGRP 0 is the chairs' own (base graphic 0 plus graphic 0), with near images for north and east, so the client draws them. Two cover edge cases: `SPR#` #201 is big-endian version 1001 (DIFF-26 in the scorecard), and `SPR2` #102 has alpha 40, past the 5 bits the field holds, which wraps to 73 |
 | `objectdata/globals/global.iff` | One global routine (256) that returns true, and the Sim's walk (`STR#` 150) and swim (`STR#` 158) animation names, made up |
 | `tuning.dat` | The global tuning a Sim's motives read, made up by `generators/mock_tuning.py`: `simmotives` (small decay rates, 16 waking hours) and `lotmotives` (a weight of 1 for every motive in the None category, which the mock lots have, and made-up weights for the others that don't divide 1000 evenly, so Set Motive Deltas' scaling truncates as on a real install) |
@@ -42,6 +42,7 @@ It follows the layout of a real install, with only what the content system needs
 | `0x4D4F4305` | Mock Lamp | A one-tile object whose main runs a routine by name |
 | `0x4D4F4306` | Mock Register | A one-tile object whose main moves money |
 | `0x4D4F4307` | Mock Sim | A one-tile person (object type `person`) whose main counts runs in attribute 0. Its body strings (`STR#` 200, `BodyStringID`) make it an adult named Mock Sim, and its animation table (`STR#` 129) names, from 1, `mock-stand`, `mock-dance`, `mock-walk`, and `mock-missing`, which no file has, for Animate Sim |
+| `0x4D4F4308` | Mock Ball | A one-tile object with interactions (below) |
 
 The GUIDs spell `MOC` followed by a number, so they can't be mistaken for a real object's.
 
@@ -53,6 +54,14 @@ The lamp's main is its own instead. It makes the lamp the stack object, then use
 Name with string table 300 (`STR#` 300: "mock tree", "no such tree") to run "mock tree" (`BHAV`
 4098, which adds 1 to attribute 1) on its own stack and on the stack object's, to look up the name
 it doesn't have, and to push "mock tree" as a subroutine.
+
+The ball is the object a Sim uses. Its interaction table (`TTAB` 128, version 10, field-encoded
+as TSO's are) has two interactions, named in `TTAs` 128. "Dance With" (`BHAV` 4098) plays the
+ball's animation 1 (`STR#` 129: `mock-dance`) on the Sim with Animate Sim, and has no check tree.
+"Pick Up" (`BHAV` 4099) reaches for the ball, taking it in hand, then drops it beside the Sim; its
+check tree is the semi-global's 8192, it advertises one motive, and only the owner, roommates,
+and visitors may use it. Its `CT - Grab` tree (`BHAV` 4100), which an object runs when a reach
+takes it, adds 1 to attribute 1. The ball has no sprites.
 
 The register's main is its own too. It makes itself the stack object, then uses Transfer Funds
 to be paid 100 by the game, pay 30 back, and fail to pay 1,000, each waiting a tick for its
@@ -91,11 +100,12 @@ chunk type, a quirk to cover. Update the tables above when you do, and keep ever
 
 `generators/` keeps the scripts that made some of the files, to show how they were built:
 `mock_sim.py` gave the Sim its body strings, animation names, first skeleton, and tuning,
-`mock_build.py` wrote the walls and floors, `mock_tuning.py` writes `tuning.dat` (replacing
+`mock_build.py` wrote the walls and floors, `mock_ball.py` adds the ball,
+`mock_tuning.py` writes `tuning.dat` (replacing
 `mock_sim.py`'s, whose weights were all 1), and `mock_avatar.py` makes the Sim's body from
 `GameData/` (replacing `mock_sim.py`'s one-bone skeleton and naming the outfits in the body strings).
 `mock_sim.py` ran once on the committed files and refuses to run again on files it has already
 patched; `mock_build.py` writes only the files that are missing, so deleting one remakes it; and
-`mock_tuning.py` and `mock_avatar.py` rewrite everything they make each run (`python3
+`mock_ball.py`, `mock_tuning.py`, and `mock_avatar.py` rewrite everything they make each run (`python3
 generators/mock_avatar.py .` here, with ImageMagick for the textures), byte for byte the same. The script that
 made `objspf.far` wasn't kept.

@@ -7,4 +7,5 @@
   <I g="0x4D4F4305" n="mocklamp" o="Mock Lamp" m="0" i="0"/>
   <I g="0x4D4F4306" n="mockregister" o="Mock Register" m="0" i="0"/>
   <I g="0x4D4F4307" n="mocksim" o="Mock Sim" m="0" i="0"/>
+  <I g="0x4D4F4308" n="mockball" o="Mock Ball" m="0" i="0"/>
 </ObjectInfoTable>
