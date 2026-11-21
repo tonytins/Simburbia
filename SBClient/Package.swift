@@ -16,6 +16,8 @@ let package = Package(
         .package(path: "../SimAntics"),
         // The owner's interface library, which NSOInterface grew into; it has no releases yet.
         .package(url: "https://github.com/tonytins/Hudini", branch: "main"),
+        // The CST text Hudini reads too; the owner's library.
+        .package(url: "https://github.com/tonytins/swift-cst.git", from: "0.4.0"),
         .package(url: "https://github.com/tonytins/raylib-swift", branch: "main"),
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.6.0"),
         // The owner's build-tool plugin: the version from GitVersion.txt and the commits since.
@@ -39,6 +41,7 @@ let package = Package(
             .product(name: "Logging", package: "swift-log"),
             .product(name: "Raylib", package: "raylib-swift"),
             .product(name: "SimAntics", package: "SimAntics"),
+            .product(name: "SwiftCST", package: "swift-cst"),
             .product(name: "TSOConfig", package: "TSOContent"),
             .product(name: "TSOContent", package: "TSOContent"),
             .product(name: "TSOFiles", package: "TSOFiles"),

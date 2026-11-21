@@ -95,7 +95,7 @@ In order:
        `Lots` and the player's folder, Play through the loading screen, and Join shown
        but disabled until networking.
    - [ ] D. The client reorganized, before routing (owner's decision, 2026-11-21), in five steps:
-     - [ ] D1. Scaffolding: AGENTS.md treats the owner's libraries (Hudini, raylib-swift,
+     - [x] D1. Scaffolding: AGENTS.md treats the owner's libraries (Hudini, raylib-swift,
        swift-cst, GitVersion) as first-party, and lets the client, which is the game, use raylib
        throughout; swift-cst becomes the client's own dependency; and Comic Neue and Fira Mono,
        under the SIL Open Font License, go in `Interface/fonts` with their licenses.
@@ -380,6 +380,7 @@ chunks) can land whenever TS1 hybrid mode is needed; nothing in TSO mode waits o
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-11-21 | patch | The first client's step D1: AGENTS.md treats the owner's libraries (Hudini, raylib-swift, swift-cst, GitVersion) as first-party and lets the client, the game, use raylib throughout; swift-cst 0.4.0 becomes the client's own dependency (it was Hudini's already, so nothing new is fetched); and Comic Neue Regular and Fira Mono Regular, from Google Fonts' repository under the SIL Open Font License, go in `Interface/fonts` with their licenses, unused until D5. |
 | 2026-11-21 | patch | The first client gains step D, planned in five steps by the owner's decision: the owner's libraries first-party, the client allowed raylib throughout, a root manifest so `swift run simburbia` runs it, its files grouped by job with `LotScene` folded in, `.uix` documents and swift-cst's `UIText`, every window in Hudini's `WindowManager`, and Comic Neue and Fira Mono. |
 | 2026-11-21 | minor | Queen Margaret's fourth pass, step D5, which finishes phase D: queueing interactions by hand. `VM` gains `availableInteractions(on:for:)` (a pie menu's choices), `queueInteraction(_:on:for:)` (user-driven, checked first, turned down with an `InteractionRequestError`), and `cancelInteraction(id:for:)`. The client updates Hudini to current main for its `WindowManager` (bringing in swift-cst as Hudini's dependency; `UIScriptView` is now `UIView`), and gains a drop-down terminal on Ctrl+Shift+C, the first window in that manager: `join` brings the install's template person (or MockInstall's Sim), and `menu`, `queue`, `cancel`, and `show` act for it, with `TerminalCommands` tested without a window. While the terminal has the keyboard, the game's keys wait. Left for later: moving the loading text from Hudini's deprecated `CSTCatalog` to swift-cst's `UIText`, and moving the other windows into the manager. |
 | 2026-11-21 | minor | Queen Margaret's fourth pass, step D4b, added by the owner before D5: refusals. An unhappy Sim refuses through content, not autonomy: skill, job, and fun objects call the global's "Refuse Moody?" (391) or "Refuse Fun Object?" (408), 47 calls on 1.1097.1.0, which compare a motive with a threshold, play a refusal, and end the interaction. Look Towards (22) modes 0 (the head, 100 uses) and 1 (the body toward the camera, 42, which TSO doesn't do) go true; modes 2 to 5 (245) wait for routing in phase E. `RefusalTests` runs "Refuse Moody?" on the template person: a good mood goes on, a bad one refuses. The census's `pending` count goes from 4,426 to 4,190, overstated as Snap's was. |

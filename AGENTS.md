@@ -191,7 +191,13 @@ print, and are freer.
   the scorecard lists. Don't attribute every mechanism to the engine it was first read in.
 - **Independent packages**. Each package builds and tests on its own, and dependencies point one
   way. Libraries don't declare `platforms:`.
-- **Dependencies as needed**. Take one when it earns its place, and say why.
+- **Dependencies as needed**. Take one when it earns its place, and say why. The owner's own
+  libraries ([Hudini](https://github.com/tonytins/Hudini),
+  [raylib-swift](https://github.com/tonytins/raylib-swift),
+  [swift-cst](https://github.com/tonytins/swift-cst), and
+  [GitVersion](https://github.com/tonytins/GitVersion)) are first-party: use them wherever they
+  fit, following their main branch or latest release. Still say when one is added, and update the
+  callers when one changes.
 - **No EA data in the repository (strict)**. Tests build synthetic files in code or use
   `MockInstall`. Results files hold names, sizes, chunk IDs, and GUIDs only. Document formats and
   how the code reads them, but never paste or reconstruct game data.
@@ -216,6 +222,8 @@ print, and are freer.
   two disagree.
 - **The libraries never import raylib**. Rendering reads simulation state and never writes it.
   If something can't be tested without a window, it belongs in the client.
+- **The client is the game**, so any part of it may import raylib. Keep what can be tested
+  without a window testable that way.
 - **raylib's examples are the reference**. Read the one closest to what you're writing. A frame
   is `BeginDrawing`, the drawing, `EndDrawing`; textures load after `InitWindow` and unload before
   `CloseWindow`, never inside the frame loop.
