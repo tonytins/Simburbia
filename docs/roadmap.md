@@ -94,6 +94,21 @@ In order:
      - [x] C3. The Start/Join window of the owner's mockup, over the loading background: lots from
        `Lots` and the player's folder, Play through the loading screen, and Join shown
        but disabled until networking.
+   - [ ] D. The client reorganized, before routing (owner's decision, 2026-11-21), in five steps:
+     - [ ] D1. Scaffolding: AGENTS.md treats the owner's libraries (Hudini, raylib-swift,
+       swift-cst, GitVersion) as first-party, and lets the client, which is the game, use raylib
+       throughout; swift-cst becomes the client's own dependency; and Comic Neue and Fira Mono,
+       under the SIL Open Font License, go in `Interface/fonts` with their licenses.
+     - [ ] D2. The move: a `Package.swift` at the root holds the client, so `swift run simburbia`
+       runs it; `SBClient` becomes `Client`, its files grouped into folders by job, with
+       `LotScene` folded into the one client target. CI, packaging, and the docs follow.
+     - [ ] D3. Interface files: the UIScript documents become `.uix`, and the loading text moves
+       from Hudini's deprecated `CSTCatalog` to swift-cst's `UIText`.
+     - [ ] D4. The window manager: Help, MOMI, and the inspector join the terminal in Hudini's
+       `WindowManager`, and the client's own `DocumentWindow` goes. The login window stays a
+       screen of its own.
+     - [ ] D5. Fonts: Comic Neue for the interface and Fira Mono for the terminal, with documents
+       adjusted where text no longer fits; screenshots of every screen for the owner first.
 3. **Queen Margaret's, fourth pass: Sims,** so a lot with Sims runs a full in-game day without an
    error (the alpha gate's lot job). Until 2026-11-20 each phase ended with the oracles agreeing
    with FreeSO; from C on, each ends with the study's lots clean (their rules kept, their runs
@@ -365,6 +380,7 @@ chunks) can land whenever TS1 hybrid mode is needed; nothing in TSO mode waits o
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-11-21 | patch | The first client gains step D, planned in five steps by the owner's decision: the owner's libraries first-party, the client allowed raylib throughout, a root manifest so `swift run simburbia` runs it, its files grouped by job with `LotScene` folded in, `.uix` documents and swift-cst's `UIText`, every window in Hudini's `WindowManager`, and Comic Neue and Fira Mono. |
 | 2026-11-21 | minor | Queen Margaret's fourth pass, step D5, which finishes phase D: queueing interactions by hand. `VM` gains `availableInteractions(on:for:)` (a pie menu's choices), `queueInteraction(_:on:for:)` (user-driven, checked first, turned down with an `InteractionRequestError`), and `cancelInteraction(id:for:)`. The client updates Hudini to current main for its `WindowManager` (bringing in swift-cst as Hudini's dependency; `UIScriptView` is now `UIView`), and gains a drop-down terminal on Ctrl+Shift+C, the first window in that manager: `join` brings the install's template person (or MockInstall's Sim), and `menu`, `queue`, `cancel`, and `show` act for it, with `TerminalCommands` tested without a window. While the terminal has the keyboard, the game's keys wait. Left for later: moving the loading text from Hudini's deprecated `CSTCatalog` to swift-cst's `UIText`, and moving the other windows into the manager. |
 | 2026-11-21 | minor | Queen Margaret's fourth pass, step D4b, added by the owner before D5: refusals. An unhappy Sim refuses through content, not autonomy: skill, job, and fun objects call the global's "Refuse Moody?" (391) or "Refuse Fun Object?" (408), 47 calls on 1.1097.1.0, which compare a motive with a threshold, play a refusal, and end the interaction. Look Towards (22) modes 0 (the head, 100 uses) and 1 (the body toward the camera, 42, which TSO doesn't do) go true; modes 2 to 5 (245) wait for routing in phase E. `RefusalTests` runs "Refuse Moody?" on the template person: a good mood goes on, a bad one refuses. The census's `pending` count goes from 4,426 to 4,190, overstated as Snap's was. |
 | 2026-11-21 | minor | Queen Margaret's fourth pass, step D4: Run Functional Tree (20) pushes the stack object's routine for a function (an entry point from prepare food to repair) when its condition allows the caller, and Find Best Object For Function (14) makes the best usable object for one the stack object: not locked out, disabled, out of the world, or in use, scored by its function's object data where there is one and its threshold met, less a third of its distance. Callback trees turn out to need nothing from Reach: TSO's pickup and put helpers call `CT - Grab` and `CT - Put` by name from `STR#` 303 with Run Tree By Name, already ported, so Reach running them too, as plumbob-engine does for The Sims 1, would run them twice. MockInstall's ball now calls its `CT - Grab` that way, counting on the stack object (a routine's "me" is its caller, the Sim), and the mock gains a placeholder `a2o-reach-floorht` so Reach finds its animation; the Sim picks up the ball in `QueueTests`. The census's `pending` count on 1.1097.1.0 goes from 4,627 to 4,426. |
