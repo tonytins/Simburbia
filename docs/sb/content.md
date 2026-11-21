@@ -1,8 +1,8 @@
 # TSOContent: loading a game install
 
-TSOContent turns a folder of game files into objects and globals the VM can run. It replaces the
-parts of FreeSO's `Content` singleton that SimAntics needs: finding the install, indexing its
-files, applying patches, and loading objects by GUID.
+TSOContent turns a folder of game files into objects and globals the VM can run: it finds the
+install, indexes its files, applies patches, and loads objects by GUID. It's a value the caller
+makes and passes in, not a global.
 
 ## Finding the install
 
@@ -19,7 +19,7 @@ let install = try GameLocator().locate()
 
 A configured folder or `TSO_GAME_DIR` that isn't an install throws `ContentError.notAnInstall`
 rather than falling through to a default, so a typo never loads a different install silently.
-Unlike FreeSO, it doesn't read the Windows registry.
+It doesn't read the Windows registry.
 
 ## Listing the installs
 
@@ -28,7 +28,7 @@ in one place: `game` (`TSO_GAME_DIR`), `classic` (`TSO_CLASSIC_DIR`), and `beta`
 in that order. `InstallKind.installs(in:)` returns the ones an environment names, leaving out unset
 or empty values and keeping a folder named twice once. `GameVersion.read(install:)` reads the
 version an install's `version` file records, in either known layout (`1.1097.1.0`, or the beta's
-`major:1` lines), and throws on any other. FreeSO reads neither.
+`major:1` lines), and throws on any other.
 
 The `TSOConfig` product reads the same installs through
 [swift-configuration](https://github.com/apple/swift-configuration), under the keys `tso.game.dir`
@@ -59,10 +59,10 @@ Beside the game, content comes from two more folders:
 
 `GameContent.Configuration(gameDirectory:freeSOContentDirectory:modsDirectory:)` loads them in
 order. The mods' patches count as user patches, so they replace the shipped ones for the same
-file, as FreeSO's `Patch/User` does. Custom objects load after FreeSO's, and one whose GUID is
+file, as a content folder's `Patch/User` does. Custom objects load after the content folder's, and one whose GUID is
 already registered is left out and listed in `objects.duplicates`, so a mod can't silently replace
 one of the game's objects. A custom object that can't be read is skipped and listed in
-`objects.standaloneFailures`, and the rest still load, where FreeSO would fail to start. The
+`objects.standaloneFailures`, and the rest still load. The
 `TSOConfig` product reads both folders from settings too: `sb.user.dir` and `fso.content.dir`.
 
 The loop for making an object works end to end: SimsScript compiles it to a standalone IFF
@@ -79,7 +79,7 @@ let content = try GameContent(.init(gameDirectory: install,
                                     freeSOContentDirectory: URL(fileURLWithPath: "/path/to/FreeSO/Content")))
 ```
 
-The `freeSOContentDirectory` form uses FreeSO's layout: patches from `Content/Patch` and standalone
+The `freeSOContentDirectory` form uses a FreeSO-style content folder's layout: patches from `Content/Patch` and standalone
 objects from `Content/Objects`. Use `Configuration(gameDirectory:patchDirectory:standaloneObjectDirectory:loadsSprites:)`
 to set them separately, or leave both `nil` to load the game's files alone. Sprites stay unloaded
 unless `loadsSprites` is set; a headless VM doesn't need them.
@@ -89,9 +89,8 @@ beta) can be loaded side by side.
 
 ### Files in any letter case
 
-Installs mix letter case (`UIGraphics` beside `uigraphics`). FreeSO joins paths as written, which
-works on Windows and fails on case-sensitive file systems. `GameFileIndex` looks every path up in
-any case:
+Installs mix letter case (`UIGraphics` beside `uigraphics`), which Windows hides and
+case-sensitive file systems don't. `GameFileIndex` looks every path up in any case:
 
 ```swift
 let url = content.files.url(for: "ObjectData/Objects/objiff.far")   // finds objectdata/objects/objiff.far
@@ -101,7 +100,7 @@ print(content.files.caseCollisions)                                 // paths tha
 ## Objects
 
 `ObjectProvider` registers the objects listed in `packingslips/objecttable.xml` (all in
-`objiff.far`) and every `OBJD` in FreeSO's standalone IFFs. Looking one up loads its IFF with
+`objiff.far`) and every `OBJD` in the content folder's and mods' standalone IFFs. Looking one up loads its IFF with
 patches, tuning, sprites if enabled, and its semi-global. Every object in that IFF shares the one
 loaded resource.
 
@@ -127,19 +126,19 @@ A `GameObject` pairs the definition (`OBJD`) with its `ObjectResource`:
 | `semiGlobal` | The semi-global the object's `GLOB` names, for shared code and tuning |
 | `treesByName` | Routines by name, for Run Tree by Name: the object's, then its semi-global's |
 | `patches` | Which PIFF patches applied and which were skipped |
-| `tuningFailure` | Why the OTF failed to load, if it exists but did (FreeSO ignores this silently) |
+| `tuningFailure` | Why the OTF failed to load, if it exists but did |
 
 `chunk(_:id:)` and `chunks(_:)` read from the main file (and the sprite file for sprite chunks), so
 code asks for chunks without caring which file holds them.
 
-Where FreeSO fails, this keeps loading and reports instead:
+Where the files are off, loading carries on and reports:
 
 - A GUID listed twice keeps its first registration; the rest are in `objects.duplicates`.
 - An entry whose IFF isn't in `objiff.far` throws `ContentError.missingFile` for that object only.
-- The beta's object table has no display names, which FreeSO can't read; `Reference.name` is then `nil`.
+- The beta's object table has no display names; `Reference.name` is then `nil`.
 
 When patches change an archived IFF, its objects are registered again from the patched file,
-as in FreeSO, since a patch can add or remove definitions.
+since a patch can add or remove definitions.
 
 ## Globals
 
@@ -158,8 +157,7 @@ code and tuning through: `chunk(_:id:)`, `chunks(_:)`, `tuningTable(id:)`, and `
 
 ## Walls and floors
 
-`FloorProvider` and `WallProvider` port FreeSO's `WorldFloorProvider` and `WorldWallProvider`. They
-aren't part of `GameContent`, since servers don't draw: the client makes them from the install's
+`FloorProvider` and `WallProvider` read the build catalog's floors and walls. They aren't part of `GameContent`, since servers don't draw: the client makes them from the install's
 file index. Each reads its catalog when it's made and parses a sprite when it's asked for.
 
 ```swift
@@ -176,37 +174,35 @@ let fence = try walls.style(id: 2)              // a wall style's masks, with wa
 | Archives | 256 up, from `housedata/floors` to `floors4` | patterns 256 up, from `housedata/walls` to `walls4` |
 | Others | 65534 (water) and 65535 (pool), catalog entries only; their tiles come from `globalSprite(id:)` | junction pieces, from `junctions()` |
 
-Archive IDs follow FreeSO's order: each archive in turn, its IFFs in manifest order. An IFF that
+Archive IDs count up through each archive in turn, its IFFs in manifest order. An IFF that
 doesn't read keeps its ID, so the ones after it keep theirs, and is listed in `failures`. An
 archive the install doesn't have holds none, and is listed in `missingArchives`: the base game
 and the beta have only the first of each. An unknown wall pattern from 256 up is drawn as the
-first archive pattern, a tolerance FreeSO had.
+first archive pattern, a tolerance lots rely on.
 
 On 1.1097.1.0 there are 234 floors (29 global) and 304 wall patterns with catalog entries; on the
-base game and the beta, 169 and 221. When they were compared with FreeSO's providers, every ID
-agreed on all three and on `MockInstall`.
+base game and the beta, 169 and 221.
 
 ## Interface graphics
 
-`UIGraphicsProvider` ports FreeSO's: every FAR3 archive under `uigraphics`, by asset ID, the file
-ID shifted up 32 bits and then the type ID, as FreeSO's `UIFileIDs` write them (TSO's loading and
-login background, `setup`, is `0x3A300000001`). It also finds the handful of graphics FreeSO reads
-from loose files, and the one ID it redirects.
+`UIGraphicsProvider` reads every FAR3 archive under `uigraphics`, by asset ID: the file ID
+shifted up 32 bits, then the type ID (TSO's loading and login background, `setup`, is
+`0x3A300000001`). It also finds the handful of graphics kept as loose files, and the one ID the
+rack's panel asks for under another.
 
 ```swift
 let graphics = UIGraphicsProvider(files: content.files)
 let setup = try graphics.image(id: AssetID(packed: 0x3A3_0000_0001))   // RGBA, 800 by 600
 ```
 
-`image(id:)` decodes as FreeSO's `ImageLoader` does: a BMP, with its near-magenta pixels made
-transparent, or a Targa with the 2.0 footer. Anything else, such as 1.1097.1.0's one PNG, is an
+`image(id:)` decodes a BMP, with its near-magenta pixels made transparent, or a Targa with the
+2.0 footer. Anything else, such as 1.1097.1.0's one PNG, is an
 error. An ID two archives both hold keeps the first and is listed in `duplicates`; an archive
 that can't be read is listed in `failures` (no install has either).
 
 ## Animations
 
-`AnimationProvider` ports FreeSO's `AvatarAnimationProvider`: every `.anim` entry of the FAR3
-archives under `animations`, by file name in any letter case, as the VM asks for them.
+`AnimationProvider` finds every `.anim` entry of the FAR3 archives under `animations`, by file name in any letter case, as the VM asks for them.
 
 ```swift
 let animations = AnimationProvider(files: content.files)
@@ -214,7 +210,7 @@ let stand = try animations.animation(named: "a2o-standing-loop.anim")   // nil i
 ```
 
 Animations decode when asked for, and aren't kept. A name two entries share keeps the later
-one, as FreeSO's indexer leaves it, and is listed in `duplicates`; an archive that can't be read
+one, and is listed in `duplicates`; an archive that can't be read
 is listed in `failures` (no install has either).
 
 ## Errors

@@ -13,17 +13,15 @@ Reach, Sleep, Expression, Refresh, Random Number, Get Distance To, Get Direction
 Breakpoint, Find Location For, Idle For Input, Remove Object Instance, Play Sound, Transfer Funds,
 Run Tree By Name, Set To Next, Test Object Type, Special Effect, Set Balloon Headline, Create
 Object Instance, Stop All Sounds, Notify Stack Object Out Of Idle, and Get Terrain Info). Balloon headlines aren't drawn, but each counts down and keeps its entity running every
-tick while it's up, as in FreeSO. Money is a stand-in for now: each
-entity has a budget, moved as FreeSO's standalone global link moves it, with each answer a tick
-later; Simburbia's economy waits for the lot server. When last compared with FreeSO, 2,743 of the
-base game's objects created alone on an empty lot matched its state tick for tick over 30 ticks.
+tick while it's up. Money is a stand-in for now: each entity has a budget, moved by a stand-in
+for the lot server, with each answer a tick later; Simburbia's economy waits for the lot server.
 Sims, routing, and lot loading come
 later; see the [roadmap](../roadmap.md). The lot model (positions, walls, and rooms) has its own page,
 [lot.md](lot.md).
 
 ## The VM
 
-A `VM` is one running lot (FreeSO's `VM` and `VMContext`). It owns the entities, the 38 global
+A `VM` is one running lot. It owns the entities, the 38 global
 values, the clock, the random generator, the scheduler, the primitive table, and the
 architecture. It reads code through a `GameContent`.
 
@@ -41,28 +39,28 @@ print(door.objectData[0...3], vm.reportedErrors)
 print(StateDigest.hex(of: vm))     // the same on every machine for the same run
 ```
 
-`createObject(guid:)` works as FreeSO's `CreateObjectInstance` does; see
+`createObject(guid:)` makes an object as the Create Object Instance primitive does; see
 [Creating and deleting objects](#creating-and-deleting-objects) below.
 
-Each `tick()` follows `VM.InternalTick`:
+Each `tick()` runs in this order:
 
 1. The scheduler starts the tick (tick IDs start at 1).
 2. The clock advances: 150 ticks make a game minute, 30 ticks a real second (`TickRate.perSecond`).
 3. Globals 6, 5, 0, and 4 get the clock's seconds, minutes, hours, and time of day.
 4. If walls or floors changed, rooms are regenerated and every entity's room is updated ([lot.md](lot.md)).
 5. The scheduled entities run, in object ID order.
-6. The random seed advances by the number of entities, as FreeSO does so desynced clients drift apart quickly.
+6. The random seed advances by the number of entities, so desynced clients drift apart quickly.
 
 ## Entities
 
-An `Entity` is an object on the lot (FreeSO's `VMEntity` and `VMGameObject`). It holds:
+An `Entity` is an object on the lot. It holds:
 
 | Property | What it is |
 | --- | --- |
 | `objectID` | Its ID on the lot; entities are always kept in ID order |
 | `object` | Its `GameObject`: definition and files |
 | `objectData` | The 80 object data values, read through the `myObject` and `stackObject` scopes (see `ObjectVariable` for their names) |
-| `attributes` | Per-object attributes; grow with zeros on any access past the end, as in FreeSO |
+| `attributes` | Per-object attributes; grow with zeros on any access past the end |
 | `list` | The entity's list, for the push and pop operators |
 | `position`, `direction` | Where it is and which way it faces ([lot.md](lot.md)) |
 | `container`, `slot(_:)` | The object it's in, and what each of its container slots holds ([lot.md](lot.md#slots-and-containment)) |
@@ -73,7 +71,7 @@ Each entity belongs to a `MultitileGroup` (`group`): the parts of one object. Mo
 a group of one; a multi-tile object (a two-tile bed, a long counter) is one entity per part.
 `leadObject` is the part that leads the group, and the lead-tile attribute scopes read through it.
 
-Writing some object data has side effects, as in FreeSO. Writing the direction snaps it to the
+Writing some object data has side effects. Writing the direction snaps it to the
 object's rotation step (data 23); writing the category moves it in the category index; lockout
 counts down. Use `setValue(_:of:)` for writes that should behave that way, and `objectData`
 directly only to set up state.
@@ -86,8 +84,7 @@ door.reset()                       // clears the stack, runs cleanup, queues mai
 
 ## Creating and deleting objects
 
-`VM.createObject(guid:at:facing:mainStackObjectID:mainParameter:)` follows FreeSO's
-`CreateObjectInstance`:
+`VM.createObject(guid:at:facing:mainStackObjectID:mainParameter:)` makes an object:
 
 1. A multi-tile **master** definition (a master ID, and a sub-index of -1) creates one entity per
    part: each definition in the master's file with the same master ID, in file order. Each part
@@ -111,13 +108,13 @@ if let table = try vm.createObject(guid: tableGUID) {        // a multi-tile mas
 `VM.delete(_:wholeGroup:)` takes an entity (or every part of its object) off the lot: out of the
 entity list, the queries, and the schedule, and its ID is free again. While entities are running,
 deletion waits until the tick ends, after the random seed has counted the entity. What the object
-held leaves its slots and is placed nearby (or out of the world, if the object was). That's how
-FreeSO deletes an object whose routines fail twice within 10 ticks, and Simburbia does the same.
+held leaves its slots and is placed nearby (or out of the world, if the object was). An object
+whose routines fail twice within 10 ticks is deleted this way.
 
 ## Threads and routines
 
 Each entity's `VMThread` keeps a stack of `StackFrame`s; the last one runs. A `Routine` is a
-`BHAV` with every operand decoded once (FreeSO's `VMRoutine`). `thread.tick()` runs instructions
+`BHAV` with every operand decoded once. `thread.tick()` runs instructions
 until one yields:
 
 - **Primitives** (opcodes below 256) run and return an `ExitCode`: go to the true or false
@@ -148,20 +145,20 @@ returns how it exited. While the scheduler is running, a check shares its entity
 it works on a copy.
 
 **Errors.** A routine that fails throws a `SimAnticsError`. The thread reports it (at most once
-every 600 ticks, as FreeSO's dialog cooldown does), then resets the frame's caller and callee. More
+every 600 ticks), then resets the frame's caller and callee. More
 than 500,000 instructions in one tick fails as an infinite loop.
 
-| `SimAnticsError` | FreeSO equivalent |
+| `SimAnticsError` | What failed |
 | --- | --- |
-| `simantics(_:)` | `VMSimanticsException` |
-| `indexOutOfRange(_:)`, `nullReference(_:)`, `invalidCast(_:)`, `overflow(_:)` | the .NET exception of the same name |
-| `infiniteLoop` | the instruction limit |
-| `content(_:)` | content that couldn't load |
-| `unsupported(_:)` | nothing: behavior not ported yet |
+| `simantics(_:)` | The routine asked for something it can't have, such as a table that doesn't parse |
+| `indexOutOfRange(_:)`, `nullReference(_:)`, `invalidCast(_:)`, `overflow(_:)` | An index past the end, a missing object, an object of the wrong kind (such as a chair asked to animate), or 32-bit division overflow |
+| `infiniteLoop` | The instruction limit |
+| `content(_:)` | Content that couldn't load |
+| `unsupported(_:)` | Behavior Simburbia doesn't run yet |
 
-`unsupported` never stands for a FreeSO failure, so tests can tell a gap in Simburbia from a
-behavior that matches. An unported primitive throws it when it runs; it never silently takes a
-branch. Opcodes FreeSO itself has no implementation for take the true branch, as they do there.
+`unsupported` always means a gap in Simburbia, never a routine's own failure, so the study can
+set the object aside. A primitive Simburbia doesn't run yet throws it when it runs; it never
+silently takes a branch. Opcodes no TSO primitive uses take the true branch.
 
 ## Variables
 
@@ -177,8 +174,8 @@ let big = try frame.bigValue(of: Variable(.tempXL, 0))      // 32-bit; only Temp
 
 Every scope objects use is ported: temps and TempXL, parameters and locals, globals, object data
 and attributes of the caller, stack object, and others, lists, definition fields, the clock, entry
-points, tuning, room data, and container slots. Each scope either behaves as in FreeSO, fails as
-FreeSO does, or throws `unsupported` (anything only Sims have).
+points, tuning, room data, and container slots. Each scope reads and writes its value, fails as
+the game would, or throws `unsupported`.
 
 **Tuning** (`Variable(.tuning, …)`) picks a table with the top 9 bits of the data and a key with
 the low 7. Tables 0–63 are the code owner's, 64–127 its semi-global's, and 128–191 the global's.
@@ -189,7 +186,7 @@ Each looks in a `BCON` first, then an OTF table; nothing found reads as 0.
 A primitive is a type conforming to `Primitive`: a name, an opcode, an `Operand` that decodes the
 instruction's 8 bytes (and encodes them back), and a static `execute` that changes the VM and
 returns an exit code. Primitives hold no state. `PrimitiveTable.standard` registers the ported
-ones; FreeSO's names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
+ones; the names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 
 | Opcode | Primitive | What it does |
 | --- | --- | --- |
@@ -202,11 +199,11 @@ ones; FreeSO's names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 | 8 | `RandomNumber` | Draws a number below a limit into a variable |
 | 11 | `GetDistanceTo` | The distance from the stack object to another object, in whole tiles, into a temp |
 | 12 | `GetDirectionTo` | The direction from another object to the stack object, in eighths of a turn |
-| 15 | `Breakpoint` | A debugger breakpoint; FreeSO's doesn't stop, so it's always true |
+| 15 | `Breakpoint` | A debugger breakpoint; with no debugger it doesn't stop, so it's always true |
 | 16 | `FindLocationFor` | Places the stack object near a reference, out of the world, or along a facing |
 | 17 | `IdleForInput` | Waits a number of ticks, or until an interaction or an interrupt (no interaction queue yet) |
 | 18 | `RemoveObjectInstance` | Deletes the caller or the stack object, or every part of it |
-| 23 | `PlaySound` | Plays a sound event (headless, as on FreeSO's server: changes nothing) |
+| 23 | `PlaySound` | Plays a sound event (headless, as on a lot server: changes nothing) |
 | 25 | `TransferFunds` | Moves money between the caller, the stack object, owners, and the game; waits a tick for the answer, or only tests in a check tree |
 | 28 | `RunTreeByName` | Runs one of the stack object's routines, found by a name from a string table: pushed, or to completion on the caller's or the stack object's thread |
 | 31 | `SetToNext` | Finds the next object, by ID, GUID, category, tile, or neighbor |
@@ -248,7 +245,7 @@ let custom = try VM(content: content, seed: 1, primitives: table)
 
 ## Animations
 
-A Sim plays animations (`sim.animations`, FreeSO's `VMAnimationState`s), the first the one its
+A Sim plays animations (`sim.animations`), the first the one its
 routine waits on, and may have a carry animation. Each tick, after motive decay, an animation
 that hasn't ended moves its frame by its speed and fires the events it has reached; past either
 end, a loop wraps and arms its events again, and anything else ends.
@@ -261,21 +258,21 @@ sim.sim.animations[0].eventQueue      // the xevts it fired, for the routine (An
 ```
 
 An `AnimationClip` is the part of a file the VM needs: its length, and its events in time order.
-How it reads TSO's files was checked against two earlier engines, FreeSO and plumbob-engine (a
-The Sims 1 engine), and against the files themselves (1.1097.1.0, 2026-11-20):
+What it does follows TSO's own files (1.1097.1.0, 2026-11-20):
 
-| Question | FreeSO | plumbob-engine | Simburbia |
-| --- | --- | --- | --- |
-| Event order | File order (it means to sort, and drops the result) | Sorted by time | Sorted by time, ties in file order: 86 animations list events out of order |
-| Negative times (1,653 events, 363 animations) | Read as unsigned, so never fire, and hold back later events | Dropped | Dropped (**Unverified** for TSO's client) |
-| Loops | Events fire on the first pass only | Fire on every pass | Every pass (DIFF-36); 175 looping animations have `xevt`s |
-| Key case (`XEVT` on the tub) | Exact | Any | Any |
-| `"101\t"`, empty `xevt` | Trims; throws on empty | Trims; skips empty | Trims; skips empty |
-| Frames to time | 30 a second | The file's duration | 30 a second: durations are a frame short of their frames' time |
+- **Events are sorted by time,** ties in file order: each motion lists its own, so 86 animations
+  list them out of order.
+- **Negative times are dropped:** 1,653 events in 363 animations, mostly pets' and children's,
+  have them (**Unverified** whether TSO fired them at the start).
+- **A loop fires its events on every pass:** 175 looping animations have `xevt`s, and walks carry
+  hand events each cycle.
+- **Keys match in any letter case** (the tub's `XEVT`), and values are trimmed of spaces and tabs;
+  an empty value is skipped.
+- **Frames are 30 a second:** the files' durations are a frame short of their frames' time.
 
 Frames, speeds, and weights are 32-bit floats (roadmap decision 8). A test pins the exact bits a
 fractional speed gives, so every platform CI runs on must agree. An `xevt` goes to the first
-animation's queue, and below 100 counts toward its `eventsRun`, as in FreeSO; hand poses are kept
+animation's queue, and below 100 counts toward its `eventsRun`; hand poses are kept
 for drawing, and sounds wait for a client with audio. The digest covers each animation's name,
 frame, speed, and flags.
 
@@ -291,27 +288,25 @@ code owner's animation table (its `OBJD`'s, else `STR#` 129), the stack object's
 | Play and wait (mode 0) | 13,174 | Played, events handed over |
 | Stop the carry, then play and wait (mode 3) | 161 | Played |
 | Set the carry animation (mode 2) | 382 | Set |
-| Mode 1 | 169 | Ignored, as in FreeSO; plumbob-engine plays a background loop, which waits for drawing |
+| Mode 1 | 169 | Ignored for now: it looks like a background loop the routine doesn't wait on, which only drawing would show |
 | Reset, ID 0 | 752 | The posture's walk, looping |
 | Hurry flag (8) | 143 | Not yet: it lets an interaction interrupt, which waits for the queue (phase D) |
 | Expected events set | 3,942 | Made up at the end when missing |
 
 8,526 of the instructions with a literal ID resolve to an animation through these tables. About
 3,800 don't, because their code owner has no animation table: nearly all in the dog, cat, and
-NPC social objects (`petsocialsdog`, `petsocialscat`, `npcsocials`). FreeSO skips those and goes
-true, and so does Simburbia for now. plumbob-engine reads the table of the object the Sim is
-interacting with instead, which neither the person objects' nor the global's tables fit well.
-Which table they use is an open question for phase D, when interactions show who calls them. One
+NPC social objects (`petsocialsdog`, `petsocialscat`, `npcsocials`). Simburbia skips those and
+goes true for now. Neither the person objects' tables nor the global's fit them well. Which
+table they use is an open question for phase D, when interactions show who calls them. One
 lead (the owner's, **Unverified**): pets came only with New & Improved, and TSO was player-driven,
 so the tables may have been delivered by TSO's patcher rather than shipped in these files.
 
 A Sim's hand is its one container slot: Grab (4) puts the stack object in it, Reach (47) takes or
 puts on its animation's event 0, and Drop (5) sets it on a tile beside the Sim. Holding something
-starts the default carry animation, `a2o-rarm-carry-loop`, and emptying the hand stops it, as
-FreeSO's `VMAvatar` does. Reach picks one of TSO's four reach animations by the slot's height, so
-TSO's files need those names. 1.1097.1.0's objects name `CT - Grab` 101 times and `CT - Put` 118
-times, the trees plumbob-engine runs on the target after a reach; FreeSO doesn't, and nor does
-Simburbia yet (an open question for phase D).
+starts the default carry animation, `a2o-rarm-carry-loop`, and emptying the hand stops it. Reach
+picks one of TSO's four reach animations by the slot's height, so TSO's files need those names.
+1.1097.1.0's objects name `CT - Grab` 101 times and `CT - Put` 118 times: the trees an object
+runs when a reach takes it or puts something in it. They come with phase D (roadmap).
 
 Change Suit Or Accessory (6) keeps what drawing will need: the appearances bound over the body
 (`sim.boundAppearances`), the body outfit, and `CurrentOutfit` (person data 8).
@@ -321,10 +316,10 @@ Change Suit Or Accessory (6) keeps what drawing will need: the appearances bound
 - **`VMScheduler`** runs the entities scheduled for each tick in object ID order. An entity that
   doesn't schedule itself while running is scheduled for the next tick; a sleeping one is
   scheduled further ahead and skipped until then.
-- **`VMClock`** counts ticks, minutes, and hours; time of day is always 0, as in FreeSO.
-- **`VMRandom`** is FreeSO's xorshift64* generator. `next(below:)` draws from 0 up to a limit; a
+- **`VMClock`** counts ticks, minutes, and hours; time of day is always 0.
+- **`VMRandom`** is an xorshift64* generator. `next(below:)` draws from 0 up to a limit; a
   limit of 0 returns 0 without advancing. Every client must draw the same numbers in the same
-  order, so only primitives draw, in the order FreeSO does.
+  order, so only primitives draw.
 
 ## Comparing runs
 

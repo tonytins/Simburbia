@@ -8,7 +8,7 @@ loading a lot's objects comes next. How objects are created and grouped is in
 
 ## Positions and facings
 
-A `LotPosition` (FreeSO's `LotTilePos`) is a point in sixteenths of a tile, plus a level, where 1
+A `LotPosition` is a point in sixteenths of a tile, plus a level, where 1
 is the ground floor. Objects in an inventory or not yet placed are at `.outOfWorld`.
 
 ```swift
@@ -17,7 +17,7 @@ print(center.tileX, center.tileY)                                // 4 7
 print(center.distance(to: LotPosition(x: 72, y: 136, level: 1))) // 16: one tile
 ```
 
-`Direction` holds the eight facings as FreeSO stores them, one bit each, north first and clockwise.
+`Direction` holds the eight facings one bit each, north first and clockwise.
 Object data 1 holds the same facing as a notch from 0 to 7:
 
 ```swift
@@ -27,7 +27,7 @@ print(Direction(notch: 3), Direction.east.notch, Direction.east.rawValue)   // s
 ## Moving and finding objects
 
 `VM.move(_:to:)` puts an entity somewhere without checking whether it fits, as loading a saved
-lot does. Like FreeSO's position change, it keeps the tile index and the room's entity list
+lot does. It keeps the tile index and the room's entity list
 current, records the room in object data 29, and updates the footprint and the walls the object
 uses. To place an object as the game does, with every check and the placement entry point, use
 `VM.place` ([below](#placing-objects)).
@@ -39,13 +39,12 @@ print(vm.objects(withGUID: 0x0000_01CA)?.count ?? 0)
 print(vm.objects(inCategory: 5) ?? [])     // listed once the category is set through object data
 ```
 
-Query results are in object ID order, as FreeSO's are, since primitives such as Set To Next walk
-them in that order. Tiles are keyed as FreeSO keys them: a position past the lot's edge shares a
-key with a tile on the next row, and every object out of the world shares one entry.
+Query results are in object ID order, since primitives such as Set To Next walk them in that
+order. A position past the lot's edge shares a tile key with a tile on the next row, and every object out of the world shares one entry.
 
 ## Placing objects
 
-`VM.place(_:at:facing:flags:)` places every part of an object, as FreeSO's `ChangePosition` does:
+`VM.place(_:at:facing:flags:)` places every part of an object:
 
 1. Each part's offset in its group turns with the facing, a quarter turn per compass point (the
    diagonals count as north), around the lead part.
@@ -71,14 +70,14 @@ if result.status != .success { print(result.status, result.object?.objectID as A
 ```
 
 The lot is flat, so slopes never fail. With `userBuildableLimit`, a position must also be in the
-buildable area; a lot loaded from a blueprint has none, as in FreeSO (its size comes from a saved
-lot), so nothing fits.
+buildable area; a lot loaded from a blueprint has none (its size comes from a saved lot), so
+nothing fits.
 
 ## Slots and containment
 
 An object can hold others in its container slots: one for each slot of type 0 in its `SLOT` chunk,
 created when it's initialized. A tray holds a plate, a counter holds a sink. `placeInSlot(_:slot:cleanOld:)`
-puts an object in a slot, as FreeSO's `PlaceInSlot` does: it's refused if the slot holds something
+puts an object in a slot: it's refused if the slot holds something
 else, doesn't exist, or would hold its own container. The held object takes its container's
 position, and has no footprint of its own.
 
@@ -97,7 +96,7 @@ lot, to the nearest spot that fits (`FindLocationFor`).
 
 ## Walls, floors, and rooms
 
-`Architecture` (FreeSO's `VMArchitecture`) holds the walls and floor patterns of five levels and the
+`Architecture` holds the walls and floor patterns of five levels and the
 rooms they make. A `WallTile` records which edges of a tile have walls: a tile owns its top-left
 (−x) and top-right (−y) edges, and a diagonal wall splits a tile in two. Style 1 is a normal wall;
 other styles (fences, for example) don't divide rooms on their own.
@@ -127,14 +126,14 @@ print(inside, room.isOutside, room.area, room.bounds)   // 2 false 6 (x 2, y 3, 
 
 ### How rooms are found
 
-`regenerateRooms()` ports FreeSO's flood fill (`VMRoomMap.GenerateMap`), level by level, so room
-IDs on upper levels follow those below. Room 0 is an unused placeholder, as in FreeSO.
+`regenerateRooms()` flood-fills each level in turn, so room IDs on upper levels follow those
+below. Room 0 is an unused placeholder.
 
 - Tiles are taken across, then down. Each tile (or half of a diagonal tile) not yet in a room
   starts a new one, which spreads to its neighbors.
 - A normal wall stops the spread. A fence, a change of floor pattern, or water doesn't merge the
   two sides, but makes them **adjacent** rooms.
-- The fill wraps around the lot's edges, as FreeSO's does.
+- The fill wraps around the lot's edges.
 - The first room on each level is **outside**, and so is every room adjacent to an outside room.
 - Pool tiles (pattern above 65533) form their own rooms. Above the ground floor, tiles without a
   floor join only each other.
@@ -147,8 +146,8 @@ position lies within the tile, and returns 0 off the lot.
 ### When rooms change
 
 Setting a wall or floor marks the architecture dirty. Rooms are regenerated on the next
-`vm.tick()`, which then updates every entity's room, as FreeSO's `Architecture.Tick` and
-`RegeneratePortalInfo` do. Until that tick, lookups still see the old rooms, as in FreeSO:
+`vm.tick()`, which then updates every entity's room. Until that tick, lookups still see the old
+rooms:
 
 ```swift
 try vm.architecture.setFloor(Architecture.poolPattern, atX: 2, y: 2, level: 1)
@@ -168,12 +167,12 @@ ported yet.
 1.1097.1.0's job lots and `blueprint.dtd` have it, and FreeSO's (`XmlHouseData`). That's the size,
 the category, floors, pools, walls, objects, and sounds, and from TSO's dialect also the revision,
 each object's name and `hidden`, the flag layers, and puddles. Whatever it doesn't know, it keeps
-(`unknownElements`, and each part's `otherAttributes`). `architecture()` builds the walls and floors as FreeSO's `VMWorldActivator` does, floors
+(`unknownElements`, and each part's `otherAttributes`). `architecture()` builds the walls and floors, floors
 first, then pools (always on the ground floor), then walls, and generates the rooms:
 
 ```swift
-let blueprint = try Blueprint(xml: Data(contentsOf: freeSOContent.appendingPathComponent("Blueprints/empty_lot_fso.xml")))
-print(blueprint.size, blueprint.floors.count)            // 77, and its floor tiles
+let blueprint = try Blueprint(xml: Data(contentsOf: URL(fileURLWithPath: "Lots/community-lot.xml")))
+print(blueprint.size, blueprint.floors.count)            // its size, and its floor tiles
 let leftOut = try vm.load(blueprint)                     // the architecture, then every object
 vm.tick()                                                // the tick the lot server loads in
 ```
@@ -182,25 +181,19 @@ Values are read as .NET's `XmlSerializer` reads them: missing attributes are 0, 
 are truncated to 16 bits. A malformed file throws `BlueprintError.malformed`, except for one TSO
 quirk it repairs, a `<` followed by whitespace (`wasRepaired`); a `DOCTYPE` is never fetched; a
 blueprint a newer Simburbia wrote throws `BlueprintError.newerVersion`; a tile off the lot
-throws `BlueprintError.offLot`, where FreeSO fails with an index out of range. Lots are 1 to 255
+throws `BlueprintError.offLot`. Lots are 1 to 255
 tiles a side.
 
-`VM.load(_:)` loads a whole lot as FreeSO's lot server does (`VMBlueprintRestoreCmd`, then
-`VMWorldActivator.LoadFromXML`): it sets the job level (global 11) to -1, builds the architecture
+`VM.load(_:)` loads a whole lot as the lot server does: it sets the job level (global 11) to -1, builds the architecture
 and puts every entity in its room, then creates each object in the blueprint's order. Each is
 created out of the world, which runs its init; placed on its tile if its level isn't 0 (accepting
-slots, and staying out of the world if it doesn't fit, since FreeSO ignores the result); given the
+slots, and staying out of the world if it doesn't fit); given the
 blueprint's group ID on every part; and every part runs its user placement entry point at once.
-The lot server loads during a tick, so call `tick()` once afterward to be where FreeSO is.
+The lot server loads during a tick, so call `tick()` once afterward.
 `xml()` writes a blueprint in TSO's dialect, and `namingObjects(from:)` names each object from
 its `OBJD`, as TSO's blueprints do; [blueprints.md](blueprints.md#writing) has the details.
 `loadLot(_:)` loads the same way and also reports the object IDs each blueprint object became, so
 a client can apply what the blueprint says that SimAntics has no part in, such as `hidden`.
 
-Two differences keep loading going: an object the content doesn't have, or can't load, is left out
-and returned (FreeSO fails), and entities already on the VM are kept (FreeSO starts over).
-
-When this was compared with FreeSO's room maps and rooms (2026-10), all 63 lots compared
-(FreeSO's empty lot, a house built in-game, in `Lots`, the mock lot, and 60 synthetic ones with
-walls, fences, diagonals, pools, and upper floors) matched entry for entry, and the mock lot ran
-tick for tick the same.
+Loading keeps going where it can: an object the content doesn't have, or can't load, is left out
+and returned, and entities already on the VM are kept.

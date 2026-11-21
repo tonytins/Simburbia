@@ -50,9 +50,10 @@ the client; the libraries themselves take no configuration library.
 
 A few rules hold everywhere. Knowing them makes each package easier to follow.
 
-- **A new implementation.** Simburbia isn't a port of any earlier reimplementation's code. Some
-  doc comments name the FreeSO type a Swift type was first modeled on (for example, `Entity` and
-  `VMEntity`), as a lead for readers; the scorecard lists behavior that deliberately differs.
+- **A new implementation.** Simburbia is written from the game's files, public knowledge, and
+  earlier open-source projects, FreeSO above all, which did much of the heavy lifting. The docs
+  describe what Simburbia does in its own terms; the scorecard lists where it deliberately
+  differs from FreeSO.
 - **The libraries have no engine.** Only the client draws, takes input, or logs, and its drawing
   reads the simulation without changing it. The libraries decode to plain values and report through
   errors, so they test and run anywhere, the client's headless runs included.

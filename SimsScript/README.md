@@ -1,8 +1,8 @@
 # SimsScript (proof of concept)
 
 Text forms of SimAntics behavior, so objects can be read, edited, and written on any platform
-instead of only in a visual editor. Everything compiles to ordinary BHAV and `OBJf` chunks, so the
-FreeSO VM, Simburbia's VM, and lockstep multiplayer run the result unchanged.
+instead of only in a visual editor. Everything compiles to ordinary BHAV and `OBJf` chunks, so any
+SimAntics VM, and lockstep multiplayer, run the result unchanged.
 
 This is a proof of concept for a later milestone (Yatesport, roadmap decision 5). It shows the
 idea is feasible; it isn't a usable language yet.
@@ -13,8 +13,8 @@ idea is feasible; it isn't a usable language yet.
 their numbers: calls by the called routine's label, parameters and locals by the routine's `TPRP`,
 the object's attributes by its `STR#` 256, and constants by their `TRCN` labels with their
 values. Primitives show their operands in words, both the ones Simburbia runs and
-the ones it only decodes so far (SimAntics' `PrimitiveTable.unportedOperands`, checked field by
-field against FreeSO); an opcode FreeSO registers no layout for keeps its bytes, marked "not
+the ones it only decodes so far (SimAntics' `PrimitiveTable.unportedOperands`); an opcode with no
+known layout keeps its bytes, marked "not
 ported yet". A made-up example:
 
 ```text
@@ -24,7 +24,7 @@ ported yet". A made-up example:
   2: clear flag 11 of my flags                                       then return true, else unset
 ```
 
-`unset` is branch target 253: FreeSO goes on along the other branch, while the SimAntics Wiki
+`unset` is branch target 253: Simburbia goes on along the other branch, while the SimAntics Wiki
 describes it as an error in the original engine. A listing doesn't convert back to routines;
 `Assembly` does. The `simsscript` command lists an install's objects:
 

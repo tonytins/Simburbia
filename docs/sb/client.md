@@ -33,10 +33,8 @@ the top bar.
 The window opens on a loading screen at once, as TSO's does, while the install and the lot load
 on another thread; the session is handed to the window once, when it's ready. The screen is the
 install's own loading art, TSO's `setup` graphic (New & Improved's, or the 2002 copies'), scaled
-to the window's height and centred on TSO's dark blue (`#09182F`), as FreeSO's `UISetupBackground`
-draws it; without one, as on MockInstall, it's Simburbia's logo. Under it, a caption
-and lines that slide in from the right one after another, as FreeSO's `LoadingScreen` slides them:
-each takes a second and comes in only when loading has reached its share, so the screen shows
+to the window's height and centred on TSO's dark blue (`#09182F`); without one, as on MockInstall, it's Simburbia's logo. Under it, a caption
+and lines that slide in from the right one after another: each takes a second and comes in only when loading has reached its share, so the screen shows
 for at least four seconds. The text is TSO's own when there's an install (the caption is table
 154's entry 5, the lines table 155's entries 6 to 9, read with Hudini's `CSTCatalog` from
 `gamedata`), else Simburbia's (`Interface/uitext/_1_loading.cst`).
@@ -49,7 +47,7 @@ appears. `--loading-screenshot FILE` saves a frame of the screen as its second l
 ## Login
 
 Without `--lot`, the loading screen loads the install, then the login window opens over its art,
-as TSO's and FreeSO's login dialog opens over theirs, with Simburbia's version at the bottom right
+as TSO's login dialog opened over its own, with Simburbia's version at the bottom right
 (TSO showed its own at the bottom left). The window follows the owner's mockup
 ([`docs/design/login-screen.png`](../design/login-screen.png)), from the UIScript documents
 `Interface/login-start.xml` and `Interface/login-join.xml`: a movable window with two tabs.
@@ -69,38 +67,35 @@ install has loaded.
 
 The lot is drawn through raylib's 3D camera at TSO's view: looking down 30° from the horizon, at a
 45° angle, with TSO's three zooms (near, medium, far) and two farther ones. Roadmap decision 7
-explains why a 3D camera rather than FreeSO's 2D batches.
+explains why a 3D camera rather than 2D batches.
 
-- **Objects** draw with their sprites, placed as FreeSO's `DGRPRenderer` places them. Each pixel
-  has its depth from the sprite's depth frame, made global as FreeSO's `2DWorldBatch` shader does
-  (Hyde Park's E2). So objects cover each other, and the walls, pixel by pixel: a television's
+- **Objects** draw with their sprites, placed by their draw group's offsets. Each pixel has its
+  depth from the sprite's depth frame, made global from the object's offset (Hyde Park's E2). So objects cover each other, and the walls, pixel by pixel: a television's
   screen shows in front of its own body, and a cut-down wall hides the base of what stands
   behind it. A GPU that can't compile the depth shader gets the sprites back to front instead.
 - **Hidden objects** aren't drawn or picked: portals, the mailbox's second part, and other
-  controllers hide themselves through object data 34, as FreeSO reads it, and TSO's job lots
+  controllers hide themselves through object data 34, and TSO's job lots
   also mark theirs `hidden="1"` in the blueprint. That's the lot format's, not SimAntics': the
   client applies it, and the VM never sees it.
-- **Floors** are textured tiles, as FreeSO's `_3DFloorGeometry` draws them. Each floor's sprite
+- **Floors** are textured tiles. Each floor's sprite
   is a texture that repeats across the lot: a tile's diamond takes its part of it, and the
-  sprite's corners, filled from half a frame away when it's decoded (FreeSO's `FloorCopy`),
+  sprite's corners, filled from half a frame away when it's decoded,
   carry the neighboring tiles' halves. Pools and water take one of 16 shapes from the tiles
   beside them and stay upright on screen as the view turns. Floors are opaque, and texels
-  under half alpha aren't drawn. Pool corners aren't drawn, as FreeSO's 3D floors don't.
-- **Walls** are sprites, as FreeSO's `WallComponent` draws them: each side and diagonal takes
+  under half alpha aren't drawn. Pool corners aren't drawn.
+- **Walls** are sprites: each side and diagonal takes
   its pattern, masked by its style (a full wall, a cut-down one, a fence), turned with the view,
-  and placed from its tile's top corner on screen. Each pixel's depth comes from FreeSO's
-  generated gradients, so walls and objects hide each other where they should. Full-height
+  and placed from its tile's top corner on screen. Each pixel's depth comes from generated
+  gradients, so walls and objects hide each other where they should. Full-height
   walls are capped where they stop, and junction pieces cover where they meet. Doors and windows
-  cut their openings with wall styles made from their own sprites, as FreeSO's
-  `VMGameObject.PositionChange` makes them. Diagonal tiles draw their two floor halves.
+  cut their openings with wall styles made from their own sprites. Diagonal tiles draw their two floor halves.
 - **Wall modes** are TSO's, for the floor in view; floors below keep their walls up. Cutaway, the
   default, cuts walls down in front of the last three indoor rooms the pointer was over and
-  around the pointer, slanting them where the cut ends (FreeSO's `GenerateRoomCut` and
-  `ApplyCutRectangle`); down cuts every wall down, leaving a door's wall out; up leaves them
+  around the pointer, slanting them where the cut ends; down cuts every wall down, leaving a door's wall out; up leaves them
   standing. W steps through them, and `--walls cutaway|down|up` picks one to start with. A
   screenshot has no pointer, so its cutaway follows the middle of the screen, which `--focus` sets.
 - **The ground** is a flat shape for now; grass waits. Floors and the ground are drawn a little
-  back and down, as FreeSO draws its floors, so the feet of objects standing on them show. If
+  back and down, so the feet of objects standing on them show. If
   the install's floors or walls can't be read, they're drawn as plain tiles and boxes, and MOMI
   says why.
 - **An object without a sprite** for the view is drawn as a box.
@@ -176,7 +171,7 @@ Options that need a window are refused with `--headless`, and `--ticks` is refus
 
 ## Time
 
-TSO counts 150 ticks a game minute, as FreeSO sets it in TSO mode. At 30 ticks a second, a game
+TSO counts 150 ticks a game minute. At 30 ticks a second, a game
 minute lasts 5 real seconds, a game hour 5 minutes, and a game day 2 hours at normal speed. A
 headless run of the community lot covers a game day in about 9 seconds.
 

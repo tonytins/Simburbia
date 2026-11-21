@@ -120,8 +120,7 @@ run has reached, shared out over the lots it has been on. `--coverage-file` carr
 reached between runs; keep it with the run's output, since it's large and changes every run.
 `--unweighted` samples as before, to compare the two.
 
-On 1.1097.1.0 from seed 100, four minutes each (2026-11-10, when the study also ran each lot on
-FreeSO): weighted, 22 lots and 704 objects
+On 1.1097.1.0 from seed 100, four minutes each (2026-11-10): weighted, 22 lots and 704 objects
 tried reached 10,981 of the 50,855 instructions the candidates' own behavior can reach (12,975
 in all); unweighted, 29 lots and 869 objects reached 10,089 (13,521 in all). Weighting reaches
 more of the objects' own code with fewer objects, but its heavier objects run slower, so it tries

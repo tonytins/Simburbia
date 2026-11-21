@@ -22,14 +22,14 @@ It follows the layout of a real install, with only what the content system needs
 | `packingslips/objecttable.xml` | The four objects below, by GUID |
 | `packingslips/catalog.xml` | Their catalog entries (made-up prices; the parts aren't for sale) |
 | `objectdata/objects/objiff.far` | `mockchair.iff`, `mocktable.iff`, `mocklamp.iff`, `mockregister.iff`, and `mocksim.iff` |
-| `objectdata/objects/objspf.far` | `mockchair.spf`: made-up sprites (a palette, `SPR2` versions 1000 and 1001 using every run command, `SPR#` in both byte orders, and `DGRP` versions 20000, 20001, and 20004). DGRP 0 is the chairs' own (base graphic 0 plus graphic 0), with near images for north and east, so the client draws them. Two cover edge cases: `SPR#` #201 is big-endian version 1001, which FreeSO misreads, and `SPR2` #102 has alpha 40, past the 5 bits the field holds, which FreeSO and Simburbia both wrap to 73 |
+| `objectdata/objects/objspf.far` | `mockchair.spf`: made-up sprites (a palette, `SPR2` versions 1000 and 1001 using every run command, `SPR#` in both byte orders, and `DGRP` versions 20000, 20001, and 20004). DGRP 0 is the chairs' own (base graphic 0 plus graphic 0), with near images for north and east, so the client draws them. Two cover edge cases: `SPR#` #201 is big-endian version 1001 (DIFF-26 in the scorecard), and `SPR2` #102 has alpha 40, past the 5 bits the field holds, which wraps to 73 |
 | `objectdata/globals/global.iff` | One global routine (256) that returns true, and the Sim's walk (`STR#` 150) and swim (`STR#` 158) animation names, made up |
 | `tuning.dat` | The global tuning a Sim's motives read, made up by `generators/mock_tuning.py`: `simmotives` (small decay rates, 16 waking hours) and `lotmotives` (a weight of 1 for every motive in the None category, which the mock lots have, and made-up weights for the others that don't divide 1000 evenly, so Set Motive Deltas' scaling truncates as on a real install) |
 | `avatardata/` | The mock Sim's body, made from Kenney's character by `generators/mock_avatar.py`, in FAR3 archives laid out as 1.1097.1.0's are: `adult.skel` (TSO's 29 adult bone names and parents, placed on Kenney's joints and scaled to TSO's height), a body and a head mesh (Kenney's one mesh, cut at the head), female and male textures (JPEG; the clothes are painted on, so every skin tone wears the same), their bindings, appearances, and outfits, a hand group with no hand meshes (Kenney's hands are part of the body), and five placeholder animations (`mock-stand`, `mock-walk`, `mock-walk-fast`, `mock-swim`, `mock-dance`) with timed events: an `xevt` and a sound on the stand, hand events on the walks, and two `xevt`s on the dance, which writes its property lists in the single-set layout of TSO's stereo dances. File IDs are `0x4D4F....` |
 | `objectdata/globals/mockglobals.iff` | The objects' semi-global: one routine (8192) that returns true |
-| `objectdata/globals/build.iff` | The build catalog's strings: five wall styles (`STR#` 0x81), two floors (0x82), three wallpapers (0x83), and pool and water (0x85). There's one more wallpaper than floors, as in the real tables, since FreeSO counts the global floors from the wallpaper strings |
-| `objectdata/globals/walls.iff` | Wall styles 1 (wall), 2, 12, 13, and 14 (fences, banister), and 7 and 8 (the cutaway styles), with cut-down masks for 1, 7, and 8; patterns 1 to 3 (plaster, brick, blue paint), 248 to 251 (the fences' own), and 252 and 253 (the cutaway overlays); and the 46 junction pieces. Each sprite has the four sides FreeSO draws, at its sizes for each zoom |
-| `objectdata/globals/floors.iff` | Floors 1 (straw, standing in for grass) and 2 (planks), 16 pool tiles at each zoom with their corners, and 16 water tiles with a depth layer FreeSO turns into alpha: 255 inside the diamond and 0 outside, written for every pixel, since a transparent run's depth of 255 would turn opaque black |
+| `objectdata/globals/build.iff` | The build catalog's strings: five wall styles (`STR#` 0x81), two floors (0x82), three wallpapers (0x83), and pool and water (0x85). There's one more wallpaper than floors, as in the real tables |
+| `objectdata/globals/walls.iff` | Wall styles 1 (wall), 2, 12, 13, and 14 (fences, banister), and 7 and 8 (the cutaway styles), with cut-down masks for 1, 7, and 8; patterns 1 to 3 (plaster, brick, blue paint), 248 to 251 (the fences' own), and 252 and 253 (the cutaway overlays); and the 46 junction pieces. Each sprite has the four sides a wall draws, at its sizes for each zoom |
+| `objectdata/globals/floors.iff` | Floors 1 (straw, standing in for grass) and 2 (planks), 16 pool tiles at each zoom with their corners, and 16 water tiles with a depth layer read as alpha: 255 inside the diamond and 0 outside, written for every pixel, since a transparent run's depth of 255 would turn opaque black |
 | `housedata/walls/walls.far` | Two archive wall patterns, 256 (`mockstone.wll`) and 257 (`mockpanel.wll`) |
 | `housedata/floors/floors.far` | Two archive floors, 256 (`mocktile.flr`) and 257 (`mockcarpet.flr`). Like the base game, the mock has no `walls2` to `walls4` or `floors2` to `floors4` |
 
@@ -57,10 +57,10 @@ it doesn't have, and to push "mock tree" as a subroutine.
 The register's main is its own too. It makes itself the stack object, then uses Transfer Funds
 to be paid 100 by the game, pay 30 back, and fail to pay 1,000, each waiting a tick for its
 answer, and puts its cash in TempXL 0, which it copies to attribute 2. Objects on a blueprint lot
-all have persist ID 0, which FreeSO resolves to the lowest-numbered object, so on the mock lot
+all have persist ID 0, which resolves to the lowest-numbered object, so on the mock lot
 the money moves in and out of object 1, and alone on a lot it's the register's own.
 
-The Sim has everything FreeSO needs to create one, nothing from EA: its body strings (type, the
+The Sim has everything a Sim needs, nothing from EA: its body strings (type, the
 female body and head outfits, name, gender, age, and skin tone), its body in `avatardata/`, the
 motive tuning in `tuning.dat`, and the global walk and swim animation tables, whose names the
 placeholder animations answer. Simburbia creates and runs it over a game day.
@@ -72,7 +72,7 @@ room, the register in the room, and one GUID the install doesn't have, which loa
 the study's visitor Sims do, with `--sim-template 4D4F4307`) rather than being in the blueprint. The lot has
 no mailbox, so the Sim arrives on tile 3,3, the join's fallback; the chair that stands there on
 `mock-lot.xml` stands on 4,4 here instead. Keep 3,3 free on this lot. On `mock-lot.xml` the chair
-still takes 3,3, so a Sim joining there stays out of the world, as FreeSO's join leaves it. The lots
+still takes 3,3, so a Sim joining there stays out of the world. The lots
 are kept apart so the primitive cases on `mock-lot.xml` keep their lot; cases that need a Sim run on
 `mock-lot-sim.xml` with it joined.
 
