@@ -184,15 +184,33 @@ In order:
      - [x] C4. Change Suit Or Accessory (6, as state), Reach (47), Grab (4), and Drop (5), with
        the hand's carry animation. The made-up mock object that animates the mock Sim moves to D,
        which lets a Sim use an object. Mutation testing waits until after C.
-   - [ ] D. The interaction queue: interaction tables (`TTAB`), queued actions and priorities,
-     action and check trees; Push Interaction, Run Functional Tree, Find Best Object For Function,
-     Change Action String, and Test Sim Interacting With (moved from B: it reads the queue). A made-up interaction table in the mock.
-     Objects' callback trees run (owner's decision, 2026-11-20): after a reach takes or puts
-     something, the target's `CT - Grab` or `CT - Put` (1.1097.1.0 names them 101 and 118 times).
-     TSO tuned The Sims 1 for an MMO, and its objects react far more: the Mystic Tree's pick is a
-     grab offered once the tree is ripe ([TSO Mania](https://www.tsomania.net/assets/images/gameguides/mystic_tree_pick.gif)),
-     and inherited objects such as plates were enhanced too. Also here: the mock object that
-     animates the mock Sim, and the hurry flag.
+   - [ ] D. The interaction queue, in five steps. TSO's Sims don't pick actions through a
+     primitive (Find Best Action appears nowhere in its content): their own code pushes
+     interactions, 298 Push Interactions in the person semi-global alone, and the queue runs them.
+     Each step ends with every package green, the study clean on MockInstall, and the census's
+     `pending` count down; from D3, the study also runs with visitor Sims on 1.1097.1.0.
+     - [ ] D1. Scaffolding: a Sim's action queue (routine, callee, priority, mode, ID,
+       cancelled); interactions from an object's `TTAB` and `TTAs` (action and check trees,
+       flags, motive ads); the digest's action-queue fields; and a made-up mock object with an
+       interaction table, whose action animates the mock Sim and offers a grab with a
+       `CT - Grab` tree.
+     - [ ] D2. Running the queue: the head's action tree runs when main idles; check trees before
+       queuing; priorities, cancelling, and interrupting; Idle For Input's interaction branch;
+       Test Sim Interacting With (37); and Animate Sim's hurry flag.
+     - [ ] D3. Push Interaction (13) and Change Action String (50): the template person's first
+       blocker (599 and 429 uses in the catalog). Risk: the join path may reach Generic Sims
+       Online Call (1) next; then only the calls it needs come forward, as stand-ins.
+     - [ ] D4. Run Functional Tree (20), Find Best Object For Function (14), and objects'
+       callback trees (owner's decision, 2026-11-20): after a reach takes or puts something, the
+       target's `CT - Grab` or `CT - Put` (1.1097.1.0 names them 101 and 118 times). TSO tuned
+       The Sims 1 for an MMO, and its objects react far more: the Mystic Tree's pick is a grab
+       offered once the tree is ripe ([TSO Mania](https://www.tsomania.net/assets/images/gameguides/mystic_tree_pick.gif)),
+       and inherited objects such as plates were enhanced too.
+     - [ ] D5. Queueing interactions by hand: `VM`'s API for it, and in the client a drop-down
+       terminal on Ctrl+Shift+C that uses it (owner's decision, 2026-11-20), built on Hudini's
+       window manager API.
+     Not in D (owner, 2026-11-20): scored autonomy. TSO's free will setting came with Betaville,
+     a separate build reached through the patcher, not the New & Improved baseline.
    - [ ] E. Routing (Shannopolis): the routing frame, rectangle router, obstacles, and portals, with
      FreeSO's floating point matched; Go To Routing Slot, Go To Relative Position, Snap, and Look
      Towards (moved from B: it turns the Sim with a routing frame).

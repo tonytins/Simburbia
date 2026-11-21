@@ -42,6 +42,7 @@ are in [`AGENTS.md`](../AGENTS.md); they apply to people and AI assistants alike
 | Beta                        | An early retail copy (v1.3.2.121) that a select number people could get. Players at this time got founder's badge on their profile.                                                                                                                  |
 | Base Game                   | v1.145.1.0, the earliest known retail copy available online.                                                                                                                                                                                         |
 | New & Improved (N&I)        | An October 2003 re-release, likely at around 1.1097.1.0, that brought with it pets, jobs, and more. (Anything added since then, but before EA-Land, is known as New & Improved.)                                                                     |
+| Betaville                   | A separate build of TSO, reached through the patcher, which brought settings such as free will (owner's account) |
 
 - **To look up what a SimAntics primitive, scope, or data field means:**
   [simantics/README.md](simantics/README.md).
