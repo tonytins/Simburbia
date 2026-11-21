@@ -187,6 +187,12 @@ In order:
    - [ ] D. The interaction queue: interaction tables (`TTAB`), queued actions and priorities,
      action and check trees; Push Interaction, Run Functional Tree, Find Best Object For Function,
      Change Action String, and Test Sim Interacting With (moved from B: it reads the queue). A made-up interaction table in the mock.
+     Objects' callback trees run (owner's decision, 2026-11-20): after a reach takes or puts
+     something, the target's `CT - Grab` or `CT - Put` (1.1097.1.0 names them 101 and 118 times).
+     TSO tuned The Sims 1 for an MMO, and its objects react far more: the Mystic Tree's pick is a
+     grab offered once the tree is ripe ([TSO Mania](https://www.tsomania.net/assets/images/gameguides/mystic_tree_pick.gif)),
+     and inherited objects such as plates were enhanced too. Also here: the mock object that
+     animates the mock Sim, and the hurry flag.
    - [ ] E. Routing (Shannopolis): the routing frame, rectangle router, obstacles, and portals, with
      FreeSO's floating point matched; Go To Routing Slot, Go To Relative Position, Snap, and Look
      Towards (moved from B: it turns the Sim with a routing frame).

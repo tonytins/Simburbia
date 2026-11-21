@@ -184,6 +184,11 @@ print, and are freer.
   logic, process entities in object ID order, take randomness only from the VM's seed, never read
   the clock, and review any floating point that feeds simulation state.
 - **Values, not singletons**. Pass dependencies in rather than reaching for a global.
+- **Simburbia in its own terms**. Docs and comments say what Simburbia does and why, from the
+  game's files, its tests, and how TSO played. Name FreeSO or another engine only where it truly
+  matters: a format Simburbia reads that FreeSO defined (PIFF patches, the content folder,
+  FreeSO's blueprint dialect), compatibility with content made for it, or a deliberate difference
+  the scorecard lists. Don't attribute every mechanism to the engine it was first read in.
 - **Independent packages**. Each package builds and tests on its own, and dependencies point one
   way. Libraries don't declare `platforms:`.
 - **Dependencies as needed**. Take one when it earns its place, and say why.
