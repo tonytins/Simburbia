@@ -92,7 +92,7 @@ final class ClientApp {
         floors?.unloadAll()
         walls?.unloadAll()
         depth?.unload()
-        CloseWindow()
+        ClientWindow.close()
     }
 
     /// Runs the lot `ticks` ticks, draws a few frames, saves the last, and closes the window.
@@ -110,7 +110,7 @@ final class ClientApp {
         floors?.unloadAll()
         walls?.unloadAll()
         depth?.unload()
-        CloseWindow()
+        ClientWindow.close()
         return saved
     }
 
@@ -241,7 +241,8 @@ final class ClientApp {
             inspector.show(entity)
         } else if let id = hovered, let entity = session.vm.entity(id: id) {
             let mouse = GetMousePosition()
-            DrawText(Inspection(entity).title, Int(mouse.x) + 14, Int(mouse.y) + 10, 16, InterfaceTheme.simburbia.text)
+            let theme = InterfaceTheme.simburbia
+            theme.drawText(Inspection(entity).title, x: Int(mouse.x) + 14, y: Int(mouse.y) + 10, size: 16, color: theme.text)
         }
         momi.show(session.systemMessages)
         windows.draw()

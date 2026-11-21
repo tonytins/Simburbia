@@ -78,7 +78,10 @@ final class TopBar {
                 let center = Vector2(x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2)
                 DrawCircleV(center, min(bounds.width, bounds.height) / 2, help?.fillColor ?? .green)
                 let size = help?.fontSize ?? 16
-                DrawText("?", Int(center.x) - MeasureText("?", size) / 2, Int(center.y) - size / 2, size, help?.textColor ?? .black)
+                let theme = InterfaceTheme.simburbia
+                let textSize = Int(size)
+                theme.drawText("?", x: Int(center.x) - theme.textWidth(of: "?", size: textSize) / 2, y: Int(center.y) - textSize / 2,
+                               size: textSize, color: help?.textColor ?? .black)
             default:
                 // A right-pointing triangle per speed, lit up to the one time runs at; none while paused.
                 guard name.hasPrefix("speed"), let index = Int(name.dropFirst("speed".count)) else { return }

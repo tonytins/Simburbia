@@ -202,8 +202,9 @@ final class LoadingScreen {
     }
 
     private func centered(_ line: String, y: Float, size: Int32, offset: Float, width: Float) {
-        let measured = Float(MeasureText(line, size))
-        DrawText(line, Int32((width - measured) / 2 + offset), Int32(y), size, InterfaceTheme.simburbia.text)
+        let theme = InterfaceTheme.simburbia
+        let measured = Float(theme.textWidth(of: line, size: Int(size)))
+        theme.drawText(line, x: Int((width - measured) / 2 + offset), y: Int(y), size: Int(size), color: theme.text)
     }
 
     /// Releases the art and the logo; call before the window closes.

@@ -142,8 +142,14 @@ the lot.
 
 The windows and controls come from [Hudini](https://github.com/tonytins/Hudini), the owner's
 interface library for raylib-swift, which grew out of the NSOInterface package this repository
-used to have. Its `hudini-demo` shows them on their own. Simburbia's colors are
-`InterfaceTheme.simburbia`, for now Hudini's standard palette.
+used to have. Its `hudini-demo` shows them on their own. Simburbia's look is
+`InterfaceTheme.simburbia`: for now Hudini's standard palette, with
+[Comic Neue](https://github.com/crozynski/comicneue) for the interface's text and
+[Fira Mono](https://github.com/mozilla/Fira) for fixed-width text such as the terminal's, both
+under the SIL Open Font License, in [`Interface/fonts`](../../Interface/fonts/README.md). The
+window loads them once it opens (`ClientWindow`), at 32 pixels with smooth scaling and the
+Latin-1 characters TSO's text uses, and unloads them before it closes. A font that's missing or
+unreadable is a warning, and its text uses raylib's own font.
 
 The top bar and the Help, MOMI, inspector, and terminal windows are described in Hudini's
 UIScript documents (`.uix`, an XML format), in [`Interface/`](../../Interface/): `topbar.uix`,

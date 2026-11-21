@@ -94,7 +94,7 @@ In order:
      - [x] C3. The Start/Join window of the owner's mockup, over the loading background: lots from
        `Lots` and the player's folder, Play through the loading screen, and Join shown
        but disabled until networking.
-   - [ ] D. The client reorganized, before routing (owner's decision, 2026-11-21), in five steps:
+   - [x] D. The client reorganized, before routing (owner's decision, 2026-11-21), in five steps:
      - [x] D1. Scaffolding: AGENTS.md treats the owner's libraries (Hudini, raylib-swift,
        swift-cst, GitVersion) as first-party, and lets the client, which is the game, use raylib
        throughout; swift-cst becomes the client's own dependency; and Comic Neue and Fira Mono,
@@ -107,7 +107,7 @@ In order:
      - [x] D4. The window manager: Help, MOMI, and the inspector join the terminal in Hudini's
        `WindowManager`, and the client's own `DocumentWindow` goes. The login window stays a
        screen of its own.
-     - [ ] D5. Fonts: Comic Neue for the interface and Fira Mono for the terminal, with documents
+     - [x] D5. Fonts: Comic Neue for the interface and Fira Mono for the terminal, with documents
        adjusted where text no longer fits; screenshots of every screen for the owner first.
 3. **Queen Margaret's, fourth pass: Sims,** so a lot with Sims runs a full in-game day without an
    error (the alpha gate's lot job). Until 2026-11-20 each phase ended with the oracles agreeing
@@ -380,6 +380,7 @@ chunks) can land whenever TS1 hybrid mode is needed; nothing in TSO mode waits o
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-11-21 | patch | The first client's step D5, which finishes step D: the interface draws in Comic Neue and the terminal in Fira Mono. The window loads them once it opens, at 32 pixels with smooth scaling and Latin-1, and unloads them before every close; `InterfaceTheme.simburbia` is the window's theme, and the text drawn outside Hudini's controls uses it too. A missing font is a warning, with raylib's font in its place. No document needed resizing; the owner approved the screenshots. |
 | 2026-11-21 | patch | The first client's step D4: Help, MOMI, and the inspector join the terminal in Hudini's `WindowManager`, each a `ManagedWindow` (a document in Hudini's frame, opened and closed through the manager), and the client's own `DocumentWindow` is gone. The manager gives the front window the input and draws them all; Escape closes the window in front; a click on any window stays off the lot. |
 | 2026-11-21 | patch | The first client's step D3: the interface's UIScript documents are `.uix` (`topbar`, `help`, `momi`, `inspector`, `terminal`, `login-start`, `login-join`), and the loading text is read with swift-cst: the install's through `UIText`, Simburbia's own through `CSTDirectory`, whose problems still become warnings by line. Hudini's deprecated `CSTCatalog` is no longer used. |
 | 2026-11-21 | minor | The first client's step D2: the client is the repository's root package, so `swift run simburbia` runs it. `SBClient` became `Client`, its sources grouped by job (`App`, `Session`, `Scene`, `Drawing`, `Screens`, `Windows`, `Terminal`), with `LotScene` folded into the one `simburbia` target and its tests (`SimburbiaTests`) importing it. Files moved with their history; CI builds the root as `.`, packaging builds from the root, and AGENTS.md, the README, and the docs follow. |

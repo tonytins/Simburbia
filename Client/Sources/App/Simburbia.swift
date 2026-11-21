@@ -143,11 +143,11 @@ struct Simburbia: ParsableCommand {
         let (interface, warnings) = try Interface.load(from: Self.simburbiaFolder)
         let (text, textWarnings) = LoadingText.load(gameDirectory: options.gameDirectory, simburbiaFolder: Self.simburbiaFolder)
         let (art, artWarning) = LoadingScreen.setupArt(gameDirectory: options.gameDirectory)
-        for warning in warnings + textWarnings + (artWarning.map { [$0] } ?? []) {
+        let hidden = screenshot != nil || loadingScreenshot != nil || loginScreenshot != nil
+        let fontWarnings = ClientWindow.open(hidden: hidden, simburbiaFolder: Self.simburbiaFolder)
+        for warning in warnings + textWarnings + (artWarning.map { [$0] } ?? []) + fontWarnings {
             FileHandle.standardError.write(Data("simburbia: \(warning)\n".utf8))
         }
-        let hidden = screenshot != nil || loadingScreenshot != nil || loginScreenshot != nil
-        ClientWindow.open(hidden: hidden)
         let loading = LoadingScreen(text: text, art: art, logo: Self.simburbiaFolder.appendingPathComponent("Interface/logo.png"))
         // Run the lot asked for, or for a screenshot of the lot or of loading, the default one;
         // otherwise load the install, then let the player pick a lot in the login window.
@@ -211,7 +211,7 @@ struct Simburbia: ParsableCommand {
         while true {
             if WindowShouldClose() {
                 loading.unload()
-                CloseWindow()
+                ClientWindow.close()
                 return nil
             }
             if value == nil, let result = load.take() {
@@ -221,7 +221,7 @@ struct Simburbia: ParsableCommand {
                     value = made
                 case .failure(let error):
                     loading.unload()
-                    CloseWindow()
+                    ClientWindow.close()
                     throw error
                 }
             }
@@ -236,7 +236,7 @@ struct Simburbia: ParsableCommand {
                 guard (lines.current >= 1 && lines.slid >= 0.5) || lines.isFinished(progress: progress) else { continue }
                 try Self.capture(to: loadingScreenshot)
                 loading.unload()
-                CloseWindow()
+                ClientWindow.close()
                 // A loading thread may still be running; the process ends with it.
                 return nil
             }
@@ -256,20 +256,22 @@ struct Simburbia: ParsableCommand {
         while true {
             if WindowShouldClose() {
                 loading.unload()
-                CloseWindow()
+                ClientWindow.close()
                 return nil
             }
             let chosen = login.update()
             loading.draw(showsLines: false) {
                 login.draw()
-                let size: Int32 = 16
-                let width = MeasureText(version, size)
-                DrawText(version, GetScreenWidth() - width - 20, GetScreenHeight() - size - 16, size, InterfaceTheme.simburbia.text)
+                let theme = InterfaceTheme.simburbia
+                let size = 16
+                let width = theme.textWidth(of: version, size: size)
+                theme.drawText(version, x: Int(GetScreenWidth()) - width - 20, y: Int(GetScreenHeight()) - size - 16, size: size,
+                               color: theme.text)
             }
             if let loginScreenshot {
                 try Self.capture(to: loginScreenshot)
                 loading.unload()
-                CloseWindow()
+                ClientWindow.close()
                 return nil
             }
             if let chosen { return chosen }
