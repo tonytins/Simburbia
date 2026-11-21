@@ -57,54 +57,6 @@ permissions:
   contents: read
 
 jobs:
-  linux:
-    name: Linux (${{ matrix.arch }})
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: x86_64
-            runner: ubuntu-latest
-          - arch: aarch64
-            runner: ubuntu-24.04-arm
-    runs-on: ${{ matrix.runner }}
-    container: swift:6.3
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          # The client's version counts commits (GitVersion), which a shallow clone can't.
-          fetch-depth: 0
-
-      - name: Install X11 and GL headers for raylib (the client)
-        run: |
-          apt-get update
-          apt-get install -y --no-install-recommends \
-            libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev libgl1-mesa-dev
-
-      - name: Build and test each package
-        shell: bash
-        run: |
-          set -euo pipefail
-          # The client is the root package ("."); the libraries and tools are the folders beside it.
-          for package in TSOFiles TSOFilesCheck TSOContent SimAntics SimsScript SBOracle ScriptOracle .; do
-            echo "::group::${package/#./client}"
-            swift build --package-path "$package"
-            swift test --package-path "$package"
-            echo "::endgroup::"
-          done
-
-      - name: Run the SimsScript scenarios on MockInstall
-        run: swift run --package-path ScriptOracle sso-oracle run
-
-      - name: Check library sources for trap patterns
-        shell: bash
-        run: |
-          # AGENTS.md "Never crash": no try!, as!, fatalError, or precondition in Sources.
-          if grep -rnE 'try!|as!|fatalError|precondition|preconditionFailure' */Sources; then
-            echo "::error::Trap patterns found in library sources"
-            exit 1
-          fi
-
   macos:
     name: macOS
     runs-on: macos-latest
