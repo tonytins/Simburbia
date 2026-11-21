@@ -254,6 +254,7 @@ ones; the names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 | 17 | `IdleForInput` | Waits a number of ticks, or until input (a queued interaction, or the running one cancelled) or an interrupt; in main, runs what's queued |
 | 18 | `RemoveObjectInstance` | Deletes the caller or the stack object, or every part of it |
 | 20 | `RunFunctionalTree` | Runs the stack object's routine for a function as a subroutine, when its condition allows the caller |
+| 22 | `LookTowards` | Turns the Sim's head (drawing only) or body toward the camera (nothing in TSO): true; turning the body toward an object waits for routing |
 | 23 | `PlaySound` | Plays a sound event (headless, as on a lot server: changes nothing) |
 | 25 | `TransferFunds` | Moves money between the caller, the stack object, owners, and the game; waits a tick for the answer, or only tests in a check tree |
 | 28 | `RunTreeByName` | Runs one of the stack object's routines, found by a name from a string table: pushed, or to completion on the caller's or the stack object's thread |
@@ -364,6 +365,11 @@ pickup and put helpers ("pick up from slot", "put surface function", "pickup cor
 call them with Run Tree By Name once a reach is done, from `STR#` 303, a table of callback names
 (the global's names them too). On 1.1097.1.0, 86 files' tables name `CT - Grab` and 91 name
 `CT - Put`, and 8 and 11 files have the routines.
+
+A Sim in a bad mood refuses: skill, job, and fun objects call the global's "Refuse Moody?" or
+"Refuse Fun Object?" in their interactions, which compare a motive with a threshold and, below
+it, play a refusal and return false, ending the interaction. TSO's Sims don't choose their own
+actions, so refusing is this, not autonomy.
 
 Change Suit Or Accessory (6) keeps what drawing will need: the appearances bound over the body
 (`sim.boundAppearances`), the body outfit, and `CurrentOutfit` (person data 8).

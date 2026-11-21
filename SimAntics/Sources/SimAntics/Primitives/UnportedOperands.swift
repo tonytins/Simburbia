@@ -15,7 +15,6 @@ extension PrimitiveTable {
     public static let unportedOperands: [UInt8: any FSOCompatOperand.Type] = [
         1: Primitives.GenericTSOCall.Operand.self,
         9: Primitives.Burn.Operand.self,
-        22: Primitives.LookTowards.Operand.self,
         24: Primitives.OldRelationship.Operand.self,
         26: Primitives.Relationship.Operand.self,
         27: Primitives.GotoRelativePosition.Operand.self,
@@ -228,8 +227,7 @@ extension Primitives {
         }
     }
 
-    /// One-byte calls: Generic Sims Online Call (opcode 1), Look Towards (22), and Online Jobs
-    /// Call (40).
+    /// One-byte calls: Generic Sims Online Call (opcode 1) and Online Jobs Call (40).
     public enum GenericTSOCall {
         public struct Operand: FSOCompatOperand, Equatable {
             /// The call.
@@ -237,16 +235,6 @@ extension Primitives {
             public init(bytes: [UInt8]) { call = bytes.first ?? 0 }
             public func encoded() -> [UInt8] { OperandWriter.bytes { $0.uint8(call) } }
             public var fsoCompatFields: [(name: String, value: Int64)] { [("Call", Int64(call))] }
-        }
-    }
-
-    public enum LookTowards {
-        public struct Operand: FSOCompatOperand, Equatable {
-            /// What to look at.
-            public var mode: UInt8
-            public init(bytes: [UInt8]) { mode = bytes.first ?? 0 }
-            public func encoded() -> [UInt8] { OperandWriter.bytes { $0.uint8(mode) } }
-            public var fsoCompatFields: [(name: String, value: Int64)] { [("Mode", Int64(mode))] }
         }
     }
 

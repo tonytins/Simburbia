@@ -202,6 +202,11 @@ In order:
        The Sims 1 for an MMO, and its objects react far more: the Mystic Tree's pick is a grab
        offered once the tree is ripe ([TSO Mania](https://www.tsomania.net/assets/images/gameguides/mystic_tree_pick.gif)),
        and inherited objects such as plates were enhanced too.
+     - [x] D4b. Refusals (owner's decision, 2026-11-21: a fail-safe, before D5): TSO's Sims are
+       player-driven, but an unhappy one refuses. That's content, not autonomy: skill, job, and
+       fun objects call the global's "Refuse Moody?" or "Refuse Fun Object?" (47 calls), which
+       play a refusal and end the interaction. They need Look Towards (22) modes 0 and 1, which
+       go true, ahead of routing's body turns (modes 2 to 5, phase E).
      - [ ] D5. Queueing interactions by hand: `VM`'s API for it, and in the client a drop-down
        terminal on Ctrl+Shift+C that uses it (owner's decision, 2026-11-20), built on Hudini's
        window manager API.
@@ -209,7 +214,8 @@ In order:
      a separate build reached through the patcher, not the New & Improved baseline.
    - [ ] E. Routing (Shannopolis): the routing frame, rectangle router, obstacles, and portals, with
      FreeSO's floating point matched; Go To Routing Slot, Go To Relative Position, Snap, and Look
-     Towards (moved from B: it turns the Sim with a routing frame). Snap's mode 2 runs as a stand-in
+     Towards (moved from B: it turns the Sim with a routing frame; its modes 0 and 1, which
+     don't turn the body, run since D4b). Snap's mode 2 runs as a stand-in
      since D3 (owner's decision, 2026-11-21), so a Sim can fall asleep on the floor; E replaces it.
    - [ ] F. Relationships and services: Relationship, Old Relationship, the dialogs (headless), the
      Generic Sims Online Call, and the Online Jobs Call, against stand-in services.
@@ -355,6 +361,7 @@ chunks) can land whenever TS1 hybrid mode is needed; nothing in TSO mode waits o
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-11-21 | minor | Queen Margaret's fourth pass, step D4b, added by the owner before D5: refusals. An unhappy Sim refuses through content, not autonomy: skill, job, and fun objects call the global's "Refuse Moody?" (391) or "Refuse Fun Object?" (408), 47 calls on 1.1097.1.0, which compare a motive with a threshold, play a refusal, and end the interaction. Look Towards (22) modes 0 (the head, 100 uses) and 1 (the body toward the camera, 42, which TSO doesn't do) go true; modes 2 to 5 (245) wait for routing in phase E. `RefusalTests` runs "Refuse Moody?" on the template person: a good mood goes on, a bad one refuses. The census's `pending` count goes from 4,426 to 4,190, overstated as Snap's was. |
 | 2026-11-21 | minor | Queen Margaret's fourth pass, step D4: Run Functional Tree (20) pushes the stack object's routine for a function (an entry point from prepare food to repair) when its condition allows the caller, and Find Best Object For Function (14) makes the best usable object for one the stack object: not locked out, disabled, out of the world, or in use, scored by its function's object data where there is one and its threshold met, less a third of its distance. Callback trees turn out to need nothing from Reach: TSO's pickup and put helpers call `CT - Grab` and `CT - Put` by name from `STR#` 303 with Run Tree By Name, already ported, so Reach running them too, as plumbob-engine does for The Sims 1, would run them twice. MockInstall's ball now calls its `CT - Grab` that way, counting on the stack object (a routine's "me" is its caller, the Sim), and the mock gains a placeholder `a2o-reach-floorht` so Reach finds its animation; the Sim picks up the ball in `QueueTests`. The census's `pending` count on 1.1097.1.0 goes from 4,627 to 4,426. |
 | 2026-11-21 | patch | Step D3's follow-up, by the owner's decision: Snap (46) mode 2, in front of the stack object, as a stand-in until routing (phase E). With no bed on the lot, the template person's energy runs out and it falls asleep on the floor, which needs it. The stand-in moves the Sim one tile in front, without routing's slot search; the other modes report unsupported. The census's `pending` count goes from 5,195 to 4,627, which overstates it: the census counts every Snap use as ported. The join path's next blocker is Relationship (26, phase F), in falling on the floor, about 11 game hours in for the study's Sims. |
 | 2026-11-21 | minor | Queen Margaret's fourth pass, step D3: Push Interaction (13) and Change Action String (50). Objects and Sims push interactions by number, at the operand's priority or mode, as actions that must run; flag 2 reads the object from a local, 4 continues the current interaction (leapfrogging), and 8 carries its name over (DIFF-38: FreeSO reads flag 2 as push-to-tail too and ignores 8). Change Action String renames the running interaction from the code owner's strings, the only scope TSO's content uses. The census's `pending` count on 1.1097.1.0 goes from 6,223 to 5,195. The template person now joins a lot and runs its idle interaction; without a bed it falls asleep on the floor 11 to 17 game hours in (11 from the study's empty motives), which reaches Snap (46), planned for routing in phase E, so the study still sets visitor Sims aside on 1.1097.1.0. |
