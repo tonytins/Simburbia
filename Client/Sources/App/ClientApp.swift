@@ -11,7 +11,8 @@ final class ClientApp {
     private let inspector: Inspector
     private let help: HelpWindow
     private let momi: MomiWindow
-    /// The windows Hudini's window manager stacks: the terminal so far.
+    /// The windows over the lot, which Hudini's window manager stacks: Help, MOMI, the inspector,
+    /// and the terminal. It gives the front one the input and draws them all.
     private let windows = WindowManager()
     private let terminal: TerminalWindow
     private let library = SpriteLibrary()
@@ -50,9 +51,9 @@ final class ClientApp {
         lastMinute = session.vm.clock.minutes
         SetWindowTitle("Simburbia - \(session.lotName)")
         topBar = TopBar(script: interface.topBar)
-        inspector = Inspector(script: interface.inspector)
-        help = HelpWindow(script: interface.help)
-        momi = MomiWindow(script: interface.momi)
+        inspector = Inspector(script: interface.inspector, in: windows)
+        help = HelpWindow(script: interface.help, in: windows)
+        momi = MomiWindow(script: interface.momi, in: windows)
         terminal = TerminalWindow(script: interface.terminal, vm: session.vm, windows: windows)
         depth = SpriteDepth()
         floors = session.floors.map(FloorPass.init)
@@ -187,46 +188,34 @@ final class ClientApp {
             if IsKeyPressed(.pageUp) { view.level = min(view.level + 1, Architecture.stories) }
             if IsKeyPressed(.pageDown) { view.level = max(view.level - 1, 1) }
         }
-        if IsKeyPressed(.escape) {
-            if terminal.isOpen {
-                terminal.close()
-            } else if help.window.isOpen {
-                help.window.isOpen = false
-            } else if momi.window.isOpen {
-                momi.window.isOpen = false
-            } else {
-                inspector.close()
-            }
-        }
+        // Escape closes the window in front.
+        if IsKeyPressed(.escape), let front = windows.frontWindow { windows.close(front) }
 
         topBar.update(topBarState)
         let mouse = GetMousePosition()
-        let overInterface = topBar.contains(mouse) || inspector.contains(mouse) || help.window.contains(mouse)
-            || momi.window.contains(mouse) || windows.contains(mouse)
+        let overInterface = topBar.contains(mouse) || windows.contains(mouse)
         if !overInterface { view.zoom(by: GetMouseWheelMove()) }
         followPointer(mouse, overInterface: overInterface)
         if IsMouseButtonDown(.right) { view.pan(by: GetMouseDelta()) }
         hovered = overInterface ? nil : view.object(at: mouse, in: scene, camera: view.camera(screenHeight: Int(GetScreenHeight())))
-        // The windows take the click when they want it, then the bar; otherwise a click picks
-        // what's under the pointer. The window manager's windows are on top of the others.
-        let overManaged = windows.contains(mouse)
+        // A click on a window is the window's, then the bar's; otherwise it picks what's under
+        // the pointer.
+        let overWindow = windows.contains(mouse)
         windows.update()
-        let usedByWindow = (overManaged && IsMouseButtonPressed(.left))
-            || help.window.update() || momi.window.update() || inspector.update()
-        if !usedByWindow, IsMouseButtonPressed(.left) {
+        if !overWindow, IsMouseButtonPressed(.left) {
             switch topBar.click(at: mouse) {
             case .speed(let index):
                 session.setSpeed(index: index)
                 session.isPaused = false
             case .help:
-                help.window.isOpen.toggle()
+                help.window.toggle()
             case .messages:
-                momi.window.isOpen.toggle()
+                momi.window.toggle()
             case nil:
                 if !overInterface { inspector.selected = hovered }
             }
         }
-        if let id = inspector.selected, session.vm.entity(id: id) == nil { inspector.close() }
+        inspector.sync(with: session.vm)
     }
 
     private func advance() {
@@ -249,14 +238,12 @@ final class ClientApp {
         topBar.update(state)
         topBar.draw(state)
         if let id = inspector.selected, let entity = session.vm.entity(id: id) {
-            inspector.draw(entity)
+            inspector.show(entity)
         } else if let id = hovered, let entity = session.vm.entity(id: id) {
             let mouse = GetMousePosition()
             DrawText(Inspection(entity).title, Int(mouse.x) + 14, Int(mouse.y) + 10, 16, InterfaceTheme.simburbia.text)
         }
         momi.show(session.systemMessages)
-        momi.window.draw()
-        help.window.draw()
         windows.draw()
         windows.drawTooltip()
         EndDrawing()

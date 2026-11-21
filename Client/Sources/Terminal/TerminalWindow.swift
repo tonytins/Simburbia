@@ -8,28 +8,29 @@ final class TerminalWindow {
     /// How many lines the output keeps, oldest dropped first.
     static let keptLines = 500
 
-    private let windows: WindowManager
-    private let frame: WindowFrame
-    private let view: UIView
-    private let width: Float
+    private let window: ManagedWindow
     private let vm: VM
     private var commands = TerminalCommands()
     private var lines = ["Simburbia's terminal. Type help for the commands."]
 
     init(script: UIScript, vm: VM, windows: WindowManager) {
-        self.windows = windows
         self.vm = vm
-        view = UIView(script: script, theme: .simburbia)
-        frame = WindowFrame(view: view, title: "Terminal")
-        width = script.window.size.width
-        view.list(named: "output")?.items = lines
+        let width = script.window.size.width
+        window = ManagedWindow(title: "Terminal", script: script, in: windows) {
+            // Under the top bar, centered.
+            Vector2(x: ((Float(GetScreenWidth()) - width) / 2).rounded(), y: 34)
+        }
+        window.view.list(named: "output")?.items = lines
+        window.onEvent = { [unowned self] event in
+            if case .view(.submitted(control: "input", let text)) = event { submit(text) }
+        }
     }
 
-    var isOpen: Bool { windows.isOpen(frame) }
+    var isOpen: Bool { window.isOpen }
 
     /// Whether the keyboard belongs to the terminal: it's open with its input focused, so the
     /// game's keys must wait.
-    var isTyping: Bool { isOpen && view.textField(named: "input")?.isFocused == true }
+    var isTyping: Bool { isOpen && window.view.textField(named: "input")?.isFocused == true }
 
     /// Whether Ctrl+Shift+C was pressed this frame.
     static var togglePressed: Bool {
@@ -41,16 +42,14 @@ final class TerminalWindow {
     func toggle() {
         if isOpen {
             close()
-            return
+        } else {
+            window.open()
+            window.view.textField(named: "input")?.setFocused(true)
         }
-        let start = Vector2(x: ((Float(GetScreenWidth()) - width) / 2).rounded(), y: 34)
-        windows.open(frame, at: start) { [unowned self] event in handle(event) }
-        view.textField(named: "input")?.setFocused(true)
     }
 
     func close() {
-        view.clearFocus()
-        windows.close(frame)
+        window.close()
     }
 
     /// Runs a line as if it were typed and submitted.
@@ -63,17 +62,6 @@ final class TerminalWindow {
             lines += answer
         }
         if lines.count > Self.keptLines { lines.removeFirst(lines.count - Self.keptLines) }
-        view.list(named: "output")?.items = lines
-    }
-
-    private func handle(_ event: WindowFrame.Event) {
-        switch event {
-        case .closeRequested:
-            close()
-        case .view(.submitted(control: "input", let text)):
-            submit(text)
-        default:
-            break
-        }
+        window.view.list(named: "output")?.items = lines
     }
 }

@@ -93,12 +93,12 @@ final class TopBar {
 /// The window that lists the client's keys and what they do (`Interface/help.uix`), opened from
 /// the top bar.
 final class HelpWindow {
-    let window: DocumentWindow
+    let window: ManagedWindow
 
-    init(script: UIScript) {
+    init(script: UIScript, in windows: WindowManager) {
         let size = script.window.size
-        window = DocumentWindow(title: "Help", script: script) {
-            // Centered top to bottom, title bar and all.
+        window = ManagedWindow(title: "Help", script: script, in: windows) {
+            // Right of the middle, centered top to bottom, title bar and all.
             Vector2(x: Float(GetScreenWidth()) / 2 + 40, y: (Float(GetScreenHeight()) - size.height - Float(WindowFrame.titleHeight)) / 2)
         }
     }
@@ -108,12 +108,13 @@ final class HelpWindow {
 /// count. A log of the messages, newest at the bottom, and below it the input, disabled: there's
 /// no one to write to until online play.
 final class MomiWindow {
-    let window: DocumentWindow
+    let window: ManagedWindow
     private var shownCount = -1
 
-    init(script: UIScript) {
+    init(script: UIScript, in windows: WindowManager) {
         let size = script.window.size
-        window = DocumentWindow(title: "MOMI", script: script) {
+        window = ManagedWindow(title: "MOMI", script: script, in: windows) {
+            // Left of the middle, centered top to bottom.
             Vector2(x: Float(GetScreenWidth()) / 2 - size.width - 40, y: (Float(GetScreenHeight()) - size.height - Float(WindowFrame.titleHeight)) / 2)
         }
     }

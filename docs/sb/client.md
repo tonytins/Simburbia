@@ -114,7 +114,7 @@ explains why a 3D camera rather than 2D batches.
 | W | The next wall mode: cutaway, down, up |
 | Click an object | Inspect it |
 | Ctrl+Shift+C | Open and close the terminal |
-| Escape | Close the open window |
+| Escape | Close the window in front |
 
 The interface follows the owner's prototype mockup ([`docs/design`](../design/README.md)),
 which also serves as Simburbia's fallback and debug interface:
@@ -128,12 +128,17 @@ which also serves as Simburbia's fallback and debug interface:
 - **The inspector** shows a clicked object: what it is, where it is, and what it's running.
 - **The terminal**, opened and closed with Ctrl+Shift+C, queues a Sim's interactions by hand
   until there's a pie menu. It drops down under the top bar, and while its input has the
-  keyboard the game's keys wait. Its commands (`TerminalCommands`, tested without a window) join a Sim (the install's template person, or MockInstall's Sim) and
-  act for it: `join`, `sim`, `sims`, `objects`, `menu` (what the Sim may choose on an object),
-  `queue`, `cancel`, `show` (the Sim's queue), `clear`, and `help`. It goes through `VM`'s
-  `availableInteractions`, `queueInteraction`, and `cancelInteraction`. It's the first window in
-  Hudini's `WindowManager`, which stacks windows and gives the front one the input; the others
-  still place themselves.
+  keyboard the game's keys wait. Its commands (`TerminalCommands`, tested without a window) join
+  a Sim (the install's template person, or MockInstall's Sim) and act for it: `join`, `sim`,
+  `sims`, `objects`, `menu` (what the Sim may choose on an object), `queue`, `cancel`, `show`
+  (the Sim's queue), `clear`, and `help`. It goes through `VM`'s `availableInteractions`,
+  `queueInteraction`, and `cancelInteraction`.
+
+The windows over the lot (Help, MOMI, the inspector, and the terminal) live in Hudini's
+`WindowManager`: it stacks them, brings one to the front when it's clicked, gives only the front
+one the keyboard and the pointer, and draws them back to front. Each is a `ManagedWindow`, a
+document in Hudini's frame that the client opens and closes; a click on any of them never reaches
+the lot.
 
 The windows and controls come from [Hudini](https://github.com/tonytins/Hudini), the owner's
 interface library for raylib-swift, which grew out of the NSOInterface package this repository
