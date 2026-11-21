@@ -363,7 +363,10 @@ animations = [("mock-stand", 1.0, {"PELVIS": (0, 0)}, False, 0.0, [(500, [("xevt
               ("mock-walk-fast", 0.6, legs(35), True, 2.0, [(150, [("lefthand", "1")]), (450, [("righthand", "1")])], False),
               ("mock-swim", 1.5, {"R_ARM1": (40, 0.0), "L_ARM1": (40, math.pi)}, True, 1.0, [], False),
               ("mock-dance", 2.0, {"R_ARM1": (60, 0.0), "L_ARM1": (60, math.pi), "PELVIS": (10, 0.0)}, False, 0.0,
-               [(500, [("xevt", "1")]), (1500, [("xevt", "2"), ("sound", "mock_chime")])], True)]
+               [(500, [("xevt", "1")]), (1500, [("xevt", "2"), ("sound", "mock_chime")])], True),
+              # Reach plays this for an object on the floor, by the name it looks up, and takes or
+              # puts down on event 0.
+              ("a2o-reach-floorht", 1.0, {"R_ARM1": (40, 0.0)}, False, 0.0, [(500, [("xevt", "0")])], False)]
 write("animations/animations.dat",
       [(f"{a[0]}.anim", ANIMATION, 0x4D4F0701 + i, animation(*a)) for i, a in enumerate(animations)])
 

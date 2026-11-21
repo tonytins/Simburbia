@@ -28,18 +28,18 @@ import TSOContent
         #expect(result.columns[1].counts.objects == 4)
         #expect(result.columns[1].counts.loaded == 4)
         #expect(result.failures.isEmpty)
-        #expect(result.columns[0].counts.routines == 16)
-        #expect(result.columns[0].counts.primitives == 33)
+        #expect(result.columns[0].counts.routines == 17)
+        #expect(result.columns[0].counts.primitives == 35)
     }
 
     @Test func countsPrimitivesAndShapes() throws {
         let counts = try analyze().columns[0].counts
-        #expect(counts.primitiveUses[2] == 21)
+        #expect(counts.primitiveUses[2] == 22)
         #expect(counts.shapes[.init(opcode: 2, variables: "myObject,literal")] == 12)
         #expect(counts.shapes[.init(opcode: 25, variables: "literal")] == 4)
-        #expect(counts.shapes[.init(opcode: 28, variables: "-")] == 4)
+        #expect(counts.shapes[.init(opcode: 28, variables: "-")] == 5)
         #expect(counts.shapes.values.reduce(0, +) == counts.primitives)
-        #expect(counts.scopes["literal"] == 23)
+        #expect(counts.scopes["literal"] == 24)
         #expect(counts.scopes["myObjectAttributes"] == 6)
         #expect(counts.scopes.values.reduce(0, +) > 0)
     }
@@ -74,9 +74,9 @@ import TSOContent
         #expect(lines.contains("# column mock-lot: 4 objects"))
         #expect(lines.contains("kind\tkey\tcatalog\tmock-lot"))
         #expect(lines.contains("summary\tobjects\t6\t4"))
-        #expect(lines.contains("primitive\t2 expression (runs)\t21\t14"))
+        #expect(lines.contains("primitive\t2 expression (runs)\t22\t14"))
         #expect(lines.contains("shape\t2 expression: myObject,literal\t12\t8"))
-        #expect(lines.contains("scope\tliteral\t23\t15"))
+        #expect(lines.contains("scope\tliteral\t24\t15"))
     }
 
     /// Each object's reach matches what a lot run covers: the mock lot's objects run code from

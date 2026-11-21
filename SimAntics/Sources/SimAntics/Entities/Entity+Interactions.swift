@@ -20,4 +20,14 @@ extension Entity {
                 || sim.thread.queue.contains { action in parts.contains { $0 === action.callee } })
         }
     }
+
+    /// Whether the object, or any part of it, is in use: occupied, or the callee of a routine on a
+    /// Sim's stack. Unlike ``users``, a queued action doesn't count.
+    var isInUse: Bool {
+        group.objects.contains { part in
+            part.hasFlag(EntityFlag.occupied) || vm.entities.contains { sim in
+                sim.isAvatar && sim.thread.stack.contains { $0.callee === part }
+            }
+        }
+    }
 }

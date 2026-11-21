@@ -48,11 +48,12 @@ private func emptyAnimation(_ name: String) -> Data {
         #expect(throws: ContentError.self) { try animations.animation(named: "bad.anim") }
     }
 
-    /// MockInstall's five placeholder animations, made up by `generators/mock_avatar.py`, with
-    /// their timed events; the dance is in the single-set layout, as TSO's stereo dances are.
+    /// MockInstall's six placeholder animations, made up by `generators/mock_avatar.py`, with
+    /// their timed events; the dance is in the single-set layout, as TSO's stereo dances are, and
+    /// the reach has the name Reach looks up for the floor.
     @Test func readsTheMockInstallsAnimations() throws {
         let animations = AnimationProvider(files: try GameFileIndex(root: mockInstall))
-        #expect(animations.names == ["mock-dance.anim", "mock-stand.anim", "mock-swim.anim", "mock-walk-fast.anim", "mock-walk.anim"])
+        #expect(animations.names == ["a2o-reach-floorht.anim", "mock-dance.anim", "mock-stand.anim", "mock-swim.anim", "mock-walk-fast.anim", "mock-walk.anim"])
         #expect(animations.failures.isEmpty && animations.duplicates.isEmpty)
 
         let walk = try #require(try animations.animation(named: "mock-walk.anim"))

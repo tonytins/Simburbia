@@ -220,6 +220,26 @@ private func action(_ number: Int, on ball: Entity, priority: Int16 = QueuedActi
         }
     }
 
+    /// "Pick Up": Reach takes the ball in hand on its event 0, the ball's `CT - Grab` runs by name
+    /// (attribute 1 of the ball, the interaction's object), and Drop puts it down beside the Sim.
+    @Test func theSimPicksUpTheBallAndItsCallbackRuns() throws {
+        try withSimAndBall { (vm: VM, sim: Entity, ball: Entity) throws in
+            #expect(try vm.place(ball.group, at: .center(ofTileX: 4, y: 3, level: 1), facing: .north).status == .success)
+            sim.thread.enqueue(try action(1, on: ball))
+            var ticks = 0
+            var held = false
+            while !sim.thread.queue.isEmpty && ticks < 200 {
+                vm.tick()
+                if sim.slot(0) === ball { held = true }
+                ticks += 1
+            }
+            #expect(held, "the reach took the ball")
+            #expect(sim.thread.queue.isEmpty && ball.attribute(at: 1) == 1, "CT - Grab ran once")
+            #expect(ball.container == nil && !ball.position.isOutOfWorld && sim.slot(0) == nil, "dropped beside the Sim")
+            #expect(vm.reportedErrors.isEmpty, "\(vm.reportedErrors)")
+        }
+    }
+
     @Test func anInteractionsObjectGoingAwayResetsTheSim() throws {
         try withSimAndBall { (vm: VM, sim: Entity, ball: Entity) throws in
             sim.thread.enqueue(try action(0, on: ball))

@@ -21,9 +21,11 @@ extension Primitives {
     /// true, whether or not the pickup worked.
     ///
     /// No stack object, a slot number past its slots, or a height that isn't one of the nine
-    /// standard ones fails, with an error for the routine. The target's `CT - Grab` or `CT - Put`
-    /// tree, which an object runs when a reach takes it or puts something in it, comes with phase
-    /// D. Mode 2, reaching to the mouth, which TSO doesn't use, is unsupported.
+    /// standard ones fails, with an error for the routine. Mode 2, reaching to the mouth, which TSO
+    /// doesn't use, is unsupported.
+    ///
+    /// Reach doesn't run the target's callback trees (`CT - Grab`, `CT - Put`): TSO's pickup and
+    /// put helpers call them by name with Run Tree By Name once the reach returns.
     public enum Reach: Primitive {
         public static let name = "reach"
         public static let opcode: UInt8 = 47

@@ -248,10 +248,12 @@ ones; the names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 | 11 | `GetDistanceTo` | The distance from the stack object to another object, in whole tiles, into a temp |
 | 12 | `GetDirectionTo` | The direction from another object to the stack object, in eighths of a turn |
 | 13 | `PushInteraction` | Queues one of an object's interactions on the stack object, by number and priority, as an action that must run |
+| 14 | `FindBestObjectForFunction` | Makes the best usable object for a function (sit, clean, eat, and so on) the stack object: by its score for the function, less a third of its distance |
 | 15 | `Breakpoint` | A debugger breakpoint; with no debugger it doesn't stop, so it's always true |
 | 16 | `FindLocationFor` | Places the stack object near a reference, out of the world, or along a facing |
 | 17 | `IdleForInput` | Waits a number of ticks, or until input (a queued interaction, or the running one cancelled) or an interrupt; in main, runs what's queued |
 | 18 | `RemoveObjectInstance` | Deletes the caller or the stack object, or every part of it |
+| 20 | `RunFunctionalTree` | Runs the stack object's routine for a function as a subroutine, when its condition allows the caller |
 | 23 | `PlaySound` | Plays a sound event (headless, as on a lot server: changes nothing) |
 | 25 | `TransferFunds` | Moves money between the caller, the stack object, owners, and the game; waits a tick for the answer, or only tests in a check tree |
 | 28 | `RunTreeByName` | Runs one of the stack object's routines, found by a name from a string table: pushed, or to completion on the caller's or the stack object's thread |
@@ -357,8 +359,11 @@ A Sim's hand is its one container slot: Grab (4) puts the stack object in it, Re
 puts on its animation's event 0, and Drop (5) sets it on a tile beside the Sim. Holding something
 starts the default carry animation, `a2o-rarm-carry-loop`, and emptying the hand stops it. Reach
 picks one of TSO's four reach animations by the slot's height, so TSO's files need those names.
-1.1097.1.0's objects name `CT - Grab` 101 times and `CT - Put` 118 times: the trees an object
-runs when a reach takes it or puts something in it. They come with phase D (roadmap).
+An object's callback trees, such as `CT - Grab` and `CT - Put`, aren't run by Reach. TSO's own
+pickup and put helpers ("pick up from slot", "put surface function", "pickup core", and others)
+call them with Run Tree By Name once a reach is done, from `STR#` 303, a table of callback names
+(the global's names them too). On 1.1097.1.0, 86 files' tables name `CT - Grab` and 91 name
+`CT - Put`, and 8 and 11 files have the routines.
 
 Change Suit Or Accessory (6) keeps what drawing will need: the appearances bound over the body
 (`sim.boundAppearances`), the body outfit, and `CurrentOutfit` (person data 8).

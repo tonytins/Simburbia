@@ -110,6 +110,8 @@ public struct Obstacle: Sendable, Hashable {
 /// Object flags (object data 8) and flags 2 (object data 40) that placement and the action queue
 /// read.
 enum EntityFlag {
+    /// A Sim is using the object.
+    static let occupied: Int16 = 1 << 5
     /// Idle For Input ended because input came.
     static let notifiedByIdleForInput: Int16 = 1 << 6
     /// The running interaction was cancelled, or something more urgent is waiting.

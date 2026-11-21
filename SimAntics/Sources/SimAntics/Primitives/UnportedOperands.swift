@@ -15,8 +15,6 @@ extension PrimitiveTable {
     public static let unportedOperands: [UInt8: any FSOCompatOperand.Type] = [
         1: Primitives.GenericTSOCall.Operand.self,
         9: Primitives.Burn.Operand.self,
-        14: Primitives.FindBestObjectForFunction.Operand.self,
-        20: Primitives.RunFunctionalTree.Operand.self,
         22: Primitives.LookTowards.Operand.self,
         24: Primitives.OldRelationship.Operand.self,
         26: Primitives.Relationship.Operand.self,
@@ -288,44 +286,6 @@ extension Primitives {
                 [("SrcSlotMode", Int64(sourceSlotMode)), ("SrcSlotNum", Int64(sourceSlotNumber)),
                  ("DestSlotMode", Int64(destinationSlotMode)), ("DestSlotNum", Int64(destinationSlotNumber))]
             }
-        }
-    }
-
-    /// Run Functional Tree (opcode 20) and Find Best Object for Function (14, which reads
-    /// only the function).
-    public enum RunFunctionalTree {
-        public struct Operand: FSOCompatOperand, Equatable {
-            public var function: UInt16
-            public var flags: UInt8
-
-            public init(bytes: [UInt8]) {
-                var reader = OperandReader(bytes)
-                function = reader.uint16()
-                flags = reader.uint8()
-            }
-
-            public func encoded() -> [UInt8] {
-                OperandWriter.bytes { writer in
-                    writer.uint16(function)
-                    writer.uint8(flags)
-                }
-            }
-
-            public var fsoCompatFields: [(name: String, value: Int64)] {
-                [("Function", Int64(function)), ("Flags", Int64(flags))]
-            }
-        }
-    }
-
-    public enum FindBestObjectForFunction {
-        public struct Operand: FSOCompatOperand, Equatable {
-            public var function: UInt16
-            public init(bytes: [UInt8]) {
-                var reader = OperandReader(bytes)
-                function = reader.uint16()
-            }
-            public func encoded() -> [UInt8] { OperandWriter.bytes { $0.uint16(function) } }
-            public var fsoCompatFields: [(name: String, value: Int64)] { [("Function", Int64(function))] }
         }
     }
 

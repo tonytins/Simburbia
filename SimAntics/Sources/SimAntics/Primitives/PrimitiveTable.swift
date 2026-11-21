@@ -71,6 +71,8 @@ public struct PrimitiveTable: Sendable {
         table.register(Primitives.PushInteraction.self)
         table.register(Primitives.ChangeActionString.self)
         table.register(Primitives.Snap.self)
+        table.register(Primitives.RunFunctionalTree.self)
+        table.register(Primitives.FindBestObjectForFunction.self)
         table.register(Primitives.Breakpoint.self)
         table.register(Primitives.SpecialEffect.self)
         table.register(Primitives.StopAllSounds.self)

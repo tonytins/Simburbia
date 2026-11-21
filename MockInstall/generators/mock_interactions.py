@@ -8,10 +8,14 @@ interactions, named in TTAs 128:
 
 - 0, "Dance With" (BHAV 4098): Animate Sim plays the ball's animation 1 (STR# 129: mock-dance) on
   the Sim, looping back on each event, and returns true when it ends. No check tree.
-- 1, "Pick Up" (BHAV 4099): Reach takes the ball in hand, then Drop puts it down beside the Sim.
-  Its check tree is the semi-global's routine 8192, which returns true. It advertises one motive.
+- 1, "Pick Up" (BHAV 4099): Reach takes the ball in hand, Run Tree By Name runs its "CT - Grab"
+  (named in STR# 303, the ball's table of callback trees) on the Sim's stack, then Drop puts it
+  down beside the Sim. Its check tree is the semi-global's routine 8192, which returns true. It
+  advertises one motive.
 
-BHAV 4100, "CT - Grab", adds 1 to attribute 1: the tree an object runs when a reach takes it.
+BHAV 4100, "CT - Grab", adds 1 to the stack object's attribute 1, which Run Tree By Name makes
+the ball (the routine's "me" is the Sim, its caller): the callback a pickup helper runs by name
+once a reach takes something, as TSO's content does.
 The ball's init and main are the other objects' (main counts its runs in attribute 0); it has no
 sprites.
 
@@ -117,11 +121,13 @@ iff += chunk(b"BHAV", 4098, 0, "dance with",
              bhav([(44, 254, 0, struct.pack("<HBBBBB", 1, 0, 0, 0, 0, 0))]))           # Animate Sim
 iff += chunk(b"BHAV", 4099, 0, "pick up",
              bhav([(47, 1, 255, struct.pack("<HHH", 0, 1, 0)),                         # Reach, mode 0
+                   (28, 2, 2, struct.pack("<HBBBB", 303, 0, 0, 1, 0)),                 # Run Tree By Name, in my stack
                    (5, 254, 255, b"")]))                                               # Drop
-iff += chunk(b"BHAV", 4100, 0, "CT - Grab", bhav([(2, 254, 255, expression(1, 1, 3, 0, 7))]))
+iff += chunk(b"BHAV", 4100, 0, "CT - Grab", bhav([(2, 254, 255, expression(1, 1, 3, 1, 7))]))
 iff += chunk(b"TTAB", TABLE, 0, "mock ball interactions", ttab)
 iff += chunk(b"TTAs", TABLE, 0x10, "mock ball interactions", strings(["Dance With", "Pick Up"]))
 iff += chunk(b"STR#", 129, 0x10, "mock ball animations", strings(["", "mock-dance"]))
+iff += chunk(b"STR#", 303, 0x10, "mock ball callback trees", strings(["CT - Grab"]))
 
 # The Sim's main: attribute 0 += 1, then Idle For Input (argument 0, pushing allowed).
 sim_main = chunk(b"BHAV", 4096, 0, "main",

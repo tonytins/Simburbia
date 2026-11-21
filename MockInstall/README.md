@@ -25,7 +25,7 @@ It follows the layout of a real install, with only what the content system needs
 | `objectdata/objects/objspf.far` | `mockchair.spf`: made-up sprites (a palette, `SPR2` versions 1000 and 1001 using every run command, `SPR#` in both byte orders, and `DGRP` versions 20000, 20001, and 20004). DGRP 0 is the chairs' own (base graphic 0 plus graphic 0), with near images for north and east, so the client draws them. Two cover edge cases: `SPR#` #201 is big-endian version 1001 (DIFF-26 in the scorecard), and `SPR2` #102 has alpha 40, past the 5 bits the field holds, which wraps to 73 |
 | `objectdata/globals/global.iff` | One global routine (256) that returns true, and the Sim's walk (`STR#` 150) and swim (`STR#` 158) animation names, made up |
 | `tuning.dat` | The global tuning a Sim's motives read, made up by `generators/mock_tuning.py`: `simmotives` (small decay rates, 16 waking hours) and `lotmotives` (a weight of 1 for every motive in the None category, which the mock lots have, and made-up weights for the others that don't divide 1000 evenly, so Set Motive Deltas' scaling truncates as on a real install) |
-| `avatardata/` | The mock Sim's body, made from Kenney's character by `generators/mock_avatar.py`, in FAR3 archives laid out as 1.1097.1.0's are: `adult.skel` (TSO's 29 adult bone names and parents, placed on Kenney's joints and scaled to TSO's height), a body and a head mesh (Kenney's one mesh, cut at the head), female and male textures (JPEG; the clothes are painted on, so every skin tone wears the same), their bindings, appearances, and outfits, a hand group with no hand meshes (Kenney's hands are part of the body), and five placeholder animations (`mock-stand`, `mock-walk`, `mock-walk-fast`, `mock-swim`, `mock-dance`) with timed events: an `xevt` and a sound on the stand, hand events on the walks, and two `xevt`s on the dance, which writes its property lists in the single-set layout of TSO's stereo dances. File IDs are `0x4D4F....` |
+| `avatardata/` | The mock Sim's body, made from Kenney's character by `generators/mock_avatar.py`, in FAR3 archives laid out as 1.1097.1.0's are: `adult.skel` (TSO's 29 adult bone names and parents, placed on Kenney's joints and scaled to TSO's height), a body and a head mesh (Kenney's one mesh, cut at the head), female and male textures (JPEG; the clothes are painted on, so every skin tone wears the same), their bindings, appearances, and outfits, a hand group with no hand meshes (Kenney's hands are part of the body), and six placeholder animations (`mock-stand`, `mock-walk`, `mock-walk-fast`, `mock-swim`, `mock-dance`, and `a2o-reach-floorht`, the name Reach looks up for an object on the floor) with timed events: an `xevt` and a sound on the stand, hand events on the walks, two `xevt`s on the dance, which writes its property lists in the single-set layout of TSO's stereo dances, and the reach's `xevt` 0, where it takes or puts down. File IDs are `0x4D4F....` |
 | `objectdata/globals/mockglobals.iff` | The objects' semi-global: one routine (8192) that returns true |
 | `objectdata/globals/build.iff` | The build catalog's strings: five wall styles (`STR#` 0x81), two floors (0x82), three wallpapers (0x83), and pool and water (0x85). There's one more wallpaper than floors, as in the real tables |
 | `objectdata/globals/walls.iff` | Wall styles 1 (wall), 2, 12, 13, and 14 (fences, banister), and 7 and 8 (the cutaway styles), with cut-down masks for 1, 7, and 8; patterns 1 to 3 (plaster, brick, blue paint), 248 to 251 (the fences' own), and 252 and 253 (the cutaway overlays); and the 46 junction pieces. Each sprite has the four sides a wall draws, at its sizes for each zoom |
@@ -62,10 +62,12 @@ it doesn't have, and to push "mock tree" as a subroutine.
 The ball is the object a Sim uses. Its interaction table (`TTAB` 128, version 10, field-encoded
 as TSO's are) has two interactions, named in `TTAs` 128. "Dance With" (`BHAV` 4098) plays the
 ball's animation 1 (`STR#` 129: `mock-dance`) on the Sim with Animate Sim, and has no check tree.
-"Pick Up" (`BHAV` 4099) reaches for the ball, taking it in hand, then drops it beside the Sim; its
-check tree is the semi-global's 8192, it advertises one motive, and only the owner, roommates,
-and visitors may use it. Its `CT - Grab` tree (`BHAV` 4100), which an object runs when a reach
-takes it, adds 1 to attribute 1. The ball has no sprites.
+"Pick Up" (`BHAV` 4099) reaches for the ball, taking it in hand, runs its `CT - Grab` by name
+from `STR#` 303 (the ball's table of callback trees), then drops it beside the Sim; its check
+tree is the semi-global's 8192, it advertises one motive, and only the owner, roommates, and
+visitors may use it. `CT - Grab` (`BHAV` 4100) adds 1 to the stack object's attribute 1, the
+ball's: TSO's pickup helpers call such a tree by name once a reach takes something. The ball has
+no sprites.
 
 The register's main is its own too. It makes itself the stack object, then uses Transfer Funds
 to be paid 100 by the game, pay 30 back, and fail to pay 1,000, each waiting a tick for its
