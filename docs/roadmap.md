@@ -241,7 +241,7 @@ In order:
      FreeSO's rectangle router stays a reference for how TSO's routes looked. How fast a Sim walks
      (from its walk animation, or a rate per walk style) is settled in E4, from the animations and
      TSO Mania.
-     - [ ] E1. Scaffolding: a routing frame, a kind of stack frame that isn't a BHAV routine; route
+     - [x] E1. Scaffolding: a routing frame, a kind of stack frame that isn't a BHAV routine; route
        results and failure codes; the deterministic `atan2`, `sin`, and `cos`; and the obstacle set
        from footprints and walls. Nothing walks yet.
      - [ ] E2. Where to go: an object's routing slots (`SLOT` type 3) read into candidate spots, by
@@ -400,6 +400,7 @@ chunks) can land whenever TS1 hybrid mode is needed; nothing in TSO mode waits o
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-11-21 | minor | Phase E's step E1, scaffolding: `RoutingFrame`, a stack frame that runs a route instead of instructions (pushed with `VMThread.pushRoute`), returning true when the Sim arrives or false with TSO's `RouteFailure` code in its `PrimitiveResult` and the blocker in `PrimitiveResultID`; a route with no goals fails, and walking waits for E4. `Architecture.wallObstacles` and `VM.routeObstacles` give what a route keeps out of: walls as bands and squares, and the footprints that don't let a Sim through. `DeterministicMath`'s `sin`, `cos`, and `atan2` give the same bits everywhere, within 4e-16 of the platform's, pinned by tests. |
 | 2026-11-21 | patch | Phase E planned in five steps (owner's decisions): a routing frame and deterministic math, routing slots, the path on a sixteenth-tile grid, walking with Go To Routing Slot and Go To Relative Position, and portals with an end-to-end check. Determinism replaces matching FreeSO's floating point: basic `Float` and `Double` operations, and Simburbia's own `atan2`, `sin`, and `cos`. Walking speed is settled in E4. |
 | 2026-11-21 | patch | The first client's step D5, which finishes step D: the interface draws in Comic Neue and the terminal in Fira Mono. The window loads them once it opens, at 32 pixels with smooth scaling and Latin-1, and unloads them before every close; `InterfaceTheme.simburbia` is the window's theme, and the text drawn outside Hudini's controls uses it too. A missing font is a warning, with raylib's font in its place. No document needed resizing; the owner approved the screenshots. |
 | 2026-11-21 | patch | The first client's step D4: Help, MOMI, and the inspector join the terminal in Hudini's `WindowManager`, each a `ManagedWindow` (a document in Hudini's frame, opened and closed through the manager), and the client's own `DocumentWindow` is gone. The manager gives the front window the input and draws them all; Escape closes the window in front; a click on any window stays off the lot. |

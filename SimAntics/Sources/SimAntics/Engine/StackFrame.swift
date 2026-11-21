@@ -18,6 +18,9 @@ public final class StackFrame {
     /// Set on the frames of an interaction, which return to the queue instead of to a caller.
     public var discardsResult = false
     public var isActionTree = false
+    /// The route a routing frame runs instead of instructions (``VMThread/pushRoute(_:from:)``);
+    /// `nil` for a routine's frame.
+    public internal(set) var route: RoutingFrame?
 
     private var storedStackObject: Entity?
     private var storedStackObjectID: Int16 = 0

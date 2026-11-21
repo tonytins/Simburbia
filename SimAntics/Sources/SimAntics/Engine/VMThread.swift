@@ -233,6 +233,7 @@ public final class VMThread {
 
     private func nextInstruction() throws(SimAnticsError) {
         guard let frame = stack.last else { return }
+        if let route = frame.route { return try runRoute(route) }
         let instruction = try frame.currentInstruction()
         if vm.coverageEnabled { vm.recordCoverage(frame.routine, instruction.index) }
         switch instruction.operand {
@@ -245,6 +246,22 @@ public final class VMThread {
             throw .unsupported("primitive \(instruction.opcode) (\(name))")
         case .primitive(let primitive):
             try handleResult(try primitive.execute(in: frame), of: instruction, in: frame)
+        }
+    }
+
+    /// Runs a routing frame a step: on its way, it waits for the next tick; arrived, it returns
+    /// true; failed, it puts why in the Sim's `PrimitiveResult` and what was in the way in
+    /// `PrimitiveResultID`, and returns false.
+    private func runRoute(_ route: RoutingFrame) throws(SimAnticsError) {
+        switch try route.step(for: entity) {
+        case .walking:
+            waitForNextTick()
+        case .arrived:
+            try pop(.returnTrue)
+        case .failed(let failure, let blocker):
+            try entity.setValue(failure.rawValue, of: ObjectVariable.primitiveResult.rawValue)
+            try entity.setValue(blocker, of: ObjectVariable.primitiveResultID.rawValue)
+            try pop(.returnFalse)
         }
     }
 

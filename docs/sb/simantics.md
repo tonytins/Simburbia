@@ -215,6 +215,28 @@ let pickUp = try Interaction.interactions(of: ball.object)[1]    // "Pick Up"
 let action = try QueuedAction(pickUp, of: ball)                  // nil without an action tree
 ```
 
+## Routing
+
+Phase E brings routing in five steps (see the roadmap); E1 lays its groundwork.
+
+A **routing frame** (`RoutingFrame`) is a stack frame that runs a route instead of
+instructions: a routing primitive pushes it onto the Sim's thread with
+`VMThread.pushRoute(_:from:)`, and its routine shows as `routing`, ID 0. Each run it walks a step
+and waits a tick, until the Sim arrives (true to the routine below) or the route fails (false).
+A failure puts why in the Sim's `PrimitiveResult`, as TSO's codes (`RouteFailure`: no path,
+interrupted, no valid goals, a wall in the way, and so on), and what was in the way in
+`PrimitiveResultID`. For now a route with no goals fails as "no valid goals", and walking is
+unsupported until E4.
+
+What a route keeps out of: `Architecture.wallObstacles(level:)` turns each wall into rectangles
+in sixteenths of a tile (a band along a straight wall, unless there's a door in it, and four
+squares along a diagonal), and `VM.routeObstacles(level:for:)` adds the footprints of what
+doesn't let the Sim through, by the same flags placement reads.
+
+Anything routing feeds into the simulation, such as a Sim's facing, uses `DeterministicMath`'s
+`sin`, `cos`, and `atan2`, which give the same bits on every machine: they use only operations
+IEEE 754 rounds exactly, in a fixed order, and stay within a last bit or two of the platform's.
+
 ## Variables
 
 Primitives read and write values through a `Variable`: a scope and a data value, usually an index
