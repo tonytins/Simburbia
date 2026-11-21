@@ -65,7 +65,7 @@ let mockBallGUID: UInt32 = 0x4D4F_4308
         let sim = try #require(try vm.createObject(guid: mockSimGUID)?.objects.first)
         var action = try #require(try QueuedAction(try Interaction.interactions(of: ball.object)[1], of: ball))
         action.arguments = [3, 0, 0, 0]
-        let frame = action.frame(for: sim)
+        let frame = action.frame(on: sim.thread)
         #expect(frame.thread === sim.thread && frame.caller === sim && frame.callee === ball && frame.stackObject === ball)
         #expect(frame.isActionTree && frame.routine.id == 4099 && frame.arguments == [3, 0, 0, 0])
     }

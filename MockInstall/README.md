@@ -41,7 +41,7 @@ It follows the layout of a real install, with only what the content system needs
 | `0x4D4F4304` | Mock Table (right) | Its part one tile along x |
 | `0x4D4F4305` | Mock Lamp | A one-tile object whose main runs a routine by name |
 | `0x4D4F4306` | Mock Register | A one-tile object whose main moves money |
-| `0x4D4F4307` | Mock Sim | A one-tile person (object type `person`) whose main counts runs in attribute 0. Its body strings (`STR#` 200, `BodyStringID`) make it an adult named Mock Sim, and its animation table (`STR#` 129) names, from 1, `mock-stand`, `mock-dance`, `mock-walk`, and `mock-missing`, which no file has, for Animate Sim |
+| `0x4D4F4307` | Mock Sim | A one-tile person (object type `person`) whose main counts runs in attribute 0, then runs what's queued (below). Its body strings (`STR#` 200, `BodyStringID`) make it an adult named Mock Sim, and its animation table (`STR#` 129) names, from 1, `mock-stand`, `mock-dance`, `mock-walk`, and `mock-missing`, which no file has, for Animate Sim |
 | `0x4D4F4308` | Mock Ball | A one-tile object with interactions (below) |
 
 The GUIDs spell `MOC` followed by a number, so they can't be mistaken for a real object's.
@@ -49,6 +49,10 @@ The GUIDs spell `MOC` followed by a number, so they can't be mistaken for a real
 Every object shares two routines. Init (`BHAV` 4097) lets it stand on floor or bare ground at
 floor height (object data 42 and 4). Main (`BHAV` 4096) counts its runs in attribute 0. Each
 object uses the `mockglobals` semi-global.
+
+The Sim's main is its own: it adds 1 to attribute 0, then waits for input with Idle For Input,
+pushing allowed, counting from argument 0. With nothing queued it returns the same tick, so the
+Sim counts a run a tick as the other objects do; with an interaction queued, it runs it first.
 
 The lamp's main is its own instead. It makes the lamp the stack object, then uses Run Tree By
 Name with string table 300 (`STR#` 300: "mock tree", "no such tree") to run "mock tree" (`BHAV`
@@ -100,12 +104,12 @@ chunk type, a quirk to cover. Update the tables above when you do, and keep ever
 
 `generators/` keeps the scripts that made some of the files, to show how they were built:
 `mock_sim.py` gave the Sim its body strings, animation names, first skeleton, and tuning,
-`mock_build.py` wrote the walls and floors, `mock_ball.py` adds the ball,
+`mock_build.py` wrote the walls and floors, `mock_interactions.py` adds the ball and the Sim's main,
 `mock_tuning.py` writes `tuning.dat` (replacing
 `mock_sim.py`'s, whose weights were all 1), and `mock_avatar.py` makes the Sim's body from
 `GameData/` (replacing `mock_sim.py`'s one-bone skeleton and naming the outfits in the body strings).
 `mock_sim.py` ran once on the committed files and refuses to run again on files it has already
 patched; `mock_build.py` writes only the files that are missing, so deleting one remakes it; and
-`mock_ball.py`, `mock_tuning.py`, and `mock_avatar.py` rewrite everything they make each run (`python3
+`mock_interactions.py`, `mock_tuning.py`, and `mock_avatar.py` rewrite everything they make each run (`python3
 generators/mock_avatar.py .` here, with ImageMagick for the textures), byte for byte the same. The script that
 made `objspf.far` wasn't kept.

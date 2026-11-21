@@ -29,9 +29,11 @@ extension Primitives {
     /// object source means the stack object (a roller coaster needs this). A name with no
     /// animation, or a missing table, goes true without playing.
     ///
-    /// Not yet: the hurry flag (8, 143 instructions), which lets an interaction interrupt the
-    /// animation, waits for the interaction queue (phase D); flag 64 (276), which looks like
-    /// skill-practice scaling, does nothing.
+    /// With the hurry flag (8, 143 instructions), input ends the animation early, as if it had
+    /// ended, so missing expected events are still made up: in an interaction tree, its
+    /// interaction being cancelled; in main, any interaction queued (Idle For Input's input). A
+    /// Sim with non-interruptable person data set isn't hurried. Flag 64 (276 instructions), which
+    /// looks like skill-practice scaling, does nothing.
     public enum AnimateSim: Primitive {
         public static let name = "animate"
         public static let opcode: UInt8 = 44
@@ -82,6 +84,7 @@ extension Primitives {
             public var playsBackwards: Bool { flags & 2 != 0 }
             public var idFromParameter: Bool { flags & 4 != 0 }
             public var storesEventInLocal: Bool { flags & 32 != 0 }
+            public var hurries: Bool { flags & 8 != 0 }
         }
 
         /// The default carry animation, for a Sim holding something when its animation resets.
@@ -120,7 +123,8 @@ extension Primitives {
                 sim.sim.rightHandPose = 0
                 return .continueNextTick
             }
-            if current.endReached {
+            let ending = current.endReached || operand.hurries && hurried(sim, in: frame)
+            if ending {
                 while current.eventsRun < operand.expectedEventCount {
                     current.eventQueue.append(Int16(current.eventsRun))
                     current.eventsRun &+= 1
@@ -140,12 +144,19 @@ extension Primitives {
                 }
                 return .gotoFalse
             }
-            if current.endReached {
+            if ending {
                 sim.sim.animations = []
                 return .gotoTrue
             }
             sim.sim.animations[0] = current
             return .continueNextTick
+        }
+
+        /// Whether input hurries the animation along (the hurry flag).
+        private static func hurried(_ sim: Entity, in frame: StackFrame) -> Bool {
+            guard sim.personData[PersonData.nonInterruptable] == 0 else { return false }
+            let queue = frame.thread.queue
+            return frame.isActionTree ? queue.first?.isCancelled == true : !queue.isEmpty
         }
 
         /// ID 0: everything stops, and the posture's walk animation plays, looping.

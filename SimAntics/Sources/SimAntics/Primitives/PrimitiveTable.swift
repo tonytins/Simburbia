@@ -67,6 +67,7 @@ public struct PrimitiveTable: Sendable {
         table.register(Primitives.RemoveObjectInstance.self)
         table.register(Primitives.SetBalloonHeadline.self)
         table.register(Primitives.IdleForInput.self)
+        table.register(Primitives.TestSimInteractingWith.self)
         table.register(Primitives.Breakpoint.self)
         table.register(Primitives.SpecialEffect.self)
         table.register(Primitives.StopAllSounds.self)

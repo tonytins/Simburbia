@@ -181,9 +181,9 @@ public struct QueuedAction {
         permissions = interaction.permissions
     }
 
-    /// A frame that runs the action tree for `caller`, marked as an interaction's.
-    func frame(for caller: Entity) -> StackFrame {
-        let frame = StackFrame(thread: caller.thread, routine: actionTree, caller: caller, callee: callee, codeOwner: codeOwner)
+    /// A frame that runs the action tree on a thread, for its entity, marked as an interaction's.
+    func frame(on thread: VMThread) -> StackFrame {
+        let frame = StackFrame(thread: thread, routine: actionTree, caller: thread.entity, callee: callee, codeOwner: codeOwner)
         frame.stackObject = stackObject
         frame.arguments = arguments
         frame.isActionTree = true

@@ -1,13 +1,13 @@
 extension Primitives {
     /// Waits for a number of ticks, or until an interaction or an interrupt comes (opcode 17).
     ///
-    /// Each run counts the ticks since the wait began off the argument it names, as Sleep does. An
-    /// interaction tree, or main with interactions queued, ends it, as does an interrupt or the
-    /// count running out (all true). Otherwise it waits: every tick when it allows interactions to
-    /// be pushed, or else until the count would run out.
-    ///
-    /// Simburbia has no interaction queue yet, so main always finds it empty on a lot with no
-    /// Sims; in an interaction tree it reports ``SimAnticsError/unsupported(_:)``.
+    /// Each run counts the ticks since the wait began off the argument it names, as Sleep does.
+    /// In main, with pushing allowed, it runs the first queued interaction that may run
+    /// (``VMThread/attemptPush()``) and waits for it to end; when it does, Idle For Input runs again.
+    /// Input ends the wait: in an interaction tree, its interaction being cancelled; in main, any
+    /// interaction queued. That sets the caller's notified-by-idle-for-input flag. An interrupt or
+    /// the count running out ends it too (all true). Otherwise it waits: every tick when it allows
+    /// pushing, or else until the count would run out.
     public enum IdleForInput: Primitive {
         public static let name = "idle_for_input"
         public static let opcode: UInt8 = 17
@@ -49,8 +49,12 @@ extension Primitives {
             let elapsed = idleStart != 0 && idleStart < scheduler.currentTick ? scheduler.currentTick &- idleStart : 1
             frame.arguments[index] &-= Int16(truncatingIfNeeded: elapsed)
 
-            // With no interaction queue, main can't push one, and an interaction tree can't be cancelled.
-            guard !frame.isActionTree else { throw .unsupported("interactions") }
+            if operand.allowPush == 1 && !frame.isActionTree && thread.attemptPush() { return .continueNextTick }
+            let input = frame.isActionTree ? thread.queue.first?.isCancelled == true : !thread.queue.isEmpty
+            if input {
+                frame.caller?.setFlag(EntityFlag.notifiedByIdleForInput, true)
+                return .gotoTrue
+            }
             if thread.isInterrupted {
                 thread.isInterrupted = false
                 return .gotoTrue

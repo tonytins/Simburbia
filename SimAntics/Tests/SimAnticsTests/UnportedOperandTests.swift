@@ -18,7 +18,7 @@ import Testing
             let operand = PrimitiveTable.unportedOperand(opcode: UInt16(opcode), bytes: bytes)
             #expect(operand?.encoded() == bytes, "opcode \(opcode)")
         }
-        for opcode: UInt16 in [30, 37, 65] {
+        for opcode: UInt16 in [30, 65] {
             #expect(PrimitiveTable.unportedOperand(opcode: opcode, bytes: [1, 2, 3])?.encoded() == [UInt8](repeating: 0, count: 8))
         }
     }

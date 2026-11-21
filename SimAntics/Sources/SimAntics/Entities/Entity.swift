@@ -4,8 +4,7 @@ import TSOFiles
 /// An object on the lot.
 ///
 /// An object on the lot: the values SimAntics variables read and write, its place in its
-/// ``MultitileGroup``, and the objects in its container slots. Sims and interactions aren't
-/// ported yet; reading values that need them throws ``SimAnticsError/unsupported(_:)``.
+/// ``MultitileGroup``, and the objects in its container slots.
 ///
 public final class Entity {
     public let objectID: Int16
@@ -271,6 +270,7 @@ public final class Entity {
         isResetting = true
         defer { isResetting = false }
         thread.stack.removeAll()
+        thread.clearQueue()
         thread.blockingState = nil
         do throws(SimAnticsError) {
             guard let table = entryPoints else { throw .nullReference("no entry point table") }
@@ -336,7 +336,7 @@ public final class Entity {
         case .slotCount:
             return Int16(truncatingIfNeeded: totalSlots)
         case .useCount:
-            throw .unsupported("object data \(variable) needs interactions")
+            return Int16(truncatingIfNeeded: users.count)
         case .lockoutCount:
             let currentTick = vm.scheduler.currentTick
             if lockoutTimestamp > currentTick { lockoutTimestamp = 0 } // lockouts in the future are invalid

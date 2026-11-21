@@ -10,7 +10,7 @@ public protocol FSOCompatOperand: PrimitiveOperand {
 
 extension PrimitiveTable {
     /// Operand types for TSO primitives Simburbia doesn't run yet, by opcode. Primitives with no
-    /// operand (syslog, test sim interacting with, find best action) decode to
+    /// operand (syslog, find best action) decode to
     /// ``Primitives/EmptyOperand``.
     public static let unportedOperands: [UInt8: any FSOCompatOperand.Type] = [
         1: Primitives.GenericTSOCall.Operand.self,
@@ -24,7 +24,6 @@ extension PrimitiveTable {
         27: Primitives.GotoRelativePosition.Operand.self,
         30: Primitives.EmptyOperand.self,
         36: Primitives.Dialog.Operand.self,
-        37: Primitives.EmptyOperand.self,
         38: Primitives.Dialog.Operand.self,
         39: Primitives.Dialog.Operand.self,
         40: Primitives.OnlineJobsCall.Operand.self,

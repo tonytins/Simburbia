@@ -19,6 +19,8 @@ public enum PersonData {
     public static let gender = 65
     public static let isGhost = 68
     public static let skillLock = 70
+    /// Set while a Sim mustn't be hurried along by input.
+    public static let nonInterruptable = 71
     public static let renderDisplayFlags = 74
     public static let onlineJobID = 91
     public static let onlineJobGrade = 92

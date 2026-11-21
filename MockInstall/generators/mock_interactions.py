@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Adds MockInstall's made-up Mock Ball (0x4D4F4308), the mock's object with interactions, all
-made up: mockball.iff in objiff.far, and its lines in objecttable.xml and catalog.xml.
+"""Gives MockInstall interactions, all made up: the Mock Ball (0x4D4F4308), mockball.iff in
+objiff.far with its lines in objecttable.xml and catalog.xml, and a main for the Mock Sim that
+runs what's queued.
 
 The ball has an interaction table (TTAB 128, version 10, field-encoded as TSO's are) with two
 interactions, named in TTAs 128:
@@ -14,8 +15,12 @@ BHAV 4100, "CT - Grab", adds 1 to attribute 1: the tree an object runs when a re
 The ball's init and main are the other objects' (main counts its runs in attribute 0); it has no
 sprites.
 
-It rewrites mockball.iff each run, byte for byte the same, and copies every other entry as it
-is. Usage: mock_ball.py MockInstall/TSOClient"""
+The Sim's main (BHAV 4096 in mocksim.iff) adds 1 to attribute 0, then waits for input with Idle
+For Input, pushing allowed, counting from argument 0 (0, so it returns the same tick unless an
+interaction is queued, which it runs first).
+
+It rewrites mockball.iff and the Sim's main each run, byte for byte the same, and copies every
+other entry and chunk as it is. Usage: mock_interactions.py MockInstall/TSOClient"""
 import os, struct, sys
 
 root = sys.argv[1]
@@ -117,6 +122,19 @@ iff += chunk(b"BHAV", 4100, 0, "CT - Grab", bhav([(2, 254, 255, expression(1, 1,
 iff += chunk(b"TTAB", TABLE, 0, "mock ball interactions", ttab)
 iff += chunk(b"TTAs", TABLE, 0x10, "mock ball interactions", strings(["Dance With", "Pick Up"]))
 iff += chunk(b"STR#", 129, 0x10, "mock ball animations", strings(["", "mock-dance"]))
+
+# The Sim's main: attribute 0 += 1, then Idle For Input (argument 0, pushing allowed).
+sim_main = chunk(b"BHAV", 4096, 0, "main",
+                 bhav([(2, 1, 1, expression(0, 1, 3, 0, 7)), (17, 254, 254, struct.pack("<hH", 0, 1))]))
+for entry in entries:
+    if entry[0] != b"mocksim.iff": continue
+    sim = bytearray(entry[1][:64])
+    for c in chunks(entry[1]):
+        sim += sim_main if c[:4] == b"BHAV" and struct.unpack_from(">H", c, 8)[0] == 4096 else c
+    entry[1] = bytes(sim)
+    break
+else:
+    sys.exit("no mocksim.iff")
 
 entries = [e for e in entries if e[0] != b"mockball.iff"] + [[b"mockball.iff", bytes(iff)]]
 body = b"".join(e[1] for e in entries)

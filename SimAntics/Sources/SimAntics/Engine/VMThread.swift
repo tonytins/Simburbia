@@ -19,9 +19,9 @@ public final class Registers {
 
 /// An entity's interpreter: a stack of routines and the registers they share.
 ///
-/// An entity's interpreter, without routing frames yet, and holding an action queue it doesn't run
-/// yet: instructions, subroutine calls, exit codes and branches, running `main` when the stack
-/// empties, check threads (``evaluateCheck(entity:frame:)``), and error handling. An error
+/// An entity's interpreter, without routing frames yet: instructions, subroutine calls, exit codes
+/// and branches, running `main` when the stack empties, the action queue (see
+/// `VMThread+Queue.swift`), check threads (``evaluateCheck(entity:frame:)``), and error handling. An error
 /// resets the frame's caller and callee, and is reported at most once every 600 ticks (20
 /// seconds).
 public final class VMThread {
@@ -54,9 +54,15 @@ public final class VMThread {
     public var blockingState: BlockingState?
     /// Instructions run since the entity's tick began (`TicksThisFrame`).
     var instructionsThisTick = 0
-    /// The interactions waiting for the entity, the running one first (`Queue`). Nothing runs
-    /// them yet.
+    /// The interactions waiting for the entity, the running one first (`Queue`).
     public internal(set) var queue: [QueuedAction] = []
+    /// The index of the last action that's running or protected, -1 for none
+    /// (`ActiveQueueBlock`): actions up to it are never reordered or dropped as others queue.
+    public internal(set) var activeQueueBlock = -1
+    /// The ID the next queued action gets; it wraps.
+    var nextActionID: UInt16 = 0
+    /// Whether the queue changed since its priorities were last looked at.
+    var queueIsDirty = false
 
     private var continuesExecution = false
 
@@ -114,10 +120,11 @@ public final class VMThread {
     ///   is empty.
     func runInMyStack(_ routine: Routine, codeOwner: GameObject, arguments temps: [Int16],
                       stackObject: Entity?) throws(SimAnticsError) -> Bool {
-        let oldStack = stack, oldCheck = isCheck
+        let oldStack = stack, oldCheck = isCheck, oldQueue = queue, oldBlock = activeQueueBlock
         let previous = stack.last ?? StackFrame(thread: self, routine: Routine(id: 0, instructions: []),
                                                 caller: entity, callee: entity, codeOwner: entity.object)
         stack = stack.last.map { [$0] } ?? []
+        queue = []
         isCheck = true
 
         // ExecuteSubRoutine from the previous frame, with the temps as the arguments.
@@ -130,13 +137,16 @@ public final class VMThread {
         guard !stack.isEmpty else { throw .indexOutOfRange("RunInMyStack on an empty stack") }
         stack.removeFirst()
         guard let frame = stack.last else {
-            stack = oldStack   // FreeSO doesn't restore the check flag here.
+            stack = oldStack   // The check flag isn't restored on this path (see above).
+            queue = oldQueue
             return false
         }
         frame.stackObject = stackObject
 
         defer {
             stack = oldStack
+            queue = oldQueue
+            activeQueueBlock = oldBlock
             isCheck = oldCheck
         }
         var instructions = 0
@@ -161,12 +171,21 @@ public final class VMThread {
         blockingState?.waitTime += 1
         if errorCooldown > 0 { errorCooldown -= 1 }
         do throws(SimAnticsError) {
+            if queueIsDirty {
+                evaluatePriorities()
+                runImmediately()
+                queueIsDirty = false
+            }
             if stack.isEmpty {
                 if isCheck { return }
                 try entity.executeEntryPoint(.main, runImmediately: false)
                 if stack.isEmpty { return }
             }
-            if stack.last?.isActionTree == true { throw .unsupported("interactions") }
+            // An interaction whose object is gone resets the entity.
+            if stack.last?.isActionTree == true, queue.first?.callee?.isDead ?? true {
+                entity.reset()
+                return
+            }
             continuesExecution = true
             while continuesExecution {
                 instructionsThisTick += 1
@@ -273,6 +292,8 @@ public final class VMThread {
             continuesExecution = true
         case .interrupt:
             stack.removeAll()
+            queueIsDirty = true
+            if !queue.isEmpty { queue.removeFirst() }
             lastExitCode = result
         }
     }
@@ -302,11 +323,18 @@ public final class VMThread {
         continuesExecution = continuing
     }
 
-    /// Removes the top routine and hands its result to the one below, which treats a return as a branch.
+    /// Removes the top routine and hands its result to the one below, which treats a return as a
+    /// branch. An interaction's routine returns to the queue instead, and the routine below carries
+    /// on.
     private func pop(_ result: ExitCode) throws(SimAnticsError) {
         guard let finished = stack.popLast() else { return }
         lastExitCode = result
-        if finished.discardsResult { throw .unsupported("returning to the interaction queue") }
+        var result = result
+        if finished.discardsResult {
+            finishAction()
+            continuesExecution = true
+            result = .continue
+        }
         guard let parent = stack.last else {
             continuesExecution = false
             return

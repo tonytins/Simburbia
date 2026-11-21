@@ -107,8 +107,13 @@ public struct Obstacle: Sendable, Hashable {
     }
 }
 
-/// Object flags (object data 8) and flags 2 (object data 40) that placement reads.
+/// Object flags (object data 8) and flags 2 (object data 40) that placement and the action queue
+/// read.
 enum EntityFlag {
+    /// Idle For Input ended because input came.
+    static let notifiedByIdleForInput: Int16 = 1 << 6
+    /// The running interaction was cancelled, or something more urgent is waiting.
+    static let interactionCanceled: Int16 = 1 << 7
     static let disallowPersonIntersection: Int16 = 1 << 1
     static let hasZeroExtent: Int16 = 1 << 2
     static let allowPersonIntersection: Int16 = 1 << 4

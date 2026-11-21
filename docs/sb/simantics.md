@@ -177,8 +177,30 @@ stack object, and four zero arguments. A missing action tree gives no action, an
 check tree leaves the action always offered. Priorities run from idle (0) to maximum (100);
 the modes are normal, parent idle, parent exit, and idle.
 
-Nothing runs the queue yet: that's phase D2. An action tree on the stack still reports
-`unsupported`.
+**Queueing.** `VMThread.enqueue(_:)` numbers an action (IDs wrap) and places it. A
+higher priority waits less: an action goes after the last waiting one with the same or a higher
+priority. A leapfrogging action goes right after the running one, and one to run immediately goes
+to the back, hidden, until the next tick moves it to the front and starts it. A waiting action
+more urgent than the running one cancels it. The actions up to `activeQueueBlock` are running or
+protected, and nothing reorders or drops them.
+
+**Running.** Main hands over with Idle For Input, when it allows pushing: the thread runs the
+first action that may run and drops the ones before it that may not. An action's routine runs
+on top of main's, and when it returns, the action leaves the queue and main carries on from the
+Idle For Input. `mayRun(_:)` decides whether a Sim may run an action. Carrying something, a pet
+using a person's action (or the other way round), a repair, a debug action for anyone but an
+admin, or permissions that leave out a visitor, roommate, or ghost who doesn't own the object
+all bar it. Then the action's check tree must return true. An action that must run skips all
+this, and its check tree too unless it says to check always.
+
+**Cancelling.** `cancelAction(id:)` takes out a waiting action (its object runs its
+queue-skipped entry point). A running one is marked cancelled at priority 0 and sets the Sim's
+interaction-cancelled flag; its routine sees it through Idle For Input and the hurry flag, and
+decides when to stop. An interrupt exit ends the running action with the whole stack, and an
+action whose object is deleted resets the Sim. A reset empties the queue.
+
+An object's `UseCount` (object data) counts the Sims with any part of it as the callee of a
+routine on their stack or an action in their queue.
 
 ```swift
 let ball = try #require(try vm.createObject(guid: 0x4D4F_4308)?.objects.first)
@@ -227,13 +249,14 @@ ones; the names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 | 12 | `GetDirectionTo` | The direction from another object to the stack object, in eighths of a turn |
 | 15 | `Breakpoint` | A debugger breakpoint; with no debugger it doesn't stop, so it's always true |
 | 16 | `FindLocationFor` | Places the stack object near a reference, out of the world, or along a facing |
-| 17 | `IdleForInput` | Waits a number of ticks, or until an interaction or an interrupt (the queue doesn't run yet) |
+| 17 | `IdleForInput` | Waits a number of ticks, or until input (a queued interaction, or the running one cancelled) or an interrupt; in main, runs what's queued |
 | 18 | `RemoveObjectInstance` | Deletes the caller or the stack object, or every part of it |
 | 23 | `PlaySound` | Plays a sound event (headless, as on a lot server: changes nothing) |
 | 25 | `TransferFunds` | Moves money between the caller, the stack object, owners, and the game; waits a tick for the answer, or only tests in a check tree |
 | 28 | `RunTreeByName` | Runs one of the stack object's routines, found by a name from a string table: pushed, or to completion on the caller's or the stack object's thread |
 | 31 | `SetToNext` | Finds the next object, by ID, GUID, category, tile, or neighbor |
 | 32 | `TestObjectType` | Tests whether an object has a GUID |
+| 37 | `TestSimInteractingWith` | Tests whether the caller is running an interaction on the stack object |
 | 35 | `SpecialEffect` | A visual effect; on a TSO lot it does nothing |
 | 41 | `SetBalloonHeadline` | Shows or clears a balloon over the caller or the stack object (headless: it counts down) |
 | 42 | `CreateObjectInstance` | Creates an object beside, in front of, or under another, and makes it the stack object |
@@ -316,7 +339,7 @@ code owner's animation table (its `OBJD`'s, else `STR#` 129), the stack object's
 | Set the carry animation (mode 2) | 382 | Set |
 | Mode 1 | 169 | Ignored for now: it looks like a background loop the routine doesn't wait on, which only drawing would show |
 | Reset, ID 0 | 752 | The posture's walk, looping |
-| Hurry flag (8) | 143 | Not yet: it lets an interaction interrupt, which waits for the queue (phase D) |
+| Hurry flag (8) | 143 | Input ends the animation as if it had ended, unless the Sim is non-interruptable (person data 71). **Unverified:** that main's input (anything queued) hurries it as an interaction being cancelled does |
 | Expected events set | 3,942 | Made up at the end when missing |
 
 8,526 of the instructions with a literal ID resolve to an animation through these tables. About

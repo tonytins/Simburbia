@@ -29,7 +29,7 @@ import TSOContent
         #expect(result.columns[1].counts.loaded == 4)
         #expect(result.failures.isEmpty)
         #expect(result.columns[0].counts.routines == 16)
-        #expect(result.columns[0].counts.primitives == 32)
+        #expect(result.columns[0].counts.primitives == 33)
     }
 
     @Test func countsPrimitivesAndShapes() throws {
