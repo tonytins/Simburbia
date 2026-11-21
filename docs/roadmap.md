@@ -212,6 +212,10 @@ In order:
        window manager API.
      Not in D (owner, 2026-11-20): scored autonomy. TSO's free will setting came with Betaville,
      a separate build reached through the patcher, not the New & Improved baseline.
+     Pinned (owner, 2026-11-21): mainline TSO may still have run a smaller subset of scored
+     autonomy, the engine nudging a Sim toward its needs; the installs here are after Betaville.
+     Content can't settle it, since the engine would do it (no content calls Find Best Action).
+     The interactions' motive advertisements are already read and kept for it. Held for later.
    - [ ] E. Routing (Shannopolis): the routing frame, rectangle router, obstacles, and portals, with
      FreeSO's floating point matched; Go To Routing Slot, Go To Relative Position, Snap, and Look
      Towards (moved from B: it turns the Sim with a routing frame; its modes 0 and 1, which
