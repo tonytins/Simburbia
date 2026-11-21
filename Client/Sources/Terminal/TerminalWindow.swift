@@ -2,7 +2,7 @@ import Hudini
 import Raylib
 import SimAntics
 
-/// The drop-down terminal (`Interface/terminal.xml`), opened and closed with Ctrl+Shift+C: a
+/// The drop-down terminal (`Interface/terminal.uix`), opened and closed with Ctrl+Shift+C: a
 /// window in Hudini's ``WindowManager`` whose input runs ``TerminalCommands`` on the lot.
 final class TerminalWindow {
     /// How many lines the output keeps, oldest dropped first.

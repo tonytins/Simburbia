@@ -350,9 +350,9 @@ private func simdLength(_ vector: SIMD3<Float>) -> Float {
 @Test func theInterfaceDocumentsHaveWhatTheClientUses() throws {
     for (document, controls) in InterfaceDocuments.required {
         let script = try UIScript(contentsOf: InterfaceDocuments.url(of: document, in: simburbiaFolder))
-        #expect(controls.allSatisfy { script.control(named: $0) != nil }, "\(document).xml lacks one of \(controls)")
+        #expect(controls.allSatisfy { script.control(named: $0) != nil }, "\(document).uix lacks one of \(controls)")
         // A misspelled attribute is ignored rather than refused, so none may be.
-        #expect(script.ignoredAttributes.isEmpty, "\(document).xml: \(script.ignoredAttributes)")
+        #expect(script.ignoredAttributes.isEmpty, "\(document).uix: \(script.ignoredAttributes)")
     }
     // One speed arrow per speed the player can pick.
     let topBar = try UIScript(contentsOf: InterfaceDocuments.url(of: "topbar", in: simburbiaFolder))

@@ -72,7 +72,7 @@ stage() {
     done < <(git -C "$ROOT" ls-files Interface Lots MockInstall)
     # The smoke test runs headless, which never reads the interface, so its documents are checked here.
     for file in topbar help momi inspector terminal login-start login-join; do
-        [[ -f "$dest/Interface/$file.xml" ]] || fail "the package has no Interface/$file.xml."
+        [[ -f "$dest/Interface/$file.uix" ]] || fail "the package has no Interface/$file.uix."
     done
     for file in logo.png uitext/_1_loading.cst; do
         [[ -f "$dest/Interface/$file" ]] || fail "the package has no Interface/$file."

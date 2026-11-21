@@ -102,7 +102,7 @@ In order:
      - [x] D2. The move: a `Package.swift` at the root holds the client, so `swift run simburbia`
        runs it; `SBClient` becomes `Client`, its files grouped into folders by job, with
        `LotScene` folded into the one client target. CI, packaging, and the docs follow.
-     - [ ] D3. Interface files: the UIScript documents become `.uix`, and the loading text moves
+     - [x] D3. Interface files: the UIScript documents become `.uix`, and the loading text moves
        from Hudini's deprecated `CSTCatalog` to swift-cst's `UIText`.
      - [ ] D4. The window manager: Help, MOMI, and the inspector join the terminal in Hudini's
        `WindowManager`, and the client's own `DocumentWindow` goes. The login window stays a
@@ -380,6 +380,7 @@ chunks) can land whenever TS1 hybrid mode is needed; nothing in TSO mode waits o
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-11-21 | patch | The first client's step D3: the interface's UIScript documents are `.uix` (`topbar`, `help`, `momi`, `inspector`, `terminal`, `login-start`, `login-join`), and the loading text is read with swift-cst: the install's through `UIText`, Simburbia's own through `CSTDirectory`, whose problems still become warnings by line. Hudini's deprecated `CSTCatalog` is no longer used. |
 | 2026-11-21 | minor | The first client's step D2: the client is the repository's root package, so `swift run simburbia` runs it. `SBClient` became `Client`, its sources grouped by job (`App`, `Session`, `Scene`, `Drawing`, `Screens`, `Windows`, `Terminal`), with `LotScene` folded into the one `simburbia` target and its tests (`SimburbiaTests`) importing it. Files moved with their history; CI builds the root as `.`, packaging builds from the root, and AGENTS.md, the README, and the docs follow. |
 | 2026-11-21 | patch | The first client's step D1: AGENTS.md treats the owner's libraries (Hudini, raylib-swift, swift-cst, GitVersion) as first-party and lets the client, the game, use raylib throughout; swift-cst 0.4.0 becomes the client's own dependency (it was Hudini's already, so nothing new is fetched); and Comic Neue Regular and Fira Mono Regular, from Google Fonts' repository under the SIL Open Font License, go in `Interface/fonts` with their licenses, unused until D5. |
 | 2026-11-21 | patch | The first client gains step D, planned in five steps by the owner's decision: the owner's libraries first-party, the client allowed raylib throughout, a root manifest so `swift run simburbia` runs it, its files grouped by job with `LotScene` folded in, `.uix` documents and swift-cst's `UIText`, every window in Hudini's `WindowManager`, and Comic Neue and Fira Mono. |

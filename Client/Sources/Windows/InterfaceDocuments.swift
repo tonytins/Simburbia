@@ -22,6 +22,6 @@ public enum InterfaceDocuments {
 
     /// Where a document is, in a Simburbia folder.
     public static func url(of document: String, in simburbiaFolder: URL) -> URL {
-        simburbiaFolder.appendingPathComponent(folderName, isDirectory: true).appendingPathComponent("\(document).xml")
+        simburbiaFolder.appendingPathComponent(folderName, isDirectory: true).appendingPathComponent("\(document).uix")
     }
 }

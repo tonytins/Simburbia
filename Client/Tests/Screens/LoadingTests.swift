@@ -46,12 +46,35 @@ private let simburbiaFolder = URL(fileURLWithPath: #filePath)
     #expect(reports.values == [0.25, 0.5, 0.75])
 }
 
-@Test func simburbiasOwnLoadingTextReadsCleanly() throws {
-    let catalog = try CSTCatalog(directory: simburbiaFolder.appendingPathComponent("Interface/uitext", isDirectory: true))
-    let table = try #require(catalog.table(1))
-    #expect(table.problems.isEmpty)
-    #expect(catalog.text(table: 1, key: "Caption") != nil)
-    #expect((1...4).allSatisfy { catalog.text(table: 1, key: "\($0)") != nil })
+/// Without an install's text (MockInstall has none), the loading screen reads Simburbia's own,
+/// which has no problems.
+@Test func simburbiasOwnLoadingTextReadsCleanly() {
+    let mockInstall = simburbiaFolder.appendingPathComponent("MockInstall/TSOClient", isDirectory: true)
+    let (text, warnings) = LoadingText.load(gameDirectory: mockInstall, simburbiaFolder: simburbiaFolder)
+    #expect(warnings.isEmpty)
+    #expect(text.caption == "Simburbia is getting ready" && text.lines.count == 4)
+}
+
+/// A table with a value never closed and a key used twice still gives its text, and says what's
+/// wrong, line by line.
+@Test func problemsInSimburbiasLoadingTextAreReported() throws {
+    let folder = FileManager.default.temporaryDirectory.appendingPathComponent("loading-\(UUID().uuidString)")
+    let uitext = folder.appendingPathComponent("Interface/uitext", isDirectory: true)
+    try FileManager.default.createDirectory(at: uitext, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: folder) }
+    try "Caption ^Ready^\n1 ^One^\n1 ^Again^\n2 ^Never closed\n".write(to: uitext.appendingPathComponent("_1_loading.cst"),
+                                                                     atomically: true, encoding: .utf8)
+    let (text, warnings) = LoadingText.load(gameDirectory: folder, simburbiaFolder: folder)
+    #expect(text.caption == "Ready" && text.lines.first == "One")
+    #expect(warnings == ["Interface/uitext/_1_loading.cst line 3: the key 1 is used already",
+                         "Interface/uitext/_1_loading.cst line 4: the value is never closed"])
+}
+
+@Test func withoutItsTextTheLoadingScreenSaysSoAndCarriesOn() {
+    let folder = URL(fileURLWithPath: "/no/such/simburbia", isDirectory: true)
+    let (text, warnings) = LoadingText.load(gameDirectory: folder, simburbiaFolder: folder)
+    #expect(text.caption == LoadingText.builtIn.caption)
+    #expect(warnings.count == 1 && warnings[0].hasPrefix("the loading text can't be read"))
 }
 
 private final class Reports: @unchecked Sendable {

@@ -40,7 +40,7 @@ top.
 | `SBOracle/` | `sb-oracle`: the randomized study and the content census |
 | `ScriptOracle/` | `sso-oracle`: small experiments written in SimsScript, run on the VM |
 | `MockInstall/` | A tiny made-up TSO install for tests and CI |
-| `Interface/` | The client's top bar and windows, in Hudini's UIScript XML |
+| `Interface/` | The client's top bar and windows, as Hudini's UIScript documents (`.uix`, an XML format), with its fonts and text |
 | `Lots/` | The owner's lots as blueprint XML: `tonys-lot.xml` (a recreation of their original TSO lot) and `community-lot.xml` (a lot for group events) |
 | `Tuning/` | Simburbia's default global tuning (`tuning.xml`), laid under an install's `tuning.dat` |
 | `packaging/` | The scripts that build the client into packages players download |

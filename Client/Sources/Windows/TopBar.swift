@@ -4,7 +4,7 @@ import Raylib
 /// The bar along the top of the screen: the lot, how fast time runs, the time; then the floor,
 /// any errors, the object count, and the button that opens the help.
 ///
-/// Laid out by `Interface/topbar.xml`, after the owner's prototype interface
+/// Laid out by `Interface/topbar.uix`, after the owner's prototype interface
 /// (`docs/design/prototype-interface.figcraft`), which doubles as Simburbia's fallback and debug
 /// interface. The document places everything; the bar fills in the text and draws its regions:
 /// the background, the speed arrows, and the help button.
@@ -90,7 +90,7 @@ final class TopBar {
     }
 }
 
-/// The window that lists the client's keys and what they do (`Interface/help.xml`), opened from
+/// The window that lists the client's keys and what they do (`Interface/help.uix`), opened from
 /// the top bar.
 final class HelpWindow {
     let window: DocumentWindow
@@ -104,7 +104,7 @@ final class HelpWindow {
     }
 }
 
-/// MOMI: the window of system messages (`Interface/momi.xml`), opened from the top bar's error
+/// MOMI: the window of system messages (`Interface/momi.uix`), opened from the top bar's error
 /// count. A log of the messages, newest at the bottom, and below it the input, disabled: there's
 /// no one to write to until online play.
 final class MomiWindow {

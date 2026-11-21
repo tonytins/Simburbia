@@ -32,7 +32,7 @@ struct Interface {
             guard missing.isEmpty else {
                 throw Failure(description: "the interface document \(url.path) has no control named \(missing.joined(separator: ", "))")
             }
-            warnings += script.ignoredAttributes.map { "\(document).xml line \($0.line): \($0.element) ignores '\($0.attribute)'" }
+            warnings += script.ignoredAttributes.map { "\(document).uix line \($0.line): \($0.element) ignores '\($0.attribute)'" }
             scripts[document] = script
         }
         guard let topBar = scripts["topbar"], let help = scripts["help"], let momi = scripts["momi"],

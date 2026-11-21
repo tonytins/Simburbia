@@ -2,7 +2,7 @@ import Hudini
 import Raylib
 import SimAntics
 
-/// The window that shows the selected object (`Interface/inspector.xml`): what it is, where,
+/// The window that shows the selected object (`Interface/inspector.uix`): what it is, where,
 /// and what it's running.
 final class Inspector {
     let window: DocumentWindow

@@ -1,6 +1,7 @@
 import Foundation
 import Hudini
 import Raylib
+import SwiftCST
 import TSOContent
 import TSOFiles
 
@@ -16,25 +17,41 @@ struct LoadingText {
     /// Simburbia's own, if even its table can't be read.
     static let builtIn = LoadingText(caption: "Simburbia is getting ready", lines: ["Loading"])
 
-    /// The install's text, else Simburbia's, and anything worth telling about why.
+    /// The install's text, else Simburbia's, and anything worth telling about why: problems in
+    /// Simburbia's table (a value never closed, a key used twice) or its folder, or why it couldn't
+    /// be read.
     static func load(gameDirectory: URL, simburbiaFolder: URL) -> (text: LoadingText, warnings: [String]) {
-        if let catalog = try? CSTCatalog(gameData: gameDirectory.appendingPathComponent("gamedata", isDirectory: true)),
-           let caption = catalog.text(table: 154, key: "5") {
-            let lines = (6...9).compactMap { catalog.text(table: 155, key: "\($0)") }
+        // The install's text is looked up as TSO does; anything missing or unreadable falls back.
+        let install = UIText(gameData: gameDirectory.appendingPathComponent("gamedata", isDirectory: true))
+        if let caption = try? install.textIfPresent(for: 154, key: 5) {
+            let lines = (6...9).compactMap { try? install.textIfPresent(for: 155, key: $0) }
             if lines.count == 4 { return (LoadingText(caption: caption, lines: lines), []) }
         }
         let folder = simburbiaFolder.appendingPathComponent("Interface/uitext", isDirectory: true)
+        let directory: CSTDirectory
         do {
-            let catalog = try CSTCatalog(directory: folder)
-            let warnings = (catalog.table(1)?.problems ?? []).map { "Interface/uitext/_1_loading.cst line \($0.line): \($0.message)" }
-            let lines = (1...4).compactMap { catalog.text(table: 1, key: "\($0)") }
-            guard let caption = catalog.text(table: 1, key: "Caption"), !lines.isEmpty else {
-                return (builtIn, warnings + ["Interface/uitext/_1_loading.cst has no caption or lines"])
-            }
-            return (LoadingText(caption: caption, lines: lines), warnings)
+            directory = try CSTDirectory(contentsOf: folder)
         } catch {
             return (builtIn, ["the loading text can't be read: \(error.localizedDescription)"])
         }
+        let file = "Interface/uitext/_1_loading.cst"
+        var warnings = directory.problems.map { problem in
+            switch problem {
+            case .repeatedTable(let id, let name): "Interface/uitext/\(name) repeats table \(id), so it's skipped"
+            }
+        }
+        guard let table = directory.table(for: 1) else { return (builtIn, warnings + ["\(file) is missing"]) }
+        warnings += table.problems.map { problem in
+            switch problem {
+            case .unclosedValue(let line): "\(file) line \(line): the value is never closed"
+            case .repeatedKey(let key, let line): "\(file) line \(line): the key \(key) is used already"
+            }
+        }
+        let lines = (1...4).compactMap { table.value(forKey: $0) }
+        guard let caption = table.value(forKey: "Caption"), !lines.isEmpty else {
+            return (builtIn, warnings + ["\(file) has no caption or lines"])
+        }
+        return (LoadingText(caption: caption, lines: lines), warnings)
     }
 }
 

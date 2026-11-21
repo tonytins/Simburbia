@@ -37,8 +37,10 @@ install's own loading art, TSO's `setup` graphic (New & Improved's, or the 2002 
 to the window's height and centred on TSO's dark blue (`#09182F`); without one, as on MockInstall, it's Simburbia's logo. Under it, a caption
 and lines that slide in from the right one after another: each takes a second and comes in only when loading has reached its share, so the screen shows
 for at least four seconds. The text is TSO's own when there's an install (the caption is table
-154's entry 5, the lines table 155's entries 6 to 9, read with Hudini's `CSTCatalog` from
-`gamedata`), else Simburbia's (`Interface/uitext/_1_loading.cst`).
+154's entry 5, the lines table 155's entries 6 to 9, looked up with swift-cst's `UIText` in
+`gamedata`'s text, in either install's layout), else Simburbia's
+(`Interface/uitext/_1_loading.cst`, read with swift-cst's `CSTDirectory`). A problem in
+Simburbia's table, such as a value never closed or a key used twice, is a warning naming its line.
 
 Loading reports its progress: the install's content, its floors and walls, the lot and its first
 tick, then the textures of what's in view, which the client makes by drawing a frame off screen
@@ -51,7 +53,7 @@ Without `--lot`, the loading screen loads the install, then the login window ope
 as TSO's login dialog opened over its own, with Simburbia's version at the bottom right
 (TSO showed its own at the bottom left). The window follows the owner's mockup
 ([`docs/design/login-screen.png`](../design/login-screen.png)), from the UIScript documents
-`Interface/login-start.xml` and `Interface/login-join.xml`: a movable window with two tabs.
+`Interface/login-start.uix` and `Interface/login-join.uix`: a movable window with two tabs.
 
 - **Start** lists the lots to play: Simburbia's (`Lots`), the mock lots on MockInstall, then the
   player's own (`Lots` in the user folder, marked "yours"). Pick one and press Play (or Enter),
@@ -139,8 +141,9 @@ used to have. Its `hudini-demo` shows them on their own. Simburbia's colors are
 `InterfaceTheme.simburbia`, for now Hudini's standard palette.
 
 The top bar and the Help, MOMI, inspector, and terminal windows are described in Hudini's
-UIScript XML, in [`Interface/`](../../Interface/): `topbar.xml`, `help.xml`, `momi.xml`,
-`inspector.xml`, and `terminal.xml`. Each says where its controls go, what fixed text they hold, and their colors;
+UIScript documents (`.uix`, an XML format), in [`Interface/`](../../Interface/): `topbar.uix`,
+`help.uix`, `momi.uix`, `inspector.uix`, and `terminal.uix`. Each says where its controls go,
+what fixed text they hold, and their colors;
 the client fills in what changes (the lot, the time, the messages, the object) and draws what
 UIScript has no control for (the speed arrows and the round help button, in regions the document
 places). Each window's document is its content, under the title bar Hudini's `WindowFrame` draws.
