@@ -30,4 +30,9 @@ extension Entity {
             }
         }
     }
+
+    /// Whether one of flags 2 (object data 40, ``EntityFlag``) is set, such as a door's.
+    func hasFlag2(_ flag: Int16) -> Bool {
+        objectData[Int(ObjectVariable.flagField2.rawValue)] & flag != 0
+    }
 }

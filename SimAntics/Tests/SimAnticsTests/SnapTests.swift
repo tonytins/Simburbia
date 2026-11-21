@@ -3,7 +3,7 @@ import Testing
 import TSOContent
 @testable import SimAntics
 
-/// Snap's stand-in mode 2, on `mock-lot-sim.xml` with the mock Sim joined on 3,3 and the chair on
+/// Snap, on `mock-lot-sim.xml` with the mock Sim joined on 3,3 and the chair on
 /// 4,4. The VM lives until `body` returns.
 private func withJoinedSim(_ body: (VM, Entity) throws -> Void) throws {
     let vm = try VM(content: try GameContent(.init(gameDirectory: mockInstall)), seed: 1)
@@ -48,11 +48,13 @@ private func snap(_ operand: Primitives.Snap.Operand, in vm: VM, sim: Entity, st
         }
     }
 
-    @Test func otherModesWaitForRouting() throws {
+    @Test func modesWithoutASlotAreFalseAndUnknownModesUnsupported() throws {
         try withJoinedSim { (vm: VM, sim: Entity) throws in
-            #expect(throws: SimAnticsError.unsupported("Snap mode 3 (routing, phase E)")) {
-                try snap(.init(index: 1, mode: 3), in: vm, sim: sim, stackObject: sim)
-            }
+            let ball = try #require(try vm.createObject(guid: mockBallGUID)?.objects.first)
+            #expect(try snap(.init(index: 1, mode: 3), in: vm, sim: sim, stackObject: ball) == .gotoFalse, "the ball has no routing slots")
+            #expect(try snap(.init(index: 0, mode: 4), in: vm, sim: sim, stackObject: ball) == .gotoFalse, "nor has the mock's global")
+            #expect(try snap(.init(mode: 1), in: vm, sim: sim, stackObject: ball) == .gotoFalse, "nor a container slot")
+            #expect(throws: SimAnticsError.unsupported("Snap mode 9")) { try snap(.init(mode: 9), in: vm, sim: sim, stackObject: ball) }
         }
     }
 }

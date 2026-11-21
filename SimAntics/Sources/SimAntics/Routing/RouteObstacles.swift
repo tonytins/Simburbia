@@ -56,3 +56,77 @@ extension VM {
         return obstacles
     }
 }
+
+extension Architecture {
+    /// Whether a solid wall (one without a door) stands between two tiles on a level, along the
+    /// line from one to the other, tile by tile (Bresenham's line). Where the line steps diagonally
+    /// it checks the walls of both ways around the corner, the way it went first. A tile off the
+    /// lot has no walls.
+    ///
+    /// - Throws: ``SimAnticsError/indexOutOfRange(_:)`` for a level past the lot's stories.
+    public func wallBetween(tileX x1: Int, y y1: Int, andTileX x2: Int, y y2: Int, level: Int) throws(SimAnticsError) -> Bool {
+        guard (1...Self.stories).contains(level) else { throw .indexOutOfRange("level \(level)") }
+        let floor = walls[level - 1]
+        func tile(_ x: Int, _ y: Int) -> WallTile? {
+            guard x >= 0, y >= 0, x < width, y < height else { return nil }
+            return floor[y * width + x]
+        }
+        func leftSolid(_ x: Int, _ y: Int) -> Bool {
+            guard let wall = tile(x, y) else { return false }
+            return wall.segments.contains(.topLeft) && !wall.topLeftDoor
+        }
+        func rightSolid(_ x: Int, _ y: Int) -> Bool {
+            guard let wall = tile(x, y) else { return false }
+            return wall.segments.contains(.topRight) && !wall.topRightDoor
+        }
+
+        var x = x1, y = y1
+        let xStep = x2 >= x1 ? 1 : -1, yStep = y2 >= y1 ? 1 : -1
+        let dx = abs(x2 - x1), dy = abs(y2 - y1)
+        // A line longer than any lot comes from positions off it; it has nothing to cross.
+        guard dx <= 1024, dy <= 1024 else { return false }
+        let xAhead = xStep > 0 ? 1 : 0, yAhead = yStep > 0 ? 1 : 0
+        let ddx = dx * 2, ddy = dy * 2
+
+        if ddx >= ddy {
+            var error = dx, previous = dx
+            for _ in 0..<dx {
+                let oldX = x, oldY = y
+                x += xStep
+                error += ddy
+                if error > ddx {
+                    y += yStep
+                    error -= ddx
+                    if error + previous < ddx {
+                        if leftSolid(oldX + xAhead, oldY) || rightSolid(x, oldY + yAhead) { return true }
+                    } else {
+                        if rightSolid(oldX, oldY + yAhead) || leftSolid(oldX + xAhead, y) { return true }
+                    }
+                } else if leftSolid(oldX + xAhead, oldY) {
+                    return true
+                }
+                previous = error
+            }
+        } else {
+            var error = dy, previous = dy
+            for _ in 0..<dy {
+                let oldX = x, oldY = y
+                y += yStep
+                error += ddx
+                if error > ddy {
+                    x += xStep
+                    error -= ddy
+                    if error + previous < ddy {
+                        if rightSolid(oldX, oldY + yAhead) || leftSolid(oldX + xAhead, y) { return true }
+                    } else {
+                        if leftSolid(oldX + xAhead, oldY) || rightSolid(x, oldY + yAhead) { return true }
+                    }
+                } else if rightSolid(oldX, oldY + yAhead) {
+                    return true
+                }
+                previous = error
+            }
+        }
+        return false
+    }
+}

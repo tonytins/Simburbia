@@ -233,7 +233,7 @@ In order:
      The interactions' motive advertisements are already read and kept for it. Held for later.
    - [ ] E. Routing (Shannopolis), in five steps (owner's decisions, 2026-11-21): Go To Routing
      Slot (45, 1,064 uses on 1.1097.1.0, the largest gap left), Go To Relative Position (27, 711),
-     Snap's other modes (Snap's mode 2 runs as a stand-in since D3, which E replaces), and Look
+     Snap's other modes (Snap's mode 2 ran as a stand-in from D3; E2 replaced it), and Look
      Towards' body turns (modes 2 to 5; modes 0 and 1 run since D4b). Determinism, not agreement
      with another engine: `Float` and `Double` for the basic operations, which every machine
      computes alike, and Simburbia's own deterministic `atan2`, `sin`, and `cos`. Routes are found
@@ -244,7 +244,7 @@ In order:
      - [x] E1. Scaffolding: a routing frame, a kind of stack frame that isn't a BHAV routine; route
        results and failure codes; the deterministic `atan2`, `sin`, and `cos`; and the obstacle set
        from footprints and walls. Nothing walks yet.
-     - [ ] E2. Where to go: an object's routing slots (`SLOT` type 3) read into candidate spots, by
+     - [x] E2. Where to go: an object's routing slots (`SLOT` type 3) read into candidate spots, by
        distance, facing, and standing or sitting; Snap's other modes on them, replacing the
        stand-in.
      - [ ] E3. The path: routes around walls and obstacles within a floor, on the sixteenth-tile
@@ -400,6 +400,7 @@ chunks) can land whenever TS1 hybrid mode is needed; nothing in TSO mode waits o
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-11-21 | minor | Phase E's step E2: routing slots. `VM.findSpots(for:around:for:)` turns a routing slot (an object's `SLOT` type 3, or the global's `SLOT` 100) into spots, best first: one for a slot that snaps to a direction or has an offset, else the points at its proximity in its directions and the object's room; each on the lot, with no wall between it and the object (`Architecture.wallBetween`), fitting the Sim or holding a chair. Snap (46) runs all five modes on them, replacing D3's stand-in; the template person still falls asleep on the floor, and still next needs Relationship. Deliberate differences: random scoring only with the slot's flag (DIFF-39), and a wall in the way reported (DIFF-40). `SLOT.Slot` gains a public initializer. |
 | 2026-11-21 | minor | Phase E's step E1, scaffolding: `RoutingFrame`, a stack frame that runs a route instead of instructions (pushed with `VMThread.pushRoute`), returning true when the Sim arrives or false with TSO's `RouteFailure` code in its `PrimitiveResult` and the blocker in `PrimitiveResultID`; a route with no goals fails, and walking waits for E4. `Architecture.wallObstacles` and `VM.routeObstacles` give what a route keeps out of: walls as bands and squares, and the footprints that don't let a Sim through. `DeterministicMath`'s `sin`, `cos`, and `atan2` give the same bits everywhere, within 4e-16 of the platform's, pinned by tests. |
 | 2026-11-21 | patch | Phase E planned in five steps (owner's decisions): a routing frame and deterministic math, routing slots, the path on a sixteenth-tile grid, walking with Go To Routing Slot and Go To Relative Position, and portals with an end-to-end check. Determinism replaces matching FreeSO's floating point: basic `Float` and `Double` operations, and Simburbia's own `atan2`, `sin`, and `cos`. Walking speed is settled in E4. |
 | 2026-11-21 | patch | The first client's step D5, which finishes step D: the interface draws in Comic Neue and the terminal in Fira Mono. The window loads them once it opens, at 32 pixels with smooth scaling and Latin-1, and unloads them before every close; `InterfaceTheme.simburbia` is the window's theme, and the text drawn outside Hudini's controls uses it too. A missing font is a warning, with raylib's font in its place. No document needed resizing; the owner approved the screenshots. |

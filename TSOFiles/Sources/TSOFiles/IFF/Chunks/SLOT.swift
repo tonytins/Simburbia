@@ -60,6 +60,24 @@ public struct SLOT: IFFChunk {
         public var facing: Int32 = Facing.towardsObject
         /// Version 10 and up.
         public var resolution: Int32 = 16
+
+        /// A slot made in code, such as a place one tile in front of an object; anything not given
+        /// is what a file leaves unset.
+        public init(type: UInt16, offset: SIMD3<Float> = .zero, standing: Int32 = 1, sitting: Int32 = 0,
+                    flags: Flags = [], snapTargetSlot: Int32 = -1, minProximity: Int32 = 0, maxProximity: Int32 = 0,
+                    optimalProximity: Int32 = 0, facing: Int32 = Facing.towardsObject, resolution: Int32 = 16) {
+            self.type = type
+            self.offset = offset
+            self.standing = standing
+            self.sitting = sitting
+            self.flags = flags
+            self.snapTargetSlot = snapTargetSlot
+            self.minProximity = minProximity
+            self.maxProximity = maxProximity
+            self.optimalProximity = optimalProximity
+            self.facing = facing
+            self.resolution = resolution
+        }
     }
 
     public let id: UInt16

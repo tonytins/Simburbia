@@ -233,6 +233,18 @@ in sixteenths of a tile (a band along a straight wall, unless there's a door in 
 squares along a diagonal), and `VM.routeObstacles(level:for:)` adds the footprints of what
 doesn't let the Sim through, by the same flags placement reads.
 
+**Routing slots** (E2) say where a Sim stands or sits to use an object: an object's `SLOT`
+slots of type 3, or the global's (`SLOT` 100). `VM.findSpots(for:around:for:)` turns one into
+spots, best first. A slot that snaps to a direction, or that has an offset or no directions, is
+one spot; otherwise it's the points around the object at the slot's proximity (eight around a
+circle, or a grid at its resolution), in the slot's directions turned with the object and in
+its room. Each spot must be on the lot, have no wall between it and the object
+(`Architecture.wallBetween`), and fit the Sim, or hold a chair it can sit in; a spot with another
+Sim or a door in it comes last. Spots score by how near they are to the slot's optimal proximity,
+less a third of the Sim's distance; only a slot with "random scoring" adds a random fraction,
+from the VM's seed. With no spot, the search says why: no valid goals, a wall in the way, no
+chair, or the tile taken.
+
 Anything routing feeds into the simulation, such as a Sim's facing, uses `DeterministicMath`'s
 `sin`, `cos`, and `atan2`, which give the same bits on every machine: they use only operations
 IEEE 754 rounds exactly, in a fixed order, and stay within a last bit or two of the platform's.
@@ -294,7 +306,7 @@ ones; the names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 | 41 | `SetBalloonHeadline` | Shows or clears a balloon over the caller or the stack object (headless: it counts down) |
 | 42 | `CreateObjectInstance` | Creates an object beside, in front of, or under another, and makes it the stack object |
 | 44 | `AnimateSim` | Plays an animation on the calling Sim and hands the routine its events; sets or stops the carry animation; ID 0 goes back to the posture's walk |
-| 46 | `Snap` | Moves the caller to one tile in front of the stack object, without walking (mode 2 only: a stand-in until routing) |
+| 46 | `Snap` | Moves the caller to a routing slot's best spot by the stack object (by parameter, number, or the global's), in front of it, or into its slot 0, without walking |
 | 47 | `Reach` | Reaches for the stack object or one of its slots, and picks up or puts down on the animation's event 0 |
 | 48 | `StopAllSounds` | Stops an object's sounds; headless, nothing plays |
 | 49 | `NotifyStackObjectOutOfIdle` | Wakes the stack object: brings its next run forward and interrupts its Sleep |
