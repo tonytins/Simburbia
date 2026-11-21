@@ -12,6 +12,9 @@ final class ClientApp {
     private let inspector: Inspector
     private let help: HelpWindow
     private let momi: MomiWindow
+    /// The windows Hudini's window manager stacks: the terminal so far.
+    private let windows = WindowManager()
+    private let terminal: TerminalWindow
     private let library = SpriteLibrary()
     private let textures: SpriteTextures
     /// The floors' textures; `nil` when the install's floors couldn't be read.
@@ -51,6 +54,7 @@ final class ClientApp {
         inspector = Inspector(script: interface.inspector)
         help = HelpWindow(script: interface.help)
         momi = MomiWindow(script: interface.momi)
+        terminal = TerminalWindow(script: interface.terminal, vm: session.vm, windows: windows)
         depth = SpriteDepth()
         floors = session.floors.map(FloorPass.init)
         walls = depth == nil ? nil : session.walls.map(WallPass.init)
@@ -171,29 +175,45 @@ final class ClientApp {
     // MARK: Frame
 
     private func handleInput() {
-        if IsKeyPressed(.space) { session.isPaused.toggle() }
-        for (key, index) in [(KeyboardKey.one, 0), (.two, 1), (.three, 2)] where IsKeyPressed(key) {
-            session.setSpeed(index: index)
+        if TerminalWindow.togglePressed { terminal.toggle() }
+        // While the terminal has the keyboard, typing doesn't drive the game.
+        if !terminal.isTyping {
+            if IsKeyPressed(.space) { session.isPaused.toggle() }
+            for (key, index) in [(KeyboardKey.one, 0), (.two, 1), (.three, 2)] where IsKeyPressed(key) {
+                session.setSpeed(index: index)
+            }
+            if IsKeyPressed(.q) { view.rotate(by: -1) }
+            if IsKeyPressed(.e) { view.rotate(by: 1) }
+            if IsKeyPressed(.w) { view.wallMode = view.wallMode.next }
+            if IsKeyPressed(.pageUp) { view.level = min(view.level + 1, Architecture.stories) }
+            if IsKeyPressed(.pageDown) { view.level = max(view.level - 1, 1) }
         }
-        if IsKeyPressed(.q) { view.rotate(by: -1) }
-        if IsKeyPressed(.e) { view.rotate(by: 1) }
-        if IsKeyPressed(.w) { view.wallMode = view.wallMode.next }
-        if IsKeyPressed(.pageUp) { view.level = min(view.level + 1, Architecture.stories) }
-        if IsKeyPressed(.pageDown) { view.level = max(view.level - 1, 1) }
         if IsKeyPressed(.escape) {
-            if help.window.isOpen { help.window.isOpen = false } else if momi.window.isOpen { momi.window.isOpen = false } else { inspector.close() }
+            if terminal.isOpen {
+                terminal.close()
+            } else if help.window.isOpen {
+                help.window.isOpen = false
+            } else if momi.window.isOpen {
+                momi.window.isOpen = false
+            } else {
+                inspector.close()
+            }
         }
 
         topBar.update(topBarState)
         let mouse = GetMousePosition()
-        let overInterface = topBar.contains(mouse) || inspector.contains(mouse) || help.window.contains(mouse) || momi.window.contains(mouse)
+        let overInterface = topBar.contains(mouse) || inspector.contains(mouse) || help.window.contains(mouse)
+            || momi.window.contains(mouse) || windows.contains(mouse)
         if !overInterface { view.zoom(by: GetMouseWheelMove()) }
         followPointer(mouse, overInterface: overInterface)
         if IsMouseButtonDown(.right) { view.pan(by: GetMouseDelta()) }
         hovered = overInterface ? nil : view.object(at: mouse, in: scene, camera: view.camera(screenHeight: Int(GetScreenHeight())))
         // The windows take the click when they want it, then the bar; otherwise a click picks
-        // what's under the pointer.
-        let usedByWindow = help.window.update() || momi.window.update() || inspector.update()
+        // what's under the pointer. The window manager's windows are on top of the others.
+        let overManaged = windows.contains(mouse)
+        windows.update()
+        let usedByWindow = (overManaged && IsMouseButtonPressed(.left))
+            || help.window.update() || momi.window.update() || inspector.update()
         if !usedByWindow, IsMouseButtonPressed(.left) {
             switch topBar.click(at: mouse) {
             case .speed(let index):
@@ -238,6 +258,8 @@ final class ClientApp {
         momi.show(session.systemMessages)
         momi.window.draw()
         help.window.draw()
+        windows.draw()
+        windows.drawTooltip()
         EndDrawing()
     }
 

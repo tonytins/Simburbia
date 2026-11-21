@@ -5,7 +5,7 @@
   rows.
 -->
 <UIScript version="1">
-  <Window width="300" height="194"/>
+  <Window width="300" height="216"/>
 
   <Style name="key" textColor="#E4E8EE" fontSize="16"/>
   <Style name="effect" textColor="#FFF800" fontSize="16"/>
@@ -26,4 +26,6 @@
   <Text name="effect7" x="138" y="144" width="150" height="16" style="effect" alignment="right" text="Walls"/>
   <Text name="key8" x="12" y="166" width="170" height="16" style="key" text="Click on Object"/>
   <Text name="effect8" x="138" y="166" width="150" height="16" style="effect" alignment="right" text="Inspect"/>
+  <Text name="key9" x="12" y="188" width="170" height="16" style="key" text="Ctrl+Shift+C"/>
+  <Text name="effect9" x="138" y="188" width="150" height="16" style="effect" alignment="right" text="Terminal"/>
 </UIScript>

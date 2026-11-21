@@ -9,6 +9,7 @@ struct Interface {
     let help: UIScript
     let momi: UIScript
     let inspector: UIScript
+    let terminal: UIScript
     let loginStart: UIScript
     let loginJoin: UIScript
 
@@ -36,11 +37,11 @@ struct Interface {
             scripts[document] = script
         }
         guard let topBar = scripts["topbar"], let help = scripts["help"], let momi = scripts["momi"],
-              let inspector = scripts["inspector"], let loginStart = scripts["login-start"],
+              let inspector = scripts["inspector"], let terminal = scripts["terminal"], let loginStart = scripts["login-start"],
               let loginJoin = scripts["login-join"] else {
             throw Failure(description: "the interface documents are incomplete")
         }
-        return (Interface(topBar: topBar, help: help, momi: momi, inspector: inspector,
+        return (Interface(topBar: topBar, help: help, momi: momi, inspector: inspector, terminal: terminal,
                           loginStart: loginStart, loginJoin: loginJoin), warnings)
     }
 }

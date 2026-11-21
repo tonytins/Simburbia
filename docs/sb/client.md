@@ -110,6 +110,7 @@ explains why a 3D camera rather than 2D batches.
 | Page Up and Page Down | Change the floor in view |
 | W | The next wall mode: cutaway, down, up |
 | Click an object | Inspect it |
+| Ctrl+Shift+C | Open and close the terminal |
 | Escape | Close the open window |
 
 The interface follows the owner's prototype mockup ([`docs/design`](../design/README.md)),
@@ -122,15 +123,24 @@ which also serves as Simburbia's fallback and debug interface:
   thread reported, in words. MOMI was TSO's in-universe name for its game masters. Its input stays
   disabled until there's online play.
 - **The inspector** shows a clicked object: what it is, where it is, and what it's running.
+- **The terminal**, opened and closed with Ctrl+Shift+C, queues a Sim's interactions by hand
+  until there's a pie menu. It drops down under the top bar, and while its input has the
+  keyboard the game's keys wait. Its commands (`TerminalCommands`, in LotScene, where they're
+  tested without a window) join a Sim (the install's template person, or MockInstall's Sim) and
+  act for it: `join`, `sim`, `sims`, `objects`, `menu` (what the Sim may choose on an object),
+  `queue`, `cancel`, `show` (the Sim's queue), `clear`, and `help`. It goes through `VM`'s
+  `availableInteractions`, `queueInteraction`, and `cancelInteraction`. It's the first window in
+  Hudini's `WindowManager`, which stacks windows and gives the front one the input; the others
+  still place themselves.
 
 The windows and controls come from [Hudini](https://github.com/tonytins/Hudini), the owner's
 interface library for raylib-swift, which grew out of the NSOInterface package this repository
 used to have. Its `hudini-demo` shows them on their own. Simburbia's colors are
 `InterfaceTheme.simburbia`, for now Hudini's standard palette.
 
-The top bar and the Help, MOMI, and inspector windows are described in Hudini's UIScript XML, in
-[`Interface/`](../../Interface/): `topbar.xml`, `help.xml`, `momi.xml`, and
-`inspector.xml`. Each says where its controls go, what fixed text they hold, and their colors;
+The top bar and the Help, MOMI, inspector, and terminal windows are described in Hudini's
+UIScript XML, in [`Interface/`](../../Interface/): `topbar.xml`, `help.xml`, `momi.xml`,
+`inspector.xml`, and `terminal.xml`. Each says where its controls go, what fixed text they hold, and their colors;
 the client fills in what changes (the lot, the time, the messages, the object) and draws what
 UIScript has no control for (the speed arrows and the round help button, in regions the document
 places). Each window's document is its content, under the title bar Hudini's `WindowFrame` draws.

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The terminal: a drop-down console for queueing a Sim's interactions by hand, opened and closed
+  with Ctrl+Shift+C. The client fills "output" with what each command answers, newest at the
+  bottom, and runs what's typed in "input" when Enter is pressed. Type "help" for the commands.
+  It's the window's content, under a title bar the window manager draws.
+-->
+<UIScript version="1">
+  <Window width="640" height="236"/>
+
+  <Style name="output" textColor="#E4E8EE" backgroundColor="#141A22" borderColor="#141A22" fontSize="14" font="monospace"/>
+  <Style name="input" textColor="#FFF800" backgroundColor="#0C1016" borderColor="#3C4652" fontSize="14" font="monospace"/>
+
+  <List name="output" x="8" y="8" width="624" height="188" style="output"/>
+  <TextField name="input" x="8" y="204" width="624" height="24" style="input" placeholder="Type a command; help lists them"
+             maximumLength="200"/>
+</UIScript>

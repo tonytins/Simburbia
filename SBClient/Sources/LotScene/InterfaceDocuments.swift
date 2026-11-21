@@ -15,6 +15,7 @@ public enum InterfaceDocuments {
         ("help", []),
         ("momi", ["log", "empty", "input"]),
         ("inspector", ["lines"]),
+        ("terminal", ["output", "input"]),
         ("login-start", ["preview", "selectLot", "lots", "delete", "new", "play"]),
         ("login-join", ["servers", "address", "port", "name", "password", "delete", "new"]),
     ]
