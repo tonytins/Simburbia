@@ -17,14 +17,12 @@ extension PrimitiveTable {
         9: Primitives.Burn.Operand.self,
         24: Primitives.OldRelationship.Operand.self,
         26: Primitives.Relationship.Operand.self,
-        27: Primitives.GotoRelativePosition.Operand.self,
         30: Primitives.EmptyOperand.self,
         36: Primitives.Dialog.Operand.self,
         38: Primitives.Dialog.Operand.self,
         39: Primitives.Dialog.Operand.self,
         40: Primitives.OnlineJobsCall.Operand.self,
         43: Primitives.DropOnto.Operand.self,
-        45: Primitives.GotoRoutingSlot.Operand.self,
         62: Primitives.InvokePlugin.Operand.self,
         65: Primitives.EmptyOperand.self,
         67: Primitives.InventoryOperations.Operand.self,
@@ -81,35 +79,6 @@ extension Primitives {
                  ("MessageStringID", Int64(messageStringID)), ("YesStringID", Int64(yesStringID)),
                  ("NoStringID", Int64(noStringID)), ("Type", Int64(type)), ("TitleStringID", Int64(titleStringID)),
                  ("Flags", Int64(flags))]
-            }
-        }
-    }
-
-    /// Go to Routing Slot (opcode 45).
-    public enum GotoRoutingSlot {
-        public struct Operand: FSOCompatOperand, Equatable {
-            public var data: UInt16
-            /// How ``data`` picks the slot.
-            public var type: UInt16
-            public var flags: UInt8
-
-            public init(bytes: [UInt8]) {
-                var reader = OperandReader(bytes)
-                data = reader.uint16()
-                type = reader.uint16()
-                flags = reader.uint8()
-            }
-
-            public func encoded() -> [UInt8] {
-                OperandWriter.bytes { writer in
-                    writer.uint16(data)
-                    writer.uint16(type)
-                    writer.uint8(flags)
-                }
-            }
-
-            public var fsoCompatFields: [(name: String, value: Int64)] {
-                [("Data", Int64(data)), ("Type", Int64(type)), ("Flags", Int64(flags))]
             }
         }
     }
@@ -186,43 +155,6 @@ extension Primitives {
             public var fsoCompatFields: [(name: String, value: Int64)] {
                 [("SetMode", Int64(setMode)), ("RelVar", Int64(relationshipVariable)), ("VarScope", Int64(variable.rawScope)),
                  ("VarData", Int64(variable.data)), ("Mode", Int64(mode)), ("Flags", Int64(flags))]
-            }
-        }
-    }
-
-    /// Go to Relative Position (opcode 27). Location and direction are signed bytes.
-    public enum GotoRelativePosition {
-        public struct Operand: FSOCompatOperand, Equatable {
-            public var oldTrapCount: UInt16
-            /// Where to go relative to the object.
-            public var location: Int8
-            /// Which way to face.
-            public var direction: Int8
-            public var routeCount: UInt16
-            public var flags: UInt8
-
-            public init(bytes: [UInt8]) {
-                var reader = OperandReader(bytes)
-                oldTrapCount = reader.uint16()
-                location = Int8(bitPattern: reader.uint8())
-                direction = Int8(bitPattern: reader.uint8())
-                routeCount = reader.uint16()
-                flags = reader.uint8()
-            }
-
-            public func encoded() -> [UInt8] {
-                OperandWriter.bytes { writer in
-                    writer.uint16(oldTrapCount)
-                    writer.uint8(UInt8(bitPattern: location))
-                    writer.uint8(UInt8(bitPattern: direction))
-                    writer.uint16(routeCount)
-                    writer.uint8(flags)
-                }
-            }
-
-            public var fsoCompatFields: [(name: String, value: Int64)] {
-                [("OldTrapCount", Int64(oldTrapCount)), ("Location", Int64(location)), ("Direction", Int64(direction)),
-                 ("RouteCount", Int64(routeCount)), ("Flags", Int64(flags))]
             }
         }
     }

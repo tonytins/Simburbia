@@ -13,10 +13,14 @@ public enum PersonData {
     public static let isHousemate = 21
     public static let tickCounter = 27
     public static let priority = 33
+    /// The directions of the routing slot a Sim's last route arrived in.
+    public static let routeEntryFlags = 37
     public static let personsAge = 58
     public static let skinColor = 60
     public static let incomingFriends = 61
     public static let gender = 65
+    /// Why a Sim's last route failed (``RouteFailure``).
+    public static let routeResult = 62
     public static let isGhost = 68
     public static let skillLock = 70
     /// Set while a Sim mustn't be hurried along by input.

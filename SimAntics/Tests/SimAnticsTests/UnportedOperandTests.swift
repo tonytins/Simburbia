@@ -8,9 +8,8 @@ import Testing
         let samples: [UInt8: [UInt8]] = [
             1: [7, 0, 0, 0, 0, 0, 0, 0], 9: [2, 1, 0, 0, 0, 0, 0, 0],
             24: [1, 2, 3, 4, 5, 0, 0, 0], 26: [1, 2, 3, 4, 8, 0, 0xFF, 0xFF],
-            27: [1, 0, 0xFE, 0x7F, 2, 0, 5, 0], 36: [1, 2, 3, 4, 5, 6, 7, 8],
+            36: [1, 2, 3, 4, 5, 6, 7, 8],
             40: [4, 0, 0, 0, 0, 0, 0, 0], 43: [1, 0, 2, 0, 3, 0, 4, 0],
-            45: [5, 0, 2, 0, 1, 0, 0, 0],
             62: [1, 2, 3, 1, 0x78, 0x56, 0x34, 0x12], 67: [0xEF, 0xBE, 0xAD, 0xDE, 4, 0, 0, 0],
         ]
         for (opcode, bytes) in samples {
@@ -23,16 +22,13 @@ import Testing
     }
 
     @Test func fieldsReadAsFreeSOReadsThem() throws {
-        let relative = try #require(PrimitiveTable.unportedOperand(opcode: 27, bytes: [1, 0, 0xFE, 0x7F, 2, 0, 5, 0])
-            as? Primitives.GotoRelativePosition.Operand)
-        #expect(relative.location == -2 && relative.direction == 127 && relative.routeCount == 2)
 
         let old = try #require(PrimitiveTable.unportedOperand(opcode: 24, bytes: [1, 2, 3, 4, 5]) as? Primitives.OldRelationship.Operand)
         #expect(old.variable == Variable(.parameters, 3) && old.fsoCompatFields.first?.name == "SetMode")
     }
 
     @Test func shortOperandsReadAsZeroAndUnknownOpcodesDecodeToNothing() {
-        #expect(PrimitiveTable.unportedOperand(opcode: 45, bytes: [])?.encoded() == [UInt8](repeating: 0, count: 8))
+        #expect(PrimitiveTable.unportedOperand(opcode: 43, bytes: [])?.encoded() == [UInt8](repeating: 0, count: 8))
         #expect(PrimitiveTable.unportedOperand(opcode: 2, bytes: [1, 2]) == nil)     // expression: ported
         #expect(PrimitiveTable.unportedOperand(opcode: 51, bytes: [1, 2]) == nil)    // FreeSO registers none
         #expect(PrimitiveTable.unportedOperand(opcode: 300, bytes: [1, 2]) == nil)   // a call

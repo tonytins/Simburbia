@@ -30,9 +30,9 @@ import TSOFiles
         }
     }
 
-    @Test func turningTheBodyWaitsForRoutingAndObjectsCantLook() throws {
+    @Test func unknownModesAreUnsupportedAndObjectsCantLook() throws {
         try withSim { (vm: VM, sim: Entity) throws in
-            #expect(throws: SimAnticsError.unsupported("Look Towards mode 2 (routing, phase E)")) { try look(2, in: vm, caller: sim) }
+            #expect(throws: SimAnticsError.unsupported("Look Towards mode 9")) { try look(9, in: vm, caller: sim) }
             let chair = try #require(try vm.createObject(guid: mockChairGUID)?.objects.first)
             #expect(throws: SimAnticsError.invalidCast("Look Towards' caller isn't a Sim")) { try look(0, in: vm, caller: chair) }
         }

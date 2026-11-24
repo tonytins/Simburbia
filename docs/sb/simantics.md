@@ -217,16 +217,30 @@ let action = try QueuedAction(pickUp, of: ball)                  // nil without 
 
 ## Routing
 
-Phase E brings routing in five steps (see the roadmap); E1 lays its groundwork.
+Phase E brings routing in five steps (see the roadmap). Sims walk within a room; doors and
+stairs between rooms come with E5.
 
 A **routing frame** (`RoutingFrame`) is a stack frame that runs a route instead of
 instructions: a routing primitive pushes it onto the Sim's thread with
 `VMThread.pushRoute(_:from:)`, and its routine shows as `routing`, ID 0. Each run it walks a step
 and waits a tick, until the Sim arrives (true to the routine below) or the route fails (false).
-A failure puts why in the Sim's `PrimitiveResult`, as TSO's codes (`RouteFailure`: no path,
-interrupted, no valid goals, a wall in the way, and so on), and what was in the way in
-`PrimitiveResultID`. For now a route with no goals fails as "no valid goals", and walking is
-unsupported until E4.
+A failure puts why in the Sim's person data `RouteResult` (62), as TSO's codes (`RouteFailure`:
+no path, interrupted, no valid goals, a wall in the way, and so on). When the routine asked for
+failure feedback, the route first runs the global's "Route failure feedback" (routine 398) with
+the reason and what was in the way as its arguments.
+
+**Walking** (E4). The route takes the path to the nearest goal (below) and walks it leg by leg.
+A Sim turning 45° or more first plays its turn animation from its walk table (180° at 4 and 5,
+90° at 6 and 7, 45° at 8 and 9). It moves 0.05 tiles a tick at full speed, three times that with
+a walk style of 1 (running), working up to it over 8 ticks and slowing at the end: each leg of d
+sixteenths is d × 10 move frames, up to 8 a tick. That's the pace of TSO's own walk animations.
+The walk and the half walk, blended two to one and played at 1.5 times, cover about 1.47 tiles a
+second, at the animations' 3 units a tile, and running covers about 4.6. Its animations blend
+from standing (walk table 3) into the walk (20, or 21 running) and half walk (25) as it speeds
+up. On arriving it turns to the goal's facing, stands, and records the goal's directions in
+person data `RouteEntryFlags` (37); at a chair, it runs the chair's sit entry point (26). A
+cancelled interaction stops it with "interrupted", unless it's non-interruptable; something
+moving into its way makes it plan again, three times at most.
 
 What a route keeps out of: `Architecture.wallObstacles(level:)` turns each wall into rectangles
 in sixteenths of a tile (a band along a straight wall, unless there's a door in it, and four
@@ -306,9 +320,10 @@ ones; the names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 | 17 | `IdleForInput` | Waits a number of ticks, or until input (a queued interaction, or the running one cancelled) or an interrupt; in main, runs what's queued |
 | 18 | `RemoveObjectInstance` | Deletes the caller or the stack object, or every part of it |
 | 20 | `RunFunctionalTree` | Runs the stack object's routine for a function as a subroutine, when its condition allows the caller |
-| 22 | `LookTowards` | Turns the Sim's head (drawing only) or body toward the camera (nothing in TSO): true; turning the body toward an object waits for routing |
+| 22 | `LookTowards` | Turns the Sim's head (drawing only) or body toward the camera (nothing in TSO): true; turns the body toward or away from the stack object, or its parts' middle, with a turn animation |
 | 23 | `PlaySound` | Plays a sound event (headless, as on a lot server: changes nothing) |
 | 25 | `TransferFunds` | Moves money between the caller, the stack object, owners, and the game; waits a tick for the answer, or only tests in a check tree |
+| 27 | `GotoRelativePosition` | Walks the Sim beside the stack object: on top of it, anywhere near, or one of its eight sides, facing as the operand says |
 | 28 | `RunTreeByName` | Runs one of the stack object's routines, found by a name from a string table: pushed, or to completion on the caller's or the stack object's thread |
 | 31 | `SetToNext` | Finds the next object, by ID, GUID, category, tile, or neighbor |
 | 32 | `TestObjectType` | Tests whether an object has a GUID |
@@ -317,6 +332,7 @@ ones; the names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 | 41 | `SetBalloonHeadline` | Shows or clears a balloon over the caller or the stack object (headless: it counts down) |
 | 42 | `CreateObjectInstance` | Creates an object beside, in front of, or under another, and makes it the stack object |
 | 44 | `AnimateSim` | Plays an animation on the calling Sim and hands the routine its events; sets or stops the carry animation; ID 0 goes back to the posture's walk |
+| 45 | `GotoRoutingSlot` | Walks the Sim to the best reachable spot of one of the stack object's routing slots, or the global's |
 | 46 | `Snap` | Moves the caller to a routing slot's best spot by the stack object (by parameter, number, or the global's), in front of it, or into its slot 0, without walking |
 | 47 | `Reach` | Reaches for the stack object or one of its slots, and picks up or puts down on the animation's event 0 |
 | 48 | `StopAllSounds` | Stops an object's sounds; headless, nothing plays |

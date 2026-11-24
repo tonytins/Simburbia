@@ -250,18 +250,18 @@ public final class VMThread {
         }
     }
 
-    /// Runs a routing frame a step: on its way, it waits for the next tick; arrived, it returns
-    /// true; failed, it puts why in the Sim's `PrimitiveResult` and what was in the way in
-    /// `PrimitiveResultID`, and returns false.
+    /// Runs a routing frame a step: on its way, it waits for the next tick; having pushed a
+    /// routine (a chair's sit, or the failure feedback), it carries on into it; arrived, it
+    /// returns true; failed (with why in the Sim's `RouteResult`), false.
     private func runRoute(_ route: RoutingFrame) throws(SimAnticsError) {
-        switch try route.step(for: entity) {
+        switch try route.step(for: entity, on: self) {
         case .walking:
             waitForNextTick()
+        case .called:
+            continuesExecution = true
         case .arrived:
             try pop(.returnTrue)
-        case .failed(let failure, let blocker):
-            try entity.setValue(failure.rawValue, of: ObjectVariable.primitiveResult.rawValue)
-            try entity.setValue(blocker, of: ObjectVariable.primitiveResultID.rawValue)
+        case .failed:
             try pop(.returnFalse)
         }
     }
@@ -355,6 +355,11 @@ public final class VMThread {
         }
         guard let parent = stack.last else {
             continuesExecution = false
+            return
+        }
+        // A routine a route called returns to the route, which reads how it went.
+        if parent.route != nil {
+            continuesExecution = true
             return
         }
         let parentResult: ExitCode = switch result {
