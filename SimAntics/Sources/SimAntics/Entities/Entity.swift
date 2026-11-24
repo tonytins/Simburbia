@@ -266,7 +266,7 @@ public final class Entity {
     ///
     /// An error here is reported, and the lot carries on.
     public func reset() {
-        guard !isResetting else { return }
+        guard !isResetting, !isDead else { return }
         isResetting = true
         defer { isResetting = false }
         thread.stack.removeAll()
@@ -288,6 +288,7 @@ public final class Entity {
 
     /// Runs one scheduled tick; an entity that didn't schedule itself runs next tick.
     func tick() {
+        guard !isDead else { return }
         thread.scheduledTick = 0
         thread.instructionsThisTick = 0
         thread.tick()

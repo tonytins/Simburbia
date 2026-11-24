@@ -215,8 +215,9 @@ public final class VMThread {
         // When the caller is the callee, it's reset twice; the reset guard only stops nesting.
         frame.callee?.reset()
         frame.caller?.reset()
-        if recentlyFailed {
-            // An object that fails again within 10 ticks is deleted, with every part of it.
+        if recentlyFailed && !entity.isAvatar {
+            // An object (never a Sim) that fails again within 10 ticks is deleted, with every
+            // part of it.
             do { try vm.delete(entity, wholeGroup: true) } catch { vm.report(error, by: entity) }
         }
     }

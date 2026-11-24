@@ -29,7 +29,10 @@ public final class VMScheduler {
         scheduleTick(for: entity, on: currentTick &+ delay)
     }
 
+    /// A deleted entity isn't scheduled, and an entity already scheduled for the tick isn't
+    /// scheduled twice, so nothing runs more than once a tick.
     public func scheduleTick(for entity: Entity, on tick: UInt32) {
+        guard !entity.isDead else { return }
         entity.thread.scheduledTick = tick
         Self.insertInObjectIDOrder(entity, into: &schedule[tick, default: []])
     }
@@ -73,7 +76,7 @@ public final class VMScheduler {
         while let entities = schedule[currentTick], index < entities.count {
             let entity = entities[index]
             currentObjectID = entity.objectID
-            entity.tick()
+            if !entity.isDead { entity.tick() }
             index += 1
         }
         schedule[currentTick] = nil
@@ -94,9 +97,10 @@ public final class VMScheduler {
         pendingDeletion.append(entity)
     }
 
-    /// A binary search for the insertion point by object ID. It keeps the list sorted, and
-    /// doesn't check whether the entity is already in it.
+    /// A binary search for the insertion point by object ID. It keeps the list sorted, and leaves
+    /// an entity already in it where it is.
     static func insertInObjectIDOrder(_ entity: Entity, into list: inout [Entity]) {
+        if list.contains(where: { $0 === entity }) { return }
         guard !list.isEmpty else {
             list.append(entity)
             return
