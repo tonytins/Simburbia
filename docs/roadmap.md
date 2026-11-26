@@ -117,7 +117,10 @@ In order:
      - [x] E1. Hudini to current main, and the fonts move out of Swift into the appearance.
      - [x] E2. Images by asset ID: the client's `loadImage` looks an `assetID` up through
        `UIGraphicsProvider`, caching textures while the window is open.
-     - [ ] E3. The gizmo scroll bars: TSO's shared scroll bar art on every list.
+     - [ ] E3. The gizmo scroll bars: TSO's shared scroll bar art on every list. Waits for Hudini:
+       TSO packs the track and thumb in one 13×96 graphic (the track three-sliced, the thumb a fixed
+       size) and its arrows are 21×8, where Hudini's `<ScrollBar>` takes whole images and draws
+       square arrows. E4 can go first.
      - [ ] E4. Shared images and styles across the windows: the top bar's buttons, then login.
 3. **Queen Margaret's, fourth pass: Sims,** so a lot with Sims runs a full in-game day without an
    error (the alpha gate's lot job). Until 2026-11-20 each phase ended with the oracles agreeing
