@@ -74,7 +74,7 @@ stage() {
     for file in topbar help momi inspector terminal login-start login-join; do
         [[ -f "$dest/Interface/$file.uix" ]] || fail "the package has no Interface/$file.uix."
     done
-    for file in logo.png uitext/_1_loading.cst fonts/ComicNeue-Regular.ttf fonts/FiraMono-Regular.ttf; do
+    for file in appearance.xml logo.png uitext/_1_loading.cst fonts/ComicNeue-Regular.ttf fonts/FiraMono-Regular.ttf; do
         [[ -f "$dest/Interface/$file" ]] || fail "the package has no Interface/$file."
     done
     cp "$ROOT/README.md" "$dest/README.md"

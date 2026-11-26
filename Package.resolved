@@ -1,5 +1,5 @@
 {
-  "originHash" : "4399f3709ec7cd03798848651d5b817cf703ef67e61de25f915202910fec86b7",
+  "originHash" : "46cca5a54f2487ab6226268bba76feef07397b55434dbf341f5a49a5ef003d0c",
   "pins" : [
     {
       "identity" : "gitversion",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/tonytins/Hudini",
       "state" : {
         "branch" : "main",
-        "revision" : "ebb4684ed4f277bf944e2e5597b00eb441334a3b"
+        "revision" : "7a8023920481fd180bfb9586b6addbc01a6d7d33"
       }
     },
     {

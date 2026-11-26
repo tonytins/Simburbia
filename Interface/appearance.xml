@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Simburbia's appearance: what every interface document shares, read by Hudini. Paths are
+  relative to this folder. See docs/sb/client.md.
+
+  Fonts load at 32 pixels, twice the interface's usual 14 and 16, so text scales down smoothly.
+-->
+<Appearance version="1">
+  <Font name="comicNeue" path="fonts/ComicNeue-Regular.ttf" size="32"/>
+  <Font name="firaMono" path="fonts/FiraMono-Regular.ttf" size="32"/>
+  <Fonts default="comicNeue" monospace="firaMono"/>
+</Appearance>

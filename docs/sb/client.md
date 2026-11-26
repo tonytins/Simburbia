@@ -146,10 +146,16 @@ used to have. Its `hudini-demo` shows them on their own. Simburbia's look is
 `InterfaceTheme.simburbia`: for now Hudini's standard palette, with
 [Comic Neue](https://github.com/crozynski/comicneue) for the interface's text and
 [Fira Mono](https://github.com/mozilla/Fira) for fixed-width text such as the terminal's, both
-under the SIL Open Font License, in [`Interface/fonts`](../../Interface/fonts/README.md). The
-window loads them once it opens (`ClientWindow`), at 32 pixels with smooth scaling and the
-Latin-1 characters TSO's text uses, and unloads them before it closes. A font that's missing or
-unreadable is a warning, and its text uses raylib's own font.
+under the SIL Open Font License, in [`Interface/fonts`](../../Interface/fonts/README.md).
+
+What the documents share is in [`Interface/appearance.xml`](../../Interface/appearance.xml),
+Hudini's appearance: for now the two fonts, each with its file and the size it loads at (32
+pixels). Its paths are relative to `Interface`. The client reads it with the documents, and reads
+every document with it, so a document can use what it names. One that's missing or doesn't read
+stops the client with a message naming it. The window loads the fonts once it opens
+(`ClientWindow`), each file once, with smooth scaling and the Latin-1 characters TSO's text uses,
+and unloads them before it closes. A font that's missing or unreadable is a warning, and its text
+uses raylib's own font. Changing a font is an edit to the appearance, with no rebuild.
 
 The top bar and the Help, MOMI, inspector, and terminal windows are described in Hudini's
 UIScript documents (`.uix`, an XML format), in [`Interface/`](../../Interface/): `topbar.uix`,

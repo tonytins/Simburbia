@@ -22,6 +22,22 @@ public enum InterfaceDocuments {
 
     /// Where a document is, in a Simburbia folder.
     public static func url(of document: String, in simburbiaFolder: URL) -> URL {
-        simburbiaFolder.appendingPathComponent(folderName, isDirectory: true).appendingPathComponent("\(document).uix")
+        folder(in: simburbiaFolder).appendingPathComponent("\(document).uix")
+    }
+
+    /// Where the appearance every document shares is, in a Simburbia folder: Hudini's
+    /// `<Appearance>`, which names the interface's fonts.
+    public static func appearanceURL(in simburbiaFolder: URL) -> URL {
+        folder(in: simburbiaFolder).appendingPathComponent("appearance.xml")
+    }
+
+    /// Where a file the appearance names is, such as a `<Font>`'s `path`: relative to the
+    /// `Interface` folder, as the appearance's own comment says.
+    public static func url(ofAppearancePath path: String, in simburbiaFolder: URL) -> URL {
+        folder(in: simburbiaFolder).appendingPathComponent(path)
+    }
+
+    private static func folder(in simburbiaFolder: URL) -> URL {
+        simburbiaFolder.appendingPathComponent(folderName, isDirectory: true)
     }
 }

@@ -40,7 +40,7 @@ top.
 | `SBOracle/` | `sb-oracle`: the randomized study and the content census |
 | `ScriptOracle/` | `sso-oracle`: small experiments written in SimsScript, run on the VM |
 | `MockInstall/` | A tiny made-up TSO install for tests and CI |
-| `Interface/` | The client's top bar and windows, as Hudini's UIScript documents (`.uix`, an XML format), with its fonts and text |
+| `Interface/` | The client's top bar and windows, as Hudini's UIScript documents (`.uix`, an XML format), the appearance they share (`appearance.xml`), and its fonts and text |
 | `Lots/` | The owner's lots as blueprint XML: `tonys-lot.xml` (a recreation of their original TSO lot) and `community-lot.xml` (a lot for group events) |
 | `Tuning/` | Simburbia's default global tuning (`tuning.xml`), laid under an install's `tuning.dat` |
 | `packaging/` | The scripts that build the client into packages players download |
@@ -114,8 +114,8 @@ public: [FreeSO](https://github.com/riperiperi/FreeSO),
 cite addresses in TS1's executable, so verify what it says rather than copying it), the
 [SimAntics Wiki](http://simantics.wikidot.com/wiki:introduction-to-simantics) (copied in
 `docs/simantics/`), [SimsWiki](https://simswiki.info/wiki.php?title=Main_Page) (The Sims 2's AI
-extends SimAntics), [Don Hopkins](https://github.com/SimHacker),
-[SimObliterator Suite](https://github.com/DnfJeff/SimObliterator_Suite),
+extends SimAntics),
+[SimObliterator Suite](https://github.com/SimHacker/SimObliterator_Suite) ([Don Hopkins](https://en.wikipedia.org/wiki/Don_Hopkins)),
 [TS1 Compiler](https://github.com/mixiate/ts1-compiler),
 [TS1 Renderer](https://github.com/mixiate/ts1-renderer) ([IO](https://github.com/mixiate/ts1-blender-io)),
 [TheSimsOpenTechDoc](https://github.com/DnfJeff/TheSimsOpenTechDoc), and
@@ -197,7 +197,7 @@ print, and are freer.
   libraries ([Hudini](https://github.com/tonytins/Hudini),
   [raylib-swift](https://github.com/tonytins/raylib-swift),
   [swift-cst](https://github.com/tonytins/swift-cst), and
-  [GitVersion](https://github.com/tonytins/GitVersion)) are first-party: use them wherever they
+  [GitVersion](https://github.com/tonytins/GitVersion)) and Apple's are first-party: use them wherever they
   fit, following their main branch or latest release. Still say when one is added, and update the
   callers when one changes.
 - **No EA data in the repository (strict)**. Tests build synthetic files in code or use

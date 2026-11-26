@@ -144,7 +144,7 @@ struct Simburbia: ParsableCommand {
         let (text, textWarnings) = LoadingText.load(gameDirectory: options.gameDirectory, simburbiaFolder: Self.simburbiaFolder)
         let (art, artWarning) = LoadingScreen.setupArt(gameDirectory: options.gameDirectory)
         let hidden = screenshot != nil || loadingScreenshot != nil || loginScreenshot != nil
-        let fontWarnings = ClientWindow.open(hidden: hidden, simburbiaFolder: Self.simburbiaFolder)
+        let fontWarnings = ClientWindow.open(hidden: hidden, appearance: interface.appearance, simburbiaFolder: Self.simburbiaFolder)
         for warning in warnings + textWarnings + (artWarning.map { [$0] } ?? []) + fontWarnings {
             FileHandle.standardError.write(Data("simburbia: \(warning)\n".utf8))
         }

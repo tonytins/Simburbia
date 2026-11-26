@@ -359,3 +359,27 @@ private func simdLength(_ vector: SIMD3<Float>) -> Float {
     #expect(LotSession.speeds.indices.allSatisfy { topBar.control(named: "speed\($0)") != nil })
     #expect(topBar.control(named: "speed\(LotSession.speeds.count)") == nil)
 }
+
+@Test func theAppearanceNamesFontsTheInterfaceShips() throws {
+    let appearance = try Appearance(contentsOf: InterfaceDocuments.appearanceURL(in: simburbiaFolder))
+    #expect(appearance.ignoredAttributes.isEmpty, "appearance.xml: \(appearance.ignoredAttributes)")
+    // Both of the theme's fonts come from the appearance, from files the package ships.
+    let names = [appearance.themeFonts?.default, appearance.themeFonts?.monospace]
+    #expect(names.allSatisfy { $0 != nil })
+    for name in names.compactMap({ $0 }) {
+        let font = try #require(appearance.fonts[name])
+        let url = InterfaceDocuments.url(ofAppearancePath: font.path, in: simburbiaFolder)
+        #expect(FileManager.default.fileExists(atPath: url.path), "\(name) names \(font.path), which isn't there")
+    }
+}
+
+@Test func aMissingAppearanceStopsTheClientNamingIt() throws {
+    let folder = FileManager.default.temporaryDirectory.appendingPathComponent("simburbia-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: folder.appendingPathComponent(InterfaceDocuments.folderName), withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: folder) }
+    #expect {
+        _ = try Interface.load(from: folder)
+    } throws: { error in
+        String(describing: error).contains("appearance.xml")
+    }
+}

@@ -9,4 +9,4 @@ lets them ship with Simburbia as long as their licenses ship beside them. Both c
 | `ComicNeue-Regular.ttf` | [Comic Neue](https://github.com/crozynski/comicneue), by Craig Rozynski | The interface's text | `ComicNeue-OFL.txt` | `ofl/comicneue` |
 | `FiraMono-Regular.ttf` | [Fira Mono](https://github.com/mozilla/Fira), by Mozilla and Telefonica | The terminal, and other fixed-width text | `FiraMono-OFL.txt` | `ofl/firamono` |
 
-To update one, replace the font and its license together from the same folder of that repository.
+`../appearance.xml` names each file and the size it loads at. To update one, replace the font and its license together from the same folder of that repository.
