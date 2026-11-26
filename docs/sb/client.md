@@ -163,7 +163,14 @@ such as `0x0000031200000001`), then by its `path` under `Interface`. So a docume
 art and keep Simburbia's own as the fallback. The window makes each image a texture the first
 time a view asks and keeps it until it closes. A bad ID, a graphic the install lacks or can't
 decode, or a missing file is reported once on standard error, and its control draws from the
-theme. Without an install, an image named only by ID draws from the theme without a warning.
+theme. Without an install, or with one that has no interface graphics at all (MockInstall), an
+image named only by ID draws from the theme without a warning; a real install without them
+warns once.
+
+The appearance gives every list TSO's "gizmo" scroll bar, which most of TSO's own screens share:
+its up and down arrows (four states each) and the image TSO packs its track and thumb into, read
+through Hudini's `<ScrollBar slider>`. The bar takes 21 pixels of a list while it shows. Without
+TSO's art it's Hudini's classic bar, 15 pixels wide.
 
 The top bar and the Help, MOMI, inspector, and terminal windows are described in Hudini's
 UIScript documents (`.uix`, an XML format), in [`Interface/`](../../Interface/): `topbar.uix`,

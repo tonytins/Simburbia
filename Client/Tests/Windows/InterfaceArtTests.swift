@@ -120,3 +120,15 @@ func setupComesFromARealInstallByItsAssetID() throws {
     }
     #expect(setup.width > 0 && setup.height > 0)
 }
+
+@Test func anInstallWithoutInterfaceArtDrawsFromTheTheme() throws {
+    let mockInstall = simburbiaFolder.appendingPathComponent("MockInstall/TSOClient")
+    let (mock, quiet) = InterfaceArt.open(gameDirectory: mockInstall, simburbiaFolder: simburbiaFolder, expectsArt: false)
+    #expect(mock.graphics == nil)
+    #expect(quiet.isEmpty)
+    let (source, warnings) = mock.source(for: try image("assetID='\(looseID)'"))
+    #expect(source == nil && warnings.isEmpty)
+    // A real install without them is worth one warning.
+    let (_, warned) = InterfaceArt.open(gameDirectory: mockInstall, simburbiaFolder: simburbiaFolder)
+    #expect(warned.count == 1)
+}

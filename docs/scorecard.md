@@ -8,7 +8,7 @@ page and [roadmap.md](roadmap.md) disagree, this page wins and the roadmap gets 
 **As of:** 2026-10-28 (the FreeSO comparison retired 2026-11-20) · Swift 6.3.3 on Linux x86_64 · `swift test`: TSOFiles 146 passed, TSOFilesCheck 12
 passed, TSOContent 59 passed (including TSOConfig's 2; 12 need `TSO_GAME_DIR`), SimAntics 113 passed
 (1 needs `TSO_GAME_DIR`), SimsScript 12 passed (1 needs `TSO_GAME_DIR`), SBOracle 15 passed (5 need
-`TSO_GAME_DIR`), Client 67 passed (1 needs `TSO_GAME_DIR`). Tests that need an install are skipped without it. The
+`TSO_GAME_DIR`), Client 70 passed (1 needs `TSO_GAME_DIR`). Tests that need an install are skipped without it. The
 owner has three installs: 1.1097.1.0 (`TSO_GAME_DIR`, which the tests and the study use), the base game
 (1.145.1.0, `TSO_CLASSIC_DIR`), and a beta (`TSO_BETA_DIR`). **Until 2026-10-28 `TSO_GAME_DIR` named the
 base game, so "production" in every real-install result before then means 1.145.1.0.** On the older

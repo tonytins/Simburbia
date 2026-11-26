@@ -16,9 +16,15 @@ struct InterfaceArt: Sendable {
 
     /// Opens the install's interface graphics, if `gameDirectory` lists. An archive that doesn't
     /// read is returned as a warning, and the others still load.
-    static func open(gameDirectory: URL, simburbiaFolder: URL) -> (InterfaceArt, warnings: [String]) {
-        guard let files = try? GameFileIndex(root: gameDirectory) else {
-            return (InterfaceArt(graphics: nil, simburbiaFolder: simburbiaFolder), [])
+    ///
+    /// An install with nothing under `uigraphics` has no interface art, as MockInstall hasn't, so
+    /// asset IDs draw from the theme quietly, as without an install. For a real install that's
+    /// worth knowing, so it's a warning unless `expectsArt` is false.
+    static func open(gameDirectory: URL, simburbiaFolder: URL, expectsArt: Bool = true) -> (InterfaceArt, warnings: [String]) {
+        let none = InterfaceArt(graphics: nil, simburbiaFolder: simburbiaFolder)
+        guard let files = try? GameFileIndex(root: gameDirectory) else { return (none, []) }
+        guard !files.paths(where: { $0.contains("uigraphics/") }).isEmpty else {
+            return (none, expectsArt ? ["the install has no interface graphics (uigraphics), so the interface draws from Simburbia's theme"] : [])
         }
         let graphics = UIGraphicsProvider(files: files)
         let warnings = graphics.failures.map { "the interface graphics in \($0.path) can't be read: \($0.reason)" }

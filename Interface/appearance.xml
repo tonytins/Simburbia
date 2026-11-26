@@ -4,8 +4,17 @@
   relative to this folder. See docs/sb/client.md.
 
   Fonts load at 32 pixels, twice the interface's usual 14 and 16, so text scales down smoothly.
+
+  Images are TSO's own, by asset ID, from the install's uigraphics; without an install they draw
+  from Hudini's theme. The scroll bar is TSO's "gizmo" bar, which about 30 of its screens share:
+  four-state 21x8 arrows, and one 13x96 slider image packing the track over the thumb.
 -->
 <Appearance version="1">
+  <Image name="scrollUp" assetID="0x0000031200000001" stateCount="4"/>
+  <Image name="scrollDown" assetID="0x0000031100000001" stateCount="4"/>
+  <Image name="scrollSlider" assetID="0x0000031000000001"/>
+  <ScrollBar up="scrollUp" down="scrollDown" slider="scrollSlider"/>
+
   <Font name="comicNeue" path="fonts/ComicNeue-Regular.ttf" size="32"/>
   <Font name="firaMono" path="fonts/FiraMono-Regular.ttf" size="32"/>
   <Fonts default="comicNeue" monospace="firaMono"/>

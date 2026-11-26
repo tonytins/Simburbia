@@ -383,3 +383,23 @@ private func simdLength(_ vector: SIMD3<Float>) -> Float {
         String(describing: error).contains("appearance.xml")
     }
 }
+
+@Test func theAppearanceGivesEveryListTSOsGizmoScrollBar() throws {
+    let appearance = try Appearance(contentsOf: InterfaceDocuments.appearanceURL(in: simburbiaFolder))
+    let bar = try #require(appearance.scrollBar)
+    // TSO's packed slider and its two four-state arrows, each by an asset ID the client can read.
+    let names = [bar.slider, bar.up, bar.down]
+    #expect(names.allSatisfy { $0 != nil })
+    for name in names.compactMap({ $0 }) {
+        let image = try #require(appearance.images[name])
+        let id = try #require(image.assetID, "\(name) has no asset ID")
+        #expect(InterfaceArt.assetID(id) != nil, "\(name)'s asset ID \(id) doesn't read")
+    }
+    #expect(appearance.images[bar.up ?? ""]?.stateCount == 4)
+    #expect(appearance.images[bar.down ?? ""]?.stateCount == 4)
+}
+
+@Test func everyDocumentReadsWithTheAppearance() throws {
+    let (_, warnings) = try Interface.load(from: simburbiaFolder)
+    #expect(warnings.isEmpty, "\(warnings)")
+}
