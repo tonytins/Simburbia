@@ -157,6 +157,14 @@ stops the client with a message naming it. The window loads the fonts once it op
 and unloads them before it closes. A font that's missing or unreadable is a warning, and its text
 uses raylib's own font. Changing a font is an edit to the appearance, with no rebuild.
 
+An `<Image>`, in the appearance or a document, is found by `InterfaceArt`: by its `assetID` among
+the install's interface graphics (`UIGraphicsProvider`, written as TSO's `.uis` files write them,
+such as `0x0000031200000001`), then by its `path` under `Interface`. So a document can name TSO's
+art and keep Simburbia's own as the fallback. The window makes each image a texture the first
+time a view asks and keeps it until it closes. A bad ID, a graphic the install lacks or can't
+decode, or a missing file is reported once on standard error, and its control draws from the
+theme. Without an install, an image named only by ID draws from the theme without a warning.
+
 The top bar and the Help, MOMI, inspector, and terminal windows are described in Hudini's
 UIScript documents (`.uix`, an XML format), in [`Interface/`](../../Interface/): `topbar.uix`,
 `help.uix`, `momi.uix`, `inspector.uix`, and `terminal.uix`. Each says where its controls go,

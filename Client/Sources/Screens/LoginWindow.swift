@@ -21,8 +21,8 @@ final class LoginWindow {
         frame.showsCloseButton = false
         frame.toolbarItems = ["Start", "Join"]
         frame.selectedToolbarIndex = 0
-        start = UIView(script: startScript, theme: .simburbia)
-        join = UIView(script: joinScript, theme: .simburbia)
+        start = UIView(script: startScript, theme: .simburbia, loadImage: ClientWindow.loadImage, loadFont: ClientWindow.loadFont)
+        join = UIView(script: joinScript, theme: .simburbia, loadImage: ClientWindow.loadImage, loadFont: ClientWindow.loadFont)
         size = Vector2(x: startScript.window.size.width, y: startScript.window.size.height + Float(WindowFrame.titleHeight))
         // Deleting and making lots wait for their own step; joining waits for networking.
         for name in ["delete", "new", "play"] { start.setDisabled(true, named: name) }

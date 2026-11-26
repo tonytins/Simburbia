@@ -142,10 +142,11 @@ struct Simburbia: ParsableCommand {
         // so a missing or broken one says so instead of leaving the window blank.
         let (interface, warnings) = try Interface.load(from: Self.simburbiaFolder)
         let (text, textWarnings) = LoadingText.load(gameDirectory: options.gameDirectory, simburbiaFolder: Self.simburbiaFolder)
-        let (art, artWarning) = LoadingScreen.setupArt(gameDirectory: options.gameDirectory)
+        let (interfaceArt, interfaceArtWarnings) = InterfaceArt.open(gameDirectory: options.gameDirectory, simburbiaFolder: Self.simburbiaFolder)
+        let (art, artWarning) = LoadingScreen.setupArt(interfaceArt)
         let hidden = screenshot != nil || loadingScreenshot != nil || loginScreenshot != nil
-        let fontWarnings = ClientWindow.open(hidden: hidden, appearance: interface.appearance, simburbiaFolder: Self.simburbiaFolder)
-        for warning in warnings + textWarnings + (artWarning.map { [$0] } ?? []) + fontWarnings {
+        let fontWarnings = ClientWindow.open(hidden: hidden, appearance: interface.appearance, art: interfaceArt)
+        for warning in warnings + textWarnings + interfaceArtWarnings + (artWarning.map { [$0] } ?? []) + fontWarnings {
             FileHandle.standardError.write(Data("simburbia: \(warning)\n".utf8))
         }
         let loading = LoadingScreen(text: text, art: art, logo: Self.simburbiaFolder.appendingPathComponent("Interface/logo.png"))

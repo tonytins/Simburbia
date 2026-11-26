@@ -16,7 +16,7 @@ final class ManagedWindow {
     ///   - start: where the window's top left goes when it opens, worked out then, from the screen
     ///     as it is.
     init(title: String, script: UIScript, in windows: WindowManager, start: @escaping () -> Vector2) {
-        view = UIView(script: script, theme: .simburbia)
+        view = UIView(script: script, theme: .simburbia, loadImage: ClientWindow.loadImage, loadFont: ClientWindow.loadFont)
         frame = WindowFrame(view: view, title: title)
         self.windows = windows
         self.start = start

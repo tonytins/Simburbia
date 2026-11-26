@@ -14,7 +14,7 @@ final class TopBar {
 
     init(script: UIScript) {
         self.script = script
-        view = UIView(script: script, theme: .simburbia)
+        view = UIView(script: script, theme: .simburbia, loadImage: ClientWindow.loadImage, loadFont: ClientWindow.loadFont)
     }
 
     /// The bar's height, from its document.

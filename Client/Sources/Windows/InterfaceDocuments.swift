@@ -31,9 +31,9 @@ public enum InterfaceDocuments {
         folder(in: simburbiaFolder).appendingPathComponent("appearance.xml")
     }
 
-    /// Where a file the appearance names is, such as a `<Font>`'s `path`: relative to the
-    /// `Interface` folder, as the appearance's own comment says.
-    public static func url(ofAppearancePath path: String, in simburbiaFolder: URL) -> URL {
+    /// Where a file the appearance or a document names is, such as a `<Font>`'s or an
+    /// `<Image>`'s `path`: relative to the `Interface` folder.
+    public static func url(ofInterfacePath path: String, in simburbiaFolder: URL) -> URL {
         folder(in: simburbiaFolder).appendingPathComponent(path)
     }
 

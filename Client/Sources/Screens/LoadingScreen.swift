@@ -121,10 +121,10 @@ final class LoadingScreen {
     static let setupID = AssetID(packed: 0x3A3_0000_0001)
 
     /// The install's `setup` graphic, or `nil` without one, and why when it can't be read.
-    static func setupArt(gameDirectory: URL) -> (image: RasterImage?, warning: String?) {
-        guard let files = try? GameFileIndex(root: gameDirectory) else { return (nil, nil) }
+    static func setupArt(_ art: InterfaceArt) -> (image: RasterImage?, warning: String?) {
+        guard let graphics = art.graphics else { return (nil, nil) }
         do {
-            return (try UIGraphicsProvider(files: files).image(id: setupID), nil)
+            return (try graphics.image(id: setupID), nil)
         } catch {
             return (nil, "TSO's loading art can't be read, so Simburbia's is shown: \(error)")
         }
@@ -143,16 +143,7 @@ final class LoadingScreen {
     init(text: LoadingText, art image: RasterImage?, logo path: URL) {
         self.text = text
         lines = SlidingLines(lines: text.lines)
-        if var image {
-            let texture = image.rgba.withUnsafeMutableBytes { bytes in
-                LoadTextureFromImage(Image(data: bytes.baseAddress, width: Int32(clamping: image.width), height: Int32(clamping: image.height),
-                                           mipmaps: 1, format: Int32(truncatingIfNeeded: PixelFormat.uncompressedR8g8b8a8.rawValue)))
-            }
-            if IsTextureValid(texture) {
-                SetTextureFilter(texture, .bilinear)
-                art = texture
-            }
-        }
+        art = image?.makeTexture()
         guard art == nil else { return }
         let texture = LoadTexture(path.path)
         if IsTextureValid(texture) {

@@ -368,7 +368,7 @@ private func simdLength(_ vector: SIMD3<Float>) -> Float {
     #expect(names.allSatisfy { $0 != nil })
     for name in names.compactMap({ $0 }) {
         let font = try #require(appearance.fonts[name])
-        let url = InterfaceDocuments.url(ofAppearancePath: font.path, in: simburbiaFolder)
+        let url = InterfaceDocuments.url(ofInterfacePath: font.path, in: simburbiaFolder)
         #expect(FileManager.default.fileExists(atPath: url.path), "\(name) names \(font.path), which isn't there")
     }
 }
