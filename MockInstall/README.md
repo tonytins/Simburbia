@@ -67,7 +67,8 @@ from `STR#` 303 (the ball's table of callback trees), then drops it beside the S
 tree is the semi-global's 8192, it advertises one motive, and only the owner, roommates, and
 visitors may use it. `CT - Grab` (`BHAV` 4100) adds 1 to the stack object's attribute 1, the
 ball's: TSO's pickup helpers call such a tree by name once a reach takes something. The ball has
-no sprites.
+no sprites, but its `OBJD` counts one graphic, so it offers its menu as an object a player can see
+does.
 
 The register's main is its own too. It makes itself the stack object, then uses Transfer Funds
 to be paid 100 by the game, pay 30 back, and fail to pay 1,000, each waiting a tick for its

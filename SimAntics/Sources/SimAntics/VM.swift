@@ -371,7 +371,7 @@ public final class VM {
         }
     }
 
-    private func gameObject(guid: UInt32) throws(SimAnticsError) -> GameObject? {
+    func gameObject(guid: UInt32) throws(SimAnticsError) -> GameObject? {
         do {
             return try content.objects.object(guid: guid)
         } catch {

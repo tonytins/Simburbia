@@ -151,14 +151,16 @@ extension Entity {
     /// allows it, it's in the way unless it lets people through: another Sim when this one has
     /// "allow person intersection", or anything, Sims included, with "allow person intersection"
     /// and not "disallow person intersection". The search stops at the first one in the way that
-    /// has a chair's entry point (26); otherwise the last one in the way is named. A Sim never
-    /// stacks or sits in a slot here.
+    /// has a chair's entry point (26); otherwise the last one in the way is named. What a walking
+    /// Sim may pass through (what it started inside, and a chair it walks into to sit) is never in
+    /// the way. A Sim never stacks
+    /// or sits in a slot here.
     func avatarPlacement(at position: LotPosition, facing direction: Direction) throws(SimAnticsError) -> PlacementResult {
         var result = PlacementResult()
         guard let footprint = obstacle(at: position, facing: direction), position.level >= 1 else { return result }
         let letsPeopleThrough = data(.flags) & EntityFlag.allowPersonIntersection != 0
         for other in vm.entities(inRoom: vm.architecture.room(at: position)) {
-            if other.group === group { continue }
+            if other.group === group || walksThrough.contains(where: { $0 === other.group }) { continue }
             guard let otherFootprint = other.footprint, otherFootprint.intersects(footprint) else { continue }
             if try executeEntryPoint(.allowIntersection, runImmediately: true, stackObject: other,
                                      arguments: [other.objectID, 0, 0, 0]) { continue }

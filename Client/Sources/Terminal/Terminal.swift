@@ -165,6 +165,7 @@ public struct TerminalCommands {
         case .noInteraction(let number): "no interaction \(number) there"
         case .noActionTree(let number): "interaction \(number) has no routine to run"
         case .notAllowed(let number): "the Sim may not do \(number) now"
+        case .notOffered(let id): "\(id) offers no menus"
         case .simantics(let error): "that failed: \(error)"
         }
     }

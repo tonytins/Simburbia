@@ -17,7 +17,7 @@ BHAV 4100, "CT - Grab", adds 1 to the stack object's attribute 1, which Run Tree
 the ball (the routine's "me" is the Sim, its caller): the callback a pickup helper runs by name
 once a reach takes something, as TSO's content does.
 The ball's init and main are the other objects' (main counts its runs in attribute 0); it has no
-sprites.
+sprites, but its OBJD counts one graphic, so it offers its pie menu as a visible object does.
 
 The Sim's main (BHAV 4096 in mocksim.iff) adds 1 to attribute 0, then waits for input with Idle
 For Input, pushing allowed, counting from argument 0 (0, so it returns the same tick unless an
@@ -107,6 +107,7 @@ ttab = struct.pack("<HHB", len(interactions), 10, 1) + fields.bytes()
 # OBJD: the register's, with the ball's GUID and interaction table.
 objd = bytearray(chunk_of(b"mockregister.iff", b"OBJD", 128))
 words = 76
+struct.pack_into("<H", objd, words + 2 * 4, 1)                           # NumGraphics: a player sees it
 struct.pack_into("<H", objd, words + 2 * 7, TABLE)                       # TreeTableID
 struct.pack_into("<HH", objd, words + 2 * 14, GUID & 0xFFFF, GUID >> 16)  # GUID
 objd[12:76] = b"mockball".ljust(64, b"\0")

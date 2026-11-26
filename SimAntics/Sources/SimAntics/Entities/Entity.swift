@@ -46,6 +46,9 @@ public final class Entity {
     /// A group whose objects placement ignores, while an object is created underneath its creator
     /// (`IgnoreIntersection`).
     var ignoreIntersection: MultitileGroup?
+    /// The objects a walking Sim may pass through: what it stood inside when its route was
+    /// planned, and the chair it walks to (``RoutingFrame``).
+    var walksThrough: [MultitileGroup] = []
     /// The definition's container slots (`SLOT` slots of type 0).
     let containerSlots: [SLOT.Slot]
     /// What each container slot holds (`Contained`); the entity gets a slot for each of the
@@ -72,7 +75,7 @@ public final class Entity {
 
     /// The routines the entity runs for each entry point (init, main, load, and so on),
     /// or `nil` if its definition uses a function table it doesn't have.
-    public let entryPoints: [EntryPoint]?
+    public internal(set) var entryPoints: [EntryPoint]?
 
     private var lockoutTimestamp: UInt32 = 0
 

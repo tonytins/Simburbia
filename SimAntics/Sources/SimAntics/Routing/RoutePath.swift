@@ -26,20 +26,24 @@ extension VM {
     /// and footprints in its way, grown by half its width. An obstacle the start or a goal is
     /// already inside is left out, so a Sim at a counter can step away and one can walk up to a
     /// chair. The path found is then smoothed to the turning points the Sim can see between. Equal
-    /// choices always go the same way, so a lot routes the same on every machine.
+    /// choices always go the same way, so a lot routes the same on every machine. With
+    /// `ignoringRooms`, the path may leave the start's room, as a door's routine walks a Sim
+    /// through to its other side; walls still stand in the way.
     ///
     /// - Returns: The path, or why there's none: `noRoomRoute` when every goal is in another room
-    ///   or on another level (doors and stairs come later), and `noPath` when none can be reached,
-    ///   or the search passes ``maximumPathSearch`` points.
+    ///   (unless `ignoringRooms`) or on another level, for a route through portals
+    ///   (``roomRoute(from:to:avoiding:)``), and `noPath` when none can be reached, or the search
+    ///   passes ``maximumPathSearch`` points.
     /// - Throws: ``SimAnticsError`` for a start off the lot's levels.
-    public func findPath(for sim: Entity, from start: LotPosition, to goals: [RouteGoal]) throws(SimAnticsError)
-        -> Result<RoutePath, RouteFailure> {
+    public func findPath(for sim: Entity, from start: LotPosition, to goals: [RouteGoal], ignoringRooms: Bool = false)
+        throws(SimAnticsError) -> Result<RoutePath, RouteFailure> {
         guard !goals.isEmpty else { return .failure(.noValidGoals) }
         let level = Int(start.level)
         let room = architecture.room(at: start)
         let reachable = goals.indices.filter { index in
             let goal = goals[index].position
-            return Int(goal.level) == level && !architecture.isOutOfBounds(goal) && architecture.room(at: goal) == room
+            return Int(goal.level) == level && !architecture.isOutOfBounds(goal)
+                && (ignoringRooms || architecture.room(at: goal) == room)
         }
         guard !reachable.isEmpty else { return .failure(.noRoomRoute) }
 
@@ -49,7 +53,7 @@ extension VM {
         }
         let points = [start] + reachable.map { goals[$0].position }
         let obstacles = grown.filter { obstacle in !points.contains { obstacle.strictlyContains($0) } }
-        var grid = RouteGrid(architecture: architecture, level: level, room: room, obstacles: obstacles)
+        var grid = RouteGrid(architecture: architecture, level: level, room: ignoringRooms ? nil : room, obstacles: obstacles)
 
         let goalCells = reachable.map { (index: $0, cell: Cell(goals[$0].position)) }
         guard let (cells, reached) = grid.search(from: Cell(start), to: goalCells.map(\.cell), limit: Self.maximumPathSearch) else {
@@ -94,14 +98,15 @@ struct Cell: Hashable {
 struct RouteGrid {
     let architecture: Architecture
     let level: Int
-    let room: UInt16
+    /// The room the path stays in; `nil` for any.
+    let room: UInt16?
     let obstacles: [Obstacle]
     /// The obstacles touching each tile, by its index on the level, so a point checks only those.
     private var byTile: [Int: [Int]] = [:]
     private var known: [Cell: Bool] = [:]
     private var roomOfTile: [Int: Bool] = [:]
 
-    init(architecture: Architecture, level: Int, room: UInt16, obstacles: [Obstacle]) {
+    init(architecture: Architecture, level: Int, room: UInt16?, obstacles: [Obstacle]) {
         self.architecture = architecture
         self.level = level
         self.room = room
@@ -129,7 +134,9 @@ struct RouteGrid {
         guard cell.x >= 0, cell.y >= 0, tileX < architecture.width, tileY < architecture.height else { return false }
         let tile = tileY * architecture.width + tileX
         let inRoom: Bool
-        if let known = roomOfTile[tile] {
+        if room == nil {
+            inRoom = true
+        } else if let known = roomOfTile[tile] {
             inRoom = known
         } else {
             let position = LotPosition(x: Int16(truncatingIfNeeded: cell.x), y: Int16(truncatingIfNeeded: cell.y), level: Int8(level))

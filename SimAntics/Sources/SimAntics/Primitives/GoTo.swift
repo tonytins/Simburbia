@@ -18,13 +18,15 @@ extension Primitives {
     }
 
     /// Pushes a route to a slot's spots around `object` for the caller (``RoutingFrame``), or one
-    /// that fails at once with the slot's reason when it has none. It carries on into the route.
+    /// that fails at once with the slot's reason when it has none; a slot that ignores rooms walks
+    /// straight there, through a doorway. It carries on into the route.
     static func route(to slot: SLOT.Slot, around object: Entity, callsFailureTree: Bool, in frame: StackFrame) throws(SimAnticsError) -> ExitCode {
         guard let sim = frame.caller, sim.isAvatar else { throw .invalidCast("only a Sim routes") }
         let search = try frame.vm.findSpots(for: slot, around: object, for: sim)
         let route = search.spots.isEmpty
             ? RoutingFrame(failing: search.failure ?? .noValidGoals, blocker: search.blocker, callsFailureTree: callsFailureTree)
             : RoutingFrame(goals: search.spots.map(RouteGoal.init), callsFailureTree: callsFailureTree)
+        route.ignoresRooms = slot.flags.contains(.ignoreRooms)
         frame.thread.pushRoute(route, from: frame)
         return .continue
     }
@@ -83,9 +85,10 @@ extension Primitives {
     /// -1 anywhere near, one to two tiles out in any direction, one tile best; 0 to 7 a side, in
     /// front first and clockwise, one tile to a tile and a half out. Direction -1 lets the Sim face
     /// any way, -2 faces the object, and 0 to 7 is a facing turned with the object. The Sim routes
-    /// there as Go To Routing Slot does. Flag 2 skips the route failure feedback; flag 1, allowing a
-    /// different level, waits for stairs (phase E5). In a check tree, with no stack object, or one
-    /// out of the world, it's false. 711 instructions on 1.1097.1.0.
+    /// there as Go To Routing Slot does. Flag 2 skips the route failure feedback. Flag 1, allowing a
+    /// different level, is ignored, since any route reaches other rooms and levels through
+    /// portals. In a check tree, with no stack object, or one out of the world, it's false. 711
+    /// instructions on 1.1097.1.0.
     public enum GotoRelativePosition: Primitive {
         public static let name = "goto_relative"
         public static let opcode: UInt8 = 27

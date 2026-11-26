@@ -49,4 +49,15 @@ import TSOContent
             #expect(sim.thread.queue.isEmpty)
         }
     }
+
+    @Test func offersNothingOnAnObjectAPlayerCantSee() throws {
+        try withSimAndBall { (vm: VM, sim: Entity, ball: Entity) throws in
+            #expect(ball.offersMenus)
+            ball.objectData[Int(ObjectVariable.hidden.rawValue)] = 1
+            #expect(!ball.offersMenus)
+            #expect(try vm.availableInteractions(on: ball, for: sim).isEmpty)
+            #expect(throws: InteractionRequestError.notOffered(objectID: ball.objectID)) { try vm.queueInteraction(0, on: ball, for: sim) }
+            #expect(sim.thread.queue.isEmpty)
+        }
+    }
 }

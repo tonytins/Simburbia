@@ -18,8 +18,8 @@ extension Primitives {
     /// best spot, facing that spot's way when the slot snaps to a direction, else keeping its own,
     /// and it's true. With no spot, or a spot the caller can't be placed in after all, it's false:
     /// object data `PrimitiveResult` is 2 when there's no valid goal, or the spot is off the lot,
-    /// and `PrimitiveResultID` names what was in the way. Flag 2, which asks a Sim in the way to
-    /// move, waits for phase E5. A slot number past the slots is false. No stack object fails, with
+    /// and `PrimitiveResultID` names what was in the way. With flag 2, a Sim in the way is asked to
+    /// move (``VM/shoo(_:by:)``), and it's still false. A slot number past the slots is false. No stack object fails, with
     /// an error for the routine.
     ///
     /// 1.1097.1.0's 248 Snap instructions use mode 3 (188), 4 (36), 0 (11), 1 (6), and 2 (6, and
@@ -92,6 +92,7 @@ extension Primitives {
             guard let spot = search.spots.first else {
                 if search.failure == .noValidGoals { try caller.setValue(2, of: ObjectVariable.primitiveResult.rawValue) }
                 try caller.setValue(search.blocker?.objectID ?? 0, of: ObjectVariable.primitiveResultID.rawValue)
+                if operand.flags & 2 != 0, let blocker = search.blocker { try frame.vm.shoo(blocker, by: caller) }
                 return .gotoFalse
             }
             let facing = snapsFacing ? spot.facing.map(Direction.init(radians:)) ?? caller.direction : caller.direction
@@ -99,6 +100,7 @@ extension Primitives {
             guard placed.status == .success else {
                 if placed.status == .locationOutOfBounds { try caller.setValue(2, of: ObjectVariable.primitiveResult.rawValue) }
                 try caller.setValue(placed.object?.objectID ?? 0, of: ObjectVariable.primitiveResultID.rawValue)
+                if operand.flags & 2 != 0, let blocker = placed.object { try frame.vm.shoo(blocker, by: caller) }
                 return .gotoFalse
             }
             return .gotoTrue

@@ -63,24 +63,41 @@ public struct RouteGoal {
 /// (walk table 3, looping), and its person data `RouteEntryFlags` takes the goal's directions. At a
 /// chair, it runs the chair's sit entry point (26), and the route returns what that returns.
 ///
-/// **Trouble.** A step that can't place the Sim (something moved into the way) plans again from
-/// where it is, three times at most, then fails with no path. A cancelled interaction stops the
-/// walk with "interrupted", unless the Sim is non-interruptable. A route that fails, when it calls
-/// failure trees, runs the global's route failure feedback (routine 398) with the reason and what
-/// was in the way as its arguments, then returns false.
+/// **Other rooms.** With every goal in another room or on another level, the Sim goes through the
+/// portals between, one at a time, running each portal's routine (entry point 15), which walks it
+/// through the door or up the stairs; then it plans again from where it is
+/// (``VM/roomRoute(from:to:avoiding:)``). A portal that fails is left out, and one route goes
+/// through ``maximumPortals`` at most. A route for a slot that ignores rooms walks straight
+/// through a doorway instead.
+///
+/// **In the way.** A walking Sim passes through what it stood inside when the path was planned
+/// (stepping out of a chair) and the chair it walks to, as the path does. When another Sim is in
+/// the way, it asks that Sim to move (``VM/shoo(_:by:)``) and waits for it, ``maximumWaits`` times
+/// at most. Something else in the way makes it plan again from where it is, three times at most,
+/// then fail with no path. A cancelled interaction stops the walk with "interrupted", unless the
+/// Sim is non-interruptable. A route that fails, when it calls failure trees, runs the global's
+/// route failure feedback (routine 398) with the reason and what was in the way as its
+/// arguments, then returns false.
 public final class RoutingFrame {
     /// Where the route may end, best first.
     public var goals: [RouteGoal]
     /// Whether a failure runs the global's route failure feedback.
     public let callsFailureTree: Bool
+    /// Whether the walk may leave the Sim's room, for a slot that ignores rooms (a door's other
+    /// side).
+    public var ignoresRooms = false
     /// A turn alone, toward this facing, instead of a walk (Look Towards).
     let turnOnly: Double?
 
-    private enum State: Equatable {
+    private enum State {
         case planning
         case turning(toward: Double, thenWalks: Bool)
         case walking
         case sitting
+        /// Running a portal's routine, which takes the Sim through to another room.
+        case throughPortal(Entity)
+        /// Waiting for a Sim asked to move out of the way, for so many more ticks.
+        case waiting(Int)
         case failing(RouteFailure)
         case done
     }
@@ -93,9 +110,26 @@ public final class RoutingFrame {
     private var moveTotal = 1
     private var velocity = 0
     private var goal: RouteGoal?
+    /// What the Sim may walk through on this path: what it stood inside when it was planned, and
+    /// the goal's chair.
+    private var walksThrough: [MultitileGroup] = []
     private var retries = 3
+    /// How many more times the Sim waits for one it asked to move.
+    private var waitsLeft = maximumWaits
     /// Why the route can't start, found before it was pushed (a slot with no spots).
     private var initialFailure: (RouteFailure, Entity?)?
+    /// The portals that failed to take the Sim through, left out when planning again.
+    private var failedPortals: [Int16] = []
+    /// How many more portals the route may go through.
+    private var portalsLeft = maximumPortals
+
+    /// The most portals one route goes through, so content can't send a Sim back and forth for
+    /// ever.
+    static let maximumPortals = 32
+    /// How long a Sim waits for one it asked to move, in ticks, before trying again.
+    static let shooWait = 10
+    /// The most times one route waits for that: 6 waits, 60 ticks in all, about two seconds.
+    static let maximumWaits = 6
 
     /// The global's routine a failed route runs to show it, given the reason and the blocker.
     static let failureTree: UInt16 = 398
@@ -152,18 +186,19 @@ public final class RoutingFrame {
                 return try startTurn(sim, toward: turn, thenWalks: false) ? .walking : finish(sim, on: thread)
             }
             if let (failure, blocker) = initialFailure { return try fail(sim, failure, blocker: blocker, on: thread) }
-            if Self.isCancelled(sim) { return try fail(sim, .interrupted, blocker: nil, on: thread) }
-            switch try vm.findPath(for: sim, from: sim.position, to: goals) {
-            case .failure(let failure):
-                return try fail(sim, failure, blocker: nil, on: thread)
-            case .success(let path):
-                waypoints = path.waypoints
-                goal = goals[path.goal]
-                previous = waypoints[0]
-                leg = 1
-                guard waypoints.count > 1 else { return try arrive(sim, on: thread) }
-                return try startLeg(sim, firstLeg: true, on: thread)
+            return try plan(sim, on: thread)
+        case .throughPortal(let portal):
+            if thread.lastExitCode != .returnTrue || vm.architecture.room(at: sim.position) == vm.architecture.room(at: portal.position) {
+                failedPortals.append(portal.objectID)
             }
+            return try plan(sim, on: thread)
+        case .waiting(let ticks):
+            if Self.isCancelled(sim) { return try fail(sim, .interrupted, blocker: nil, on: thread) }
+            guard ticks <= 0 else {
+                state = .waiting(ticks - 1)
+                return .walking
+            }
+            return try plan(sim, on: thread)
         case .turning(let target, let thenWalks):
             guard sim.sim.animations.first?.endReached ?? true else { return .walking }
             sim.direction = Direction(radians: target)
@@ -190,8 +225,18 @@ public final class RoutingFrame {
             let y = Int(previous.y) + (Int(target.y) - Int(previous.y)) * moveFrames / moveTotal
             let next = LotPosition(x: Int16(truncatingIfNeeded: x), y: Int16(truncatingIfNeeded: y), level: previous.level)
             blendWalk(sim)
+            sim.walksThrough = walksThrough
+            defer { sim.walksThrough = [] }
             let placed = try vm.place(sim.group, at: next, facing: sim.direction)
             guard placed.status == .success else {
+                standStill(sim)
+                velocity = 0
+                // A Sim in the way is asked to move, and waited for while it does.
+                if let blocker = placed.object, waitsLeft > 0, try vm.shoo(blocker, by: sim) || VM.isBeingShooed(blocker) {
+                    waitsLeft -= 1
+                    state = .waiting(Self.shooWait)
+                    return .walking
+                }
                 retries -= 1
                 guard retries > 0 else { return try fail(sim, .noPath, blocker: placed.object, on: thread) }
                 state = .planning
@@ -203,6 +248,66 @@ public final class RoutingFrame {
             guard leg < waypoints.count else { return try arrive(sim, on: thread) }
             return try startLeg(sim, firstLeg: false, on: thread)
         }
+    }
+
+    // MARK: Planning
+
+    /// Finds the way to the nearest goal and starts walking it; with every goal in another room,
+    /// heads for the first portal on the way there instead.
+    private func plan(_ sim: Entity, on thread: VMThread) throws(SimAnticsError) -> Step {
+        if Self.isCancelled(sim) { return try fail(sim, .interrupted, blocker: nil, on: thread) }
+        switch try sim.vm.findPath(for: sim, from: sim.position, to: goals, ignoringRooms: ignoresRooms) {
+        case .failure(.noRoomRoute):
+            return try enterPortal(sim, on: thread)
+        case .failure(let failure):
+            return try fail(sim, failure, blocker: nil, on: thread)
+        case .success(let path):
+            waypoints = path.waypoints
+            goal = goals[path.goal]
+            walksThrough = sim.footprint.map { own in
+                sim.vm.entities.filter { $0.group !== sim.group && $0.footprint?.intersects(own) == true }.map(\.group)
+            } ?? []
+            if let chair = goal?.chair { walksThrough.append(chair.group) }
+            previous = waypoints[0]
+            leg = 1
+            guard waypoints.count > 1 else { return try arrive(sim, on: thread) }
+            return try startLeg(sim, firstLeg: true, on: thread)
+        }
+    }
+
+    /// Runs the portal's routine (entry point 15) that starts the way to the best goal's room
+    /// (``VM/roomRoute(from:to:avoiding:)``), for a portal whose condition allows the Sim. The
+    /// routine walks the Sim to the door or stairs and through, and the route plans again from
+    /// the room it ends in. A portal whose condition refuses, or that leaves the Sim where it was,
+    /// is left out from then on.
+    private func enterPortal(_ sim: Entity, on thread: VMThread) throws(SimAnticsError) -> Step {
+        let vm = sim.vm
+        while portalsLeft > 0 {
+            var first: Entity?
+            for goal in goals where !vm.architecture.isOutOfBounds(goal.position) {
+                if let chain = vm.roomRoute(from: sim.position, to: vm.architecture.room(at: goal.position), avoiding: failedPortals),
+                   let portal = chain.first {
+                    first = portal
+                    break
+                }
+            }
+            guard let portal = first else { break }
+            portalsLeft -= 1
+            guard let function = try Primitives.ObjectFunction.action(.portal, of: portal, for: sim),
+                  let routine = try vm.routine(opcode: function, codeOwner: portal.object),
+                  let top = thread.stack.last else {
+                failedPortals.append(portal.objectID)
+                continue
+            }
+            let through = StackFrame(thread: thread, routine: routine, caller: sim, callee: portal, codeOwner: portal.object)
+            through.stackObject = portal
+            through.isActionTree = top.isActionTree
+            through.arguments = [0, 0, 0, 0]
+            thread.push(through)
+            state = .throughPortal(portal)
+            return .called
+        }
+        return try fail(sim, .noRoomRoute, blocker: nil, on: thread)
     }
 
     // MARK: Walking

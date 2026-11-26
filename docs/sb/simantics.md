@@ -202,9 +202,13 @@ action whose object is deleted resets the Sim. A reset empties the queue.
 **By hand.** A client asks through `VM`: `availableInteractions(on:for:)` lists what a Sim may
 choose on an object now, as a pie menu would; `queueInteraction(_:on:for:)` queues one by number
 as a player choosing it (user-driven, checked first) and returns its ID; and
-`cancelInteraction(id:for:)` cancels it. A request turned down throws an
-`InteractionRequestError`: not a Sim, no such interaction, no action tree, or not allowed now.
-Call them between ticks.
+`cancelInteraction(id:for:)` cancels it. Only an object a player can see offers a menu
+(`Entity.offersMenus`): it has graphics, isn't hidden (object data `hidden`), and isn't one of
+the lot's controllers (object type 7). The controllers and trackers keep interactions for the
+game's own use; a skill tracker's check tree deletes the object that runs it, and a death
+controller's interactions kill the Sim. A request turned down throws an
+`InteractionRequestError`: not a Sim, no menu on that object, no such interaction, no action
+tree, or not allowed now. Call them between ticks.
 
 An object's `UseCount` (object data) counts the Sims with any part of it as the callee of a
 routine on their stack or an action in their queue.
@@ -217,8 +221,8 @@ let action = try QueuedAction(pickUp, of: ball)                  // nil without 
 
 ## Routing
 
-Phase E brings routing in five steps (see the roadmap). Sims walk within a room; doors and
-stairs between rooms come with E5.
+Phase E brought routing in five steps (see the roadmap). Sims walk within a room, and through
+doors and stairs between rooms and floors.
 
 A **routing frame** (`RoutingFrame`) is a stack frame that runs a route instead of
 instructions: a routing primitive pushes it onto the Sim's thread with
@@ -239,8 +243,33 @@ second, at the animations' 3 units a tile, and running covers about 4.6. Its ani
 from standing (walk table 3) into the walk (20, or 21 running) and half walk (25) as it speeds
 up. On arriving it turns to the goal's facing, stands, and records the goal's directions in
 person data `RouteEntryFlags` (37); at a chair, it runs the chair's sit entry point (26). A
-cancelled interaction stops it with "interrupted", unless it's non-interruptable; something
-moving into its way makes it plan again, three times at most.
+cancelled interaction stops it with "interrupted", unless it's non-interruptable. It walks
+through what it stood inside when the path was planned, so it can step out of a chair, and into
+the chair it's walking to, as the path does. Something moving into its way makes it plan again,
+three times at most.
+
+**Doors and stairs** (E5). A portal is an object with a routine at its portal entry point (15),
+and another part that's a portal too in a different room: a door's two halves, or the two ends of
+an elevator or stairs. When every goal is in another room or on another level, the route finds
+the portals to pass through (`VM.roomRoute(from:to:avoiding:)`: the shortest chain by walking
+distance between them, each level between counting 10 tiles, ties to the lowest object ID) for
+the first goal it can reach that way. It runs the first portal's routine, with the Sim as caller
+and the portal as callee and stack object, if the routine's condition allows the Sim. The routine
+does the rest: a door walks the Sim up to it, opens, walks it to the other side and closes, and
+an elevator carries it up or down. The route then plans again from the room the Sim ends in. A
+portal whose routine returns false or leaves the Sim in the same room is left out from then on.
+One route goes through 32 portals at most, then fails with "no room route", as it does when no
+chain reaches the goal. A routing slot that ignores rooms, such as a door's other side, walks
+straight there through the doorway (`findPath(…, ignoringRooms: true)`), and walls still stand
+in the way.
+
+**Asking a Sim to move** (E5). When another Sim stands in the way of a step, the walker asks it
+to move (`VM.shoo(_:by:)`): it places the global shoo object ("Destination - For Go Here &
+Shoo", GUID `0x7C4`) where that Sim stands, and queues the object's interaction 3 on it, which
+must run, at user-driven priority. The blocker walks off the spot, and the shoo object goes away
+when that's done. A Sim already asked isn't asked again. The walker waits 10 ticks and tries
+again, up to six times, before it falls back to planning around it. Snap with flag 2 asks a Sim
+in the way the same way, and still fails.
 
 What a route keeps out of: `Architecture.wallObstacles(level:)` turns each wall into rectangles
 in sixteenths of a tile (a band along a straight wall, unless there's a door in it, and four
@@ -266,8 +295,8 @@ walls and footprints in its way grown by half its width (3 sixteenths). An obsta
 or a goal is already inside is left out, so a Sim can step away from a counter or up to a chair.
 The path is then cut to the points the Sim turns at, each the farthest it can walk to straight.
 Equal choices always break the same way. A goal in another room or on another level is "no room
-route" until doors and stairs (E5); none reachable, or more than 250,000 points searched, is "no
-path". The grid is worked out as it's reached, so a whole outdoor lot costs only what the route
+route", which a route takes through portals (above); none reachable, or more than 250,000 points
+searched, is "no path". The grid is worked out as it's reached, so a whole outdoor lot costs only what the route
 touches: across the owner's 64-tile lot on 1.1097.1.0, a route takes 2 to 16 ms (release build).
 
 Anything routing feeds into the simulation, such as a Sim's facing, uses `DeterministicMath`'s
@@ -323,7 +352,7 @@ ones; the names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 | 22 | `LookTowards` | Turns the Sim's head (drawing only) or body toward the camera (nothing in TSO): true; turns the body toward or away from the stack object, or its parts' middle, with a turn animation |
 | 23 | `PlaySound` | Plays a sound event (headless, as on a lot server: changes nothing) |
 | 25 | `TransferFunds` | Moves money between the caller, the stack object, owners, and the game; waits a tick for the answer, or only tests in a check tree |
-| 27 | `GotoRelativePosition` | Walks the Sim beside the stack object: on top of it, anywhere near, or one of its eight sides, facing as the operand says |
+| 27 | `GotoRelativePosition` | Walks the Sim beside the stack object: on top of it, anywhere near, or one of its eight sides, facing as the operand says, through doors and stairs when it's elsewhere |
 | 28 | `RunTreeByName` | Runs one of the stack object's routines, found by a name from a string table: pushed, or to completion on the caller's or the stack object's thread |
 | 31 | `SetToNext` | Finds the next object, by ID, GUID, category, tile, or neighbor |
 | 32 | `TestObjectType` | Tests whether an object has a GUID |
@@ -332,8 +361,8 @@ ones; the names of all 49 TSO primitives are in `PrimitiveTable.fsoCompat`.
 | 41 | `SetBalloonHeadline` | Shows or clears a balloon over the caller or the stack object (headless: it counts down) |
 | 42 | `CreateObjectInstance` | Creates an object beside, in front of, or under another, and makes it the stack object |
 | 44 | `AnimateSim` | Plays an animation on the calling Sim and hands the routine its events; sets or stops the carry animation; ID 0 goes back to the posture's walk |
-| 45 | `GotoRoutingSlot` | Walks the Sim to the best reachable spot of one of the stack object's routing slots, or the global's |
-| 46 | `Snap` | Moves the caller to a routing slot's best spot by the stack object (by parameter, number, or the global's), in front of it, or into its slot 0, without walking |
+| 45 | `GotoRoutingSlot` | Walks the Sim to the best reachable spot of one of the stack object's routing slots, or the global's, through doors and stairs when it's elsewhere |
+| 46 | `Snap` | Moves the caller to a routing slot's best spot by the stack object (by parameter, number, or the global's), in front of it, or into its slot 0, without walking; flag 2 asks a Sim in the way to move |
 | 47 | `Reach` | Reaches for the stack object or one of its slots, and picks up or puts down on the animation's event 0 |
 | 48 | `StopAllSounds` | Stops an object's sounds; headless, nothing plays |
 | 49 | `NotifyStackObjectOutOfIdle` | Wakes the stack object: brings its next run forward and interrupts its Sleep |
